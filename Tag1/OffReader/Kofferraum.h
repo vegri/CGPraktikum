@@ -43,16 +43,16 @@ public:
 public slots:
   void loadPolyhedron();
   void loadPackage1();
-//  void loadPackage2();
-//  void loadPackage3();
-//  void loadPackage4();
-//  void loadPackage5();
-//  void loadPackage6();
-//  void loadPackage7();
-//  void loadPackage8();
-//  void loadPackage9();
-//  void loadPackage10();
-//  void loadAllPackage();
+  void loadPackage2();
+  void loadPackage3();
+  void loadPackage4();
+  void loadPackage5();
+  void loadPackage6();
+  void loadPackage7();
+  void loadPackage8();
+  void loadPackage9();
+  void loadPackage10();
+  void loadAllPackage();
 
 private:
 	CGView *ogl;	

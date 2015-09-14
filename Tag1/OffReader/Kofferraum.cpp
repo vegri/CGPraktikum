@@ -27,16 +27,16 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     QMenu *file = new QMenu("&File",this);
     file->addAction ("Load polyhedron", this, SLOT(loadPolyhedron()), Qt::CTRL+Qt::Key_L);
     file->addAction ("Load package 340-30-460", this, SLOT(loadPackage1()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 410-160-1490", this, SLOT(loadPackage2()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 340-40-740", this, SLOT(loadPackage3()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 140-190-800", this, SLOT(loadPackage4()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 110-50-480", this, SLOT(loadPackage5()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 360-40-600", this, SLOT(loadPackage6()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 250-100-310", this, SLOT(loadPackage7()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 310-190-320", this, SLOT(loadPackage8()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 470-440-680", this, SLOT(loadPackage9()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load package 310-280-450", this, SLOT(loadPackage10()), Qt::CTRL+Qt::Key_L);
-//  file->addAction ("Load all packages", this, SLOT(loadAllPackages()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 410-160-1490", this, SLOT(loadPackage2()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 340-40-740", this, SLOT(loadPackage3()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 140-190-800", this, SLOT(loadPackage4()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 110-50-480", this, SLOT(loadPackage5()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 360-40-600", this, SLOT(loadPackage6()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 250-100-310", this, SLOT(loadPackage7()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 310-190-320", this, SLOT(loadPackage8()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 470-440-680", this, SLOT(loadPackage9()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 310-280-450", this, SLOT(loadPackage10()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load all packages", this, SLOT(loadAllPackages()), Qt::CTRL+Qt::Key_L);
     file->addAction ("Quit", qApp, SLOT(quit()), Qt::CTRL+Qt::Key_Q);
 	menuBar()->addMenu(file);
 
@@ -63,36 +63,36 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 void CGMainWindow::loadPackage1(){
     ogl->packageList.push_back(Package(.340,.30,.460));
 }
-//void CGMainWindow::loadPackage2(){
+void CGMainWindow::loadPackage2(){
+ogl->packageList.push_back(Package(.410,.160,.1490));
+}
+void CGMainWindow::loadPackage3(){
+ogl->packageList.push_back(Package(.340,.40,.740));
+}
+void CGMainWindow::loadPackage4(){
+ogl->packageList.push_back(Package(.140,.190,.800));
+}
+void CGMainWindow::loadPackage5(){
+ogl->packageList.push_back(Package(.110,.50,.480));
+}
+void CGMainWindow::loadPackage6(){
+ogl->packageList.push_back(Package(.360,.40,.600));
+}
+void CGMainWindow::loadPackage7(){
+ogl->packageList.push_back(Package(.250,.100,.310));
+}
+void CGMainWindow::loadPackage8(){
+ogl->packageList.push_back(Package(.310,.190,.320));
+}
+void CGMainWindow::loadPackage9(){
+ogl->packageList.push_back(Package(.470,.440,.680));
+}
+void CGMainWindow::loadPackage10(){
+ogl->packageList.push_back(Package(.310,.280,.450));
+}
+void CGMainWindow::loadAllPackage(){
 
-//}
-//void CGMainWindow::loadPackage3(){
-
-//}
-//void CGMainWindow::loadPackage4(){
-
-//}
-//void CGMainWindow::loadPackage5(){
-
-//}
-//void CGMainWindow::loadPackage6(){
-
-//}
-//void CGMainWindow::loadPackage7(){
-
-//}
-//void CGMainWindow::loadPackage8(){
-
-//}
-//void CGMainWindow::loadPackage9(){
-
-//}
-//void CGMainWindow::loadPackage10(){
-
-//}
-//void CGMainWindow::loadAllPackage(){
-
-//}
+}
 
 CGMainWindow::~CGMainWindow () {}
 
