@@ -16,7 +16,7 @@
 #include <limits>
 
 #include "Perspective.h"
-#include "OffReader.h"
+//#include "OffReader.h"
 
 CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 : QMainWindow (parent, flags) {
