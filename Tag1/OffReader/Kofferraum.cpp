@@ -26,6 +26,17 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 	// Create a menu
   QMenu *file = new QMenu("&File",this);
   file->addAction ("Load polyhedron", this, SLOT(loadPolyhedron()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 340-30-460", this, SLOT(loadPackage1()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 410-160-1490", this, SLOT(loadPackage2()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 340-40-740", this, SLOT(loadPackage3()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 140-190-800", this, SLOT(loadPackage4()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 110-50-480", this, SLOT(loadPackage5()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 360-40-600", this, SLOT(loadPackage6()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 250-100-310", this, SLOT(loadPackage7()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 310-190-320", this, SLOT(loadPackage8()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 470-440-680", this, SLOT(loadPackage9()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load package 310-280-450", this, SLOT(loadPackage10()), Qt::CTRL+Qt::Key_L);
+  file->addAction ("Load all packages", this, SLOT(loadAllPackages()), Qt::CTRL+Qt::Key_L);
   file->addAction ("Quit", qApp, SLOT(quit()), Qt::CTRL+Qt::Key_Q);
 	menuBar()->addMenu(file);
 
@@ -111,7 +122,7 @@ CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent) 
 }
 
 void CGView::initializeGL() {
-	qglClearColor(Qt::black);
+    qglClearColor(Qt::white);
 	zoom = 1.0;
 	center = 0.0;
   
@@ -156,8 +167,43 @@ void CGView::paintGL() {
   glMultMatrixd(currentRotationMatrix.transpose().ptr());
   glScaled(zoom, zoom, zoom);
   glTranslated(-center[0],-center[1],-center[2]);
+
+//  glColor3f(1.0, 0.0, 0.0);
+//  glLineWidth(3.0);
+//  glBegin(GL_LINES);
+//  glVertex3d(10000.0,0,0);
+//  glVertex3d(-10000.0,0,0);
+//  glEnd();
+
+//  glColor3f(0.0, 1.0, 0.0);
+//  glBegin(GL_LINES);
+//  glVertex3d(0, 10000.0,0);
+//  glVertex3d(0, -10000.0,0);
+//  glEnd();
+
+//  glColor3f(0.0, 0.0, 1.0);
+//  glBegin(GL_LINES);
+//  glVertex3d(0,0,10000.0);
+//  glVertex3d(0,0,-10000.0);
+//  glEnd();
   glColor4f(0.0, 0.3, 0.6, 0.7);
   paintModel();
+
+
+
+}
+
+void CGView::drawIkeaPackage(std::vector<Vector3d> packageList){
+
+    // umrechnen in mm;
+//    height*=10;
+//    width*=10;
+//    depth*=10;
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
+
 }
 
 
@@ -278,4 +324,5 @@ int main (int argc, char **argv) {
 
 	return app.exec();
 }
+
 

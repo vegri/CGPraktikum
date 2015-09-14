@@ -39,6 +39,17 @@ public:
 
 public slots:
   void loadPolyhedron();
+  void loadPackage1();
+  void loadPackage2();
+  void loadPackage3();
+  void loadPackage4();
+  void loadPackage5();
+  void loadPackage6();
+  void loadPackage7();
+  void loadPackage8();
+  void loadPackage9();
+  void loadPackage10();
+  void loadAllPackage();
 
 private:
 	CGView *ogl;	
@@ -78,6 +89,8 @@ protected:
 	void mousePressEvent(QMouseEvent*);
 	void mouseReleaseEvent(QMouseEvent*);
 	void wheelEvent(QWheelEvent*);
+    void drawIkeaPackage(std::vector<Vector3d> packageList);
+
 
   int oldX,oldY;
   int currentWidth, currentHeight;
