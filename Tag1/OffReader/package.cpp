@@ -72,6 +72,12 @@ Vector3d Package::getCenter()
     return center;
 }
 
+void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &horiz_dist)
+{
+    Vector3d loc=rot*(loc_origin-center);
+    Vector3d dir=rot*direction;
+}
+
 void Package::init()
 {
     corners[0]=Vector3d(0,0,0);

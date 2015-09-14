@@ -27,11 +27,13 @@ public:
     void move(Vector3d move_p);
     double getDiameter();
     Vector3d getCenter();
-
+    void getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist,double &horiz_dist);
 private:
     void init();
     double height, width, depth;
     Vector3d center;
+    Vector3d move_dir;
+    bool move_in_dir;
     Vector4d color;
     Quat4d rot;
     vecvec3d corners;
