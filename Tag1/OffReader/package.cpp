@@ -76,6 +76,11 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist
 {
     Vector3d loc=rot*(loc_origin-center);
     Vector3d dir=rot*direction;
+    dir.normalize();
+    uint i=0;
+    move_dir=corners[0]-corners[1];
+
+    (move_dir-loc-dir*((move_dir-loc)*dir));
 }
 
 void Package::init()

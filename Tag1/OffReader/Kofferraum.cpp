@@ -298,6 +298,9 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             }
         }
 
+        if(loc_picked>-1 && loc_picked<this->packageList.size())
+            this->picked=loc_picked;
+
     } else {
         q_old = q_now;
         if (animationRunning) {
