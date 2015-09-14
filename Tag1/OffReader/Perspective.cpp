@@ -338,18 +338,18 @@ void CGView::keyPressEvent(QKeyEvent *e) {
   }
 }
 
-int main (int argc, char **argv) {
-	QApplication app(argc, argv);
+//int main (int argc, char **argv) {
+//	QApplication app(argc, argv);
 
-	if (!QGLFormat::hasOpenGL()) {
-		qWarning ("This system has no OpenGL support. Exiting.");
-		return 1;
-	}
+//	if (!QGLFormat::hasOpenGL()) {
+//		qWarning ("This system has no OpenGL support. Exiting.");
+//		return 1;
+//	}
 
-	CGMainWindow *w = new CGMainWindow(NULL);
+//	CGMainWindow *w = new CGMainWindow(NULL);
 
-	w->show();
+//	w->show();
 
-	return app.exec();
-}
+//	return app.exec();
+//}
 

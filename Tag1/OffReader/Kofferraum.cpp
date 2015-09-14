@@ -124,9 +124,9 @@ void CGView::initializeGL() {
 	//glEnable(GL_NORMALIZE);
 	//glEnable(GL_COLOR_MATERIAL);
 
-  QTimer *timer = new QTimer(this);
-  connect(timer, SIGNAL(timeout()), this, SLOT(timer()));
-  timer->start(20);
+//  QTimer *timer = new QTimer(this);
+//  connect(timer, SIGNAL(timeout()), this, SLOT(timer()));
+//  timer->start(20);
 }
 
 void CGView::paintModel() {
@@ -187,13 +187,29 @@ void CGView::worldCoord(int x, int y, int z, Vector3d &v) {
 }
 
 void CGView::mousePressEvent(QMouseEvent *event) {
-	oldX = event->x();
-	oldY = event->y();
+    oldX = event->x();
+    oldY = event->y();
+  q_old = q_now;
+  if (animationRunning) {
+    q_now = q_animated;
+    q_old = q_animated;
+    animationRunning = false;
+  }
 
 }
 
 void CGView::mouseReleaseEvent(QMouseEvent *event) {
-
+    Vector3d u;
+    Vector3d v;
+    mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
+    mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
+    Quat4d q;
+    trackball(u, v, q);
+    if (q.lengthSquared() > 0) {
+      q_now = q * q_old;
+    }
+    q_old = q_now;
+    currentRotationMatrix.makeRotate(q_now);
     updateGL();
 }
 
@@ -203,8 +219,20 @@ void CGView::wheelEvent(QWheelEvent* event) {
 }
 
 void CGView::mouseMoveEvent(QMouseEvent* event) {
-
-	updateGL();
+    Vector3d u;
+    Vector3d v;
+    mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
+  mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
+  Quat4d q;
+  trackball(u, v, q);
+  if (q.lengthSquared() > 0) {
+    // sometimes mouseMove events occur even when the mouse stays on
+    // the same pixel. The length of `q` becomes 0, and everything breaks
+    // down. To prevent this, we check that `q` is not 0.
+    q_now = q * q_old;
+  }
+  currentRotationMatrix.makeRotate(q_now);
+    updateGL();
 }
 
 void CGView::mouseToTrackball(int x, int y, int w, int h, Vector3d &v) {

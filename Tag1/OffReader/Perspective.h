@@ -66,7 +66,7 @@ public:
   void keyPressEvent(QKeyEvent *e);
 
 public slots:
-    void timer();
+//    void timer();
 
 protected:
 
