@@ -59,6 +59,51 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 	statusBar()->showMessage("Ready",1000);
 }
 
+
+void CGMainWindow::loadPackage1(){
+    std::vector<Vector3d> package1coords;
+    package1coords.push_back(Vector3d(0,0,0));
+    package1coords.push_back(Vector3d(340,0,0));
+    package1coords.push_back(Vector3d(0,30,0));
+    package1coords.push_back(Vector3d(340,30,0));
+    package1coords.push_back(Vector3d(0,0,460));
+    package1coords.push_back(Vector3d(340,0,460));
+    package1coords.push_back(Vector3d(0,30,460));
+    package1coords.push_back(Vector3d(340,30,460));
+
+    ogl->packageList.push_back();
+}
+void CGMainWindow::loadPackage2(){
+
+}
+void CGMainWindow::loadPackage3(){
+
+}
+void CGMainWindow::loadPackage4(){
+
+}
+void CGMainWindow::loadPackage5(){
+
+}
+void CGMainWindow::loadPackage6(){
+
+}
+void CGMainWindow::loadPackage7(){
+
+}
+void CGMainWindow::loadPackage8(){
+
+}
+void CGMainWindow::loadPackage9(){
+
+}
+void CGMainWindow::loadPackage10(){
+
+}
+void CGMainWindow::loadAllPackage(){
+
+}
+
 CGMainWindow::~CGMainWindow () {}
 
 void CGMainWindow::loadPolyhedron() {

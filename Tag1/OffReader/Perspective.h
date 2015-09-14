@@ -66,7 +66,8 @@ public:
 	void worldCoord(int x, int y, int z, Vector3d &v);
 
   Vector3d min, max, center;	
-  std::vector<Vector3d> coord;      // the coords of the loaded model
+  std::vector<Vector3d> coord; // the coords of the loaded model
+  std::vector<std::vector<Vector3d> > packageList;
   std::vector<std::vector<int> > ifs;   // the faces of the loaded model, ifs[i] contains the indices of the i-th face
 	double zoom;
   Quat4d q_old;
