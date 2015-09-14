@@ -27,16 +27,16 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     QMenu *file = new QMenu("&File",this);
     file->addAction ("Load polyhedron", this, SLOT(loadPolyhedron()), Qt::CTRL+Qt::Key_L);
     file->addAction ("Load package 340-30-460", this, SLOT(loadPackage1()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 410-160-1490", this, SLOT(loadPackage2()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 340-40-740", this, SLOT(loadPackage3()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 140-190-800", this, SLOT(loadPackage4()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 110-50-480", this, SLOT(loadPackage5()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 360-40-600", this, SLOT(loadPackage6()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 250-100-310", this, SLOT(loadPackage7()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 310-190-320", this, SLOT(loadPackage8()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 470-440-680", this, SLOT(loadPackage9()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load package 310-280-450", this, SLOT(loadPackage10()), Qt::CTRL+Qt::Key_L);
-  file->addAction ("Load all packages", this, SLOT(loadAllPackages()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 410-160-1490", this, SLOT(loadPackage2()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 340-40-740", this, SLOT(loadPackage3()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 140-190-800", this, SLOT(loadPackage4()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 110-50-480", this, SLOT(loadPackage5()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 360-40-600", this, SLOT(loadPackage6()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 250-100-310", this, SLOT(loadPackage7()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 310-190-320", this, SLOT(loadPackage8()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 470-440-680", this, SLOT(loadPackage9()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load package 310-280-450", this, SLOT(loadPackage10()), Qt::CTRL+Qt::Key_L);
+    file->addAction ("Load all packages", this, SLOT(loadAllPackages()), Qt::CTRL+Qt::Key_L);
     file->addAction ("Quit", qApp, SLOT(quit()), Qt::CTRL+Qt::Key_Q);
 	menuBar()->addMenu(file);
 
@@ -57,6 +57,7 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 	setCentralWidget(f);
 
 	statusBar()->showMessage("Ready",1000);
+    loadPackage1();
 }
 
 
@@ -152,8 +153,8 @@ void CGMainWindow::loadPolyhedron() {
 
 CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent) {
 
-
-  setFocusPolicy(Qt::StrongFocus);
+    move=false;
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 void CGView::initializeGL() {
@@ -274,12 +275,30 @@ void CGView::worldCoord(int x, int y, int z, Vector3d &v) {
 void CGView::mousePressEvent(QMouseEvent *event) {
     oldX = event->x();
     oldY = event->y();
-  q_old = q_now;
-  if (animationRunning) {
-    q_now = q_animated;
-    q_old = q_animated;
-    animationRunning = false;
-  }
+    double epsilon=0.01;
+    if(move){
+        Vector3d dir, dir_n, near;
+        worldCoord(oldX,oldY,1,dir);
+        worldCoord(oldX,oldY,-1,near);
+        dir=dir-near;
+        dir_n=dir.normalized();
+
+        for (uint i = 0; i < this->packageList.size(); ++i) {
+            Vector3d loc_c=this->packageList[i].getCenter()-near;
+            double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
+            if(dist<epsilon+this->packageList[i].getDiameter()/2){
+
+            }
+        }
+
+    } else {
+        q_old = q_now;
+        if (animationRunning) {
+            q_now = q_animated;
+            q_old = q_animated;
+            animationRunning = false;
+        }
+    }
 
 }
 
@@ -306,17 +325,26 @@ void CGView::wheelEvent(QWheelEvent* event) {
 void CGView::mouseMoveEvent(QMouseEvent* event) {
     Vector3d u;
     Vector3d v;
-    mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
-  mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
-  Quat4d q;
-  trackball(u, v, q);
-  if (q.lengthSquared() > 0) {
-    // sometimes mouseMove events occur even when the mouse stays on
-    // the same pixel. The length of `q` becomes 0, and everything breaks
-    // down. To prevent this, we check that `q` is not 0.
-    q_now = q * q_old;
-  }
-  currentRotationMatrix.makeRotate(q_now);
+    if(move){
+        Vector3d move_vec=Vector3d((1.0*event->x()-oldX)/currentWidth,-(1.0*event->y()-oldY)/currentHeight,0);
+        move_vec=q_now.conjugate()*move_vec/zoom;
+        this->packageList[picked].move(move_vec);
+        oldX=event->x();
+        oldY=event->y();
+    } else {
+
+        mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
+        mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
+        Quat4d q;
+        trackball(u, v, q);
+        if (q.lengthSquared() > 0) {
+            // sometimes mouseMove events occur even when the mouse stays on
+            // the same pixel. The length of `q` becomes 0, and everything breaks
+            // down. To prevent this, we check that `q` is not 0.
+            q_now = q * q_old;
+        }
+        currentRotationMatrix.makeRotate(q_now);
+    }
     updateGL();
 }
 
@@ -346,7 +374,24 @@ void CGView::trackball(Vector3d u, Vector3d v, Quat4d &q) {
 }
 
 void CGView::keyPressEvent(QKeyEvent *e) {
-
+    switch (e->key()) {
+    case Qt::Key_Space:
+        move=!move;
+        std::cout << move << std::endl;
+        break;
+    case Qt::Key_X:
+        this->packageList[this->picked].resetColor();
+        this->picked=(this->packageList.size()+this->picked+1)%this->packageList.size();
+        this->packageList[this->picked].setColor(Vector4d(0,0,0,1));
+        break;
+    case Qt::Key_Y:
+        this->packageList[this->picked].resetColor();
+        this->picked=(this->packageList.size()+this->picked-1)%this->packageList.size();
+        this->packageList[this->picked].setColor(Vector4d(0,0,0,1));
+        break;
+    default:
+        break;
+    }
 }
 
 int main (int argc, char **argv) {

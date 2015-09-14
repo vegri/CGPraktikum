@@ -105,6 +105,8 @@ protected:
   double timeParameter;
 
   int animationMode;
+  uint picked;
+  bool move;
   const int SLERP = 0;
   const int EULER_ANGLES = 1;
 };
