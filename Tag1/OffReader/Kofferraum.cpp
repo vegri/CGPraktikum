@@ -90,7 +90,7 @@ ogl->packageList.push_back(Package(.470,.440,.680));
 void CGMainWindow::loadPackage10(){
 ogl->packageList.push_back(Package(.310,.280,.450));
 }
-void CGMainWindow::loadAllPackage(){
+void CGMainWindow::loadAllPackages(){
 
 }
 

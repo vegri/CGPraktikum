@@ -52,7 +52,7 @@ public slots:
   void loadPackage8();
   void loadPackage9();
   void loadPackage10();
-  void loadAllPackage();
+  void loadAllPackages();
 
 private:
 	CGView *ogl;	
