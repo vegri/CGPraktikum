@@ -11,6 +11,9 @@
 #include <QTimer>
 
 #include "vecmath.h"
+#include "package.h"
+
+
 
 #ifndef VECMATH_VERSION
 #error "wrong vecmath included, must contain a VECMATH_VERSION macro"
@@ -40,16 +43,16 @@ public:
 public slots:
   void loadPolyhedron();
   void loadPackage1();
-  void loadPackage2();
-  void loadPackage3();
-  void loadPackage4();
-  void loadPackage5();
-  void loadPackage6();
-  void loadPackage7();
-  void loadPackage8();
-  void loadPackage9();
-  void loadPackage10();
-  void loadAllPackage();
+//  void loadPackage2();
+//  void loadPackage3();
+//  void loadPackage4();
+//  void loadPackage5();
+//  void loadPackage6();
+//  void loadPackage7();
+//  void loadPackage8();
+//  void loadPackage9();
+//  void loadPackage10();
+//  void loadAllPackage();
 
 private:
 	CGView *ogl;	
@@ -67,7 +70,7 @@ public:
 
   Vector3d min, max, center;	
   std::vector<Vector3d> coord; // the coords of the loaded model
-  std::vector<std::vector<Vector3d> > packageList;
+  std::vector<Package> packageList;
   std::vector<std::vector<int> > ifs;   // the faces of the loaded model, ifs[i] contains the indices of the i-th face
 	double zoom;
   Quat4d q_old;
