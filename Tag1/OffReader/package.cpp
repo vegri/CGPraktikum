@@ -43,15 +43,13 @@ void Package::draw()
     glEnd();
 
     if(move_in_dir!=-1){
-        GLdouble *oldWidth;
-        glGetDoublev(GL_LINE_WIDTH,oldWidth);
         glLineWidth(4.5);
         glColor4d(0,1,0,1);
         glBegin(GL_LINES);
         glVertex3dv(corners[move_in_dir].ptr());
         glVertex3dv((corners[move_in_dir]+move_dir).ptr());
         glEnd();
-        glLineWidth(*oldWidth);
+        glLineWidth(2.0);
     }
 
     glColor4f(0.,0.,1.,1.);

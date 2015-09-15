@@ -58,6 +58,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 
     statusBar()->showMessage("Ready",1000);
     loadPackage1();
+    ogl->packageList[0].move(Vector3d(0.2,0.3,0.4));
+    loadPackage2();
 }
 
 
@@ -201,7 +203,7 @@ void CGView::paintGL() {
 
     //DEBUG
     glColor4f(1.,0.,0.,1.);
-    glLineWidth(3.);
+    glLineWidth(2.);
     glBegin(GL_LINES);
     glVertex3dv(d_ray_d.ptr());
     glVertex3dv(d_ray_f.ptr());
@@ -264,12 +266,14 @@ void CGView::mousePressEvent(QMouseEvent *event) {
                     loc_picked=i;
                     min_z=act_z;
                 }
-
             //}
         }
 
-        if(loc_picked>-1 && loc_picked<this->packageList.size())
+        if(loc_picked>-1 && loc_picked<this->packageList.size()){
+            this->packageList[picked].setMoveDir(false);
             this->picked=loc_picked;
+            this->packageList[picked].setMoveDir(true);
+        }
     }
 
 }
