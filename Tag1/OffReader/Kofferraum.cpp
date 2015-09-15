@@ -183,11 +183,12 @@ void CGView::paintModel() {
 void CGView::paintGL() {
     glMatrixMode(GL_MODELVIEW);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Matrix4d R=Matrix4d(q_now);
 
     // draw the rotated model
     glLoadIdentity();
     glTranslated(0, 0, -3);
-    glMultMatrixd(currentRotationMatrix.transpose().ptr());
+    glMultMatrixd(R.transpose().ptr());
     glScaled(zoom, zoom, zoom);
     glTranslated(-center[0],-center[1],-center[2]);
 
@@ -257,26 +258,18 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         for (uint i = 0; i < this->packageList.size(); ++i) {
             Vector3d loc_c=this->packageList[i].getCenter()-near_l;
             double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
-            if(dist<epsilon+this->packageList[i].getDiameter()/2){
+            //if(dist<epsilon+this->packageList[i].getDiameter()/2){
                 this->packageList[i].getDist(near_l,dir_n,dist,act_z);
                 if(dist<epsilon && min_z>act_z){
                     loc_picked=i;
                     min_z=act_z;
                 }
 
-            }
+            //}
         }
 
         if(loc_picked>-1 && loc_picked<this->packageList.size())
             this->picked=loc_picked;
-
-
-        q_old = q_now;
-        if (animationRunning) {
-            q_now = q_animated;
-            q_old = q_animated;
-            animationRunning = false;
-        }
     }
 
 }
@@ -292,7 +285,6 @@ void CGView::mouseReleaseEvent(QMouseEvent *event) {
         q_now = q * q_old;
     }
     q_old = q_now;
-    currentRotationMatrix.makeRotate(q_now);
     updateGL();
 }
 
@@ -321,8 +313,7 @@ void CGView::mouseMoveEvent(QMouseEvent* event) {
             // the same pixel. The length of `q` becomes 0, and everything breaks
             // down. To prevent this, we check that `q` is not 0.
             q_now = q * q_old;
-        }
-        currentRotationMatrix.makeRotate(q_now);
+        }        
     }
     updateGL();
 }
@@ -352,8 +343,27 @@ void CGView::trackball(Vector3d u, Vector3d v, Quat4d &q) {
     q.normalize();
 }
 
+void CGView::rot(GLdouble x, GLdouble y, GLdouble z)
+{
+    Quat4d t_q,q_x,q_y,q_z;
+    q_x=Quat4d(std::sin(x/2),0,0,std::cos(x/2));
+    q_y=Quat4d(0,std::sin(y/2),0,std::cos(y/2));
+    q_z=Quat4d(0,0,std::sin(z/2),std::cos(z/2));
+
+    t_q=q_x*q_z*q_y;
+    q_now=t_q*q_now;
+    q_now.normalize();
+    updateGL();
+}
+
 void CGView::keyPressEvent(QKeyEvent *e) {
     switch (e->key()) {
+    case Qt::Key_S: rot( 0.05,0,0); break;
+    case Qt::Key_W: rot(-0.05,0,0); break;
+    case Qt::Key_E: rot(0,-0.05,0); break;
+    case Qt::Key_Q: rot(0, 0.05,0); break;
+    case Qt::Key_A: rot(0,0,-0.05); break;
+    case Qt::Key_D: rot(0,0, 0.05); break;
     case Qt::Key_Space:
         move=!move;
         std::cout << move << std::endl;

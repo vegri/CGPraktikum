@@ -67,6 +67,7 @@ public:
 		inverting the projection and modelview matrix (as it it is 
 		after invocation of paintGL) and stores the result in v */
 	void worldCoord(int x, int y, int z, Vector3d &v);
+    void rot(GLdouble x, GLdouble y, GLdouble z);
 
   Vector3d min, max, center;	
   std::vector<Vector3d> coord; // the coords of the loaded model
@@ -76,7 +77,7 @@ public:
   Quat4d q_old;
 	Quat4d q_now;
   Quat4d q_animated;
-  Matrix4d currentRotationMatrix;
+  //Matrix4d currentRotationMatrix;
 	
   void keyPressEvent(QKeyEvent *e);
 

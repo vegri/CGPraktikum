@@ -2,6 +2,7 @@
 #define PACKAGE_H
 #include "vecmath.h"
 #include <vector>
+#include <iostream>
 
 #if _MSC_VER
     #include <gl/glu.h>

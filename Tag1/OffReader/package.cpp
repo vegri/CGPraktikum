@@ -89,14 +89,18 @@ Vector3d Package::getCenter()
 
 void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &parallel_dist)
 {
+    d_ray_lines.clear();
+    d_ray_points.clear();
+
+    //origin of ray in object coordinates
     Vector3d loc=rot*(loc_origin-center);
     Vector3d dir=rot*direction;
     dir.normalize();
     uint i=0;
     Vector3d edge=corners[0]-corners[1];
     Vector3d help_layer_normal=edge%dir;
-    //only for parallel lines
-    if(help_layer_normal.length()<1e-4){
+    //only if ray and edge are parallel
+    if(help_layer_normal.length()==0){
         //insert here decision if 0 or 1 has less distance
         parallel_dist=(corners[0]-loc)*dir;
         vert_dist=(corners[0]-loc-dir*parallel_dist).length();
@@ -112,18 +116,18 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist
 
     vert_dist=fabs(help_layer_normal*loc);
 
-    Vector3d res=loc+corners[0]+vert_dist*help_layer_normal;
+    Vector3d res=loc+corners[0]+help_layer_normal*vert_dist;
     double p_dist_ray=(res[1]*edge[0]-res[0]*edge[1])/
                         (dir[1]*edge[0]-dir[0]*edge[1]);
     double p_dist_edge=p_dist_ray*dir[0]/edge[0]-res[0]/edge[0];
 
-    (move_dir-loc-dir*((move_dir-loc)*dir));
-
     d_ray_points.push_back(corners[0]);
     d_ray_points.push_back(corners[1]);
 
-    d_ray_lines.push_back(corners[0]);
-    d_ray_lines.push_back(loc+dir*p_dist_c0);
+    d_ray_lines.push_back( corners[0]);
+    d_ray_lines.push_back(loc);//+dir*p_dist_c0);
+
+    std::cout << p_dist_c0 << ":" << p_dist_c1 << std::endl;
 
     d_ray_lines.push_back(corners[1]);
     d_ray_lines.push_back(loc+dir*p_dist_c1);
