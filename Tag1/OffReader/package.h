@@ -28,13 +28,17 @@ public:
     void move(Vector3d move_p);
     double getDiameter();
     Vector3d getCenter();
-    void getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &parallel_dist);
+    void getDist(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist);
+    void getDistEdge(Vector3d loc_origin, Vector3d direction, uint i, uint j, double &vert_dist, double &parallel_dist);
+    void setMoveDir(bool move_dir_p);
+
 private:
     void init();
     double height, width, depth;
     Vector3d center;
     Vector3d move_dir;
-    bool move_in_dir;
+    int move_in_dir;
+    bool move_dir_b;
     Vector4d color;
     Quat4d rot;
     vecvec3d corners;
@@ -43,6 +47,7 @@ private:
     static uint next_serial;
 
     //DEBUG
+    bool write_lines;
     vecvec3d d_ray_lines,d_ray_points;
 };
 

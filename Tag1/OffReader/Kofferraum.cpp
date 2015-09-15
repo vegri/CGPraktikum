@@ -259,7 +259,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             Vector3d loc_c=this->packageList[i].getCenter()-near_l;
             double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
             //if(dist<epsilon+this->packageList[i].getDiameter()/2){
-                this->packageList[i].getDist(near_l,dir_n,dist,act_z);
+                this->packageList[i].getDist(near_l,dir_n,epsilon,dist,act_z);
                 if(dist<epsilon && min_z>act_z){
                     loc_picked=i;
                     min_z=act_z;
