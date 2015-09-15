@@ -141,7 +141,7 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double epsilon, d
     }
 
     //DEBUG
-    if(vert_dist<1e299){
+    if(false){
         write_lines=true;
         getDistEdge(loc_origin,direction,g_i,g_j,act_vert_dist,act_par_dist);
         write_lines=false;
@@ -238,6 +238,13 @@ void Package::setMoveDir(bool move_dir_p)
     if(!move_dir_p){
         this->move_in_dir=-1;
     }
+}
+
+bool Package::getHit(Vector3d loc_origin, Vector3d direction, double epsilon, Vector3d &hit, double &parallel_dist)
+{
+    Vector3d loc=rot*(loc_origin-center);
+    Vector3d dir=rot*direction;
+    dir.normalize();
 }
 
 void Package::init()

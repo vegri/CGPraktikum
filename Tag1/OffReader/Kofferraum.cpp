@@ -253,23 +253,35 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         dir_n=dir.normalized();
         double min_z=1e300,act_z;
         int loc_picked=-1;
+        Vector3d hit_point;
+        bool fixedMoveDir=false;
 
         for (uint i = 0; i < this->packageList.size(); ++i) {
             Vector3d loc_c=this->packageList[i].getCenter()-near_l;
             double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
-            //if(dist<epsilon+this->packageList[i].getDiameter()/2){
+            if(dist<epsilon+this->packageList[i].getDiameter()/2){
                 this->packageList[i].getDist(near_l,dir_n,epsilon,dist,act_z);
                 if(dist<epsilon && min_z>act_z){
                     loc_picked=i;
                     min_z=act_z;
+                    fixedMoveDir=true;
                 }
-            //}
+                if(this->packageList[i].getHit(near_l,dir_n,epsilon,hit_point,act_z) &&
+                        min_z>act_z){
+                    loc_picked=i;
+                    min_z=act_z;
+                    fixedMoveDir=false;
+                }
+            }
         }
 
         if(loc_picked>-1 && loc_picked<this->packageList.size()){
-            this->packageList[picked].setMoveDir(false);
+            if(fixedMoveDir){
+                this->packageList[picked].setMoveDir(false);
+                this->packageList[loc_picked].setMoveDir(true);
+            }
             this->picked=loc_picked;
-            this->packageList[picked].setMoveDir(true);
+
         }
         this->move=Qt::LeftButton;
     }
