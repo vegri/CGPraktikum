@@ -228,19 +228,19 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     oldY = event->y();
     double epsilon=0.01;
     if(move){
-        Vector3d dir, dir_n, near;
+        Vector3d dir, dir_n, near_l;
         worldCoord(oldX,oldY,1,dir);
-        worldCoord(oldX,oldY,-1,near);
-        dir=dir-near;
+        worldCoord(oldX,oldY,-1,near_l);
+        dir=dir-near_l;
         dir_n=dir.normalized();
         double min_z=1e300,act_z;
         int loc_picked=-1;
 
         for (uint i = 0; i < this->packageList.size(); ++i) {
-            Vector3d loc_c=this->packageList[i].getCenter()-near;
+            Vector3d loc_c=this->packageList[i].getCenter()-near_l;
             double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
             if(dist<epsilon+this->packageList[i].getDiameter()/2){
-                this->packageList[i].getDist(near,dir_n,dist,act_z);
+                this->packageList[i].getDist(near_l,dir_n,dist,act_z);
                 if(dist<epsilon && min_z>act_z){
                     loc_picked=i;
                     min_z=act_z;
