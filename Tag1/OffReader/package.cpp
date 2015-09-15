@@ -117,7 +117,7 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist
 
     vert_dist=help_layer_normal*(loc-corners[0]);
 
-    Vector3d res=loc+corners[0]+help_layer_normal*vert_dist;
+    Vector3d res=-loc+corners[0]+help_layer_normal*vert_dist;
     double p_dist_ray=(res[1]*edge[0]-res[0]*edge[1])/
                         (dir[1]*edge[0]-dir[0]*edge[1]);
     double p_dist_edge=p_dist_ray*dir[0]/edge[0]-res[0]/edge[0];
