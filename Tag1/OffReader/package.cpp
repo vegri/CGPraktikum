@@ -72,13 +72,30 @@ Vector3d Package::getCenter()
     return center;
 }
 
-void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &horiz_dist)
+void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &parallel_dist)
 {
     Vector3d loc=rot*(loc_origin-center);
     Vector3d dir=rot*direction;
     dir.normalize();
     uint i=0;
     move_dir=corners[0]-corners[1];
+    Vector3d help_layer_normal=move_dir%dir;
+    //only for parallel lines
+    if(help_layer_normal.length()==0){
+        //insert here decision if 0 or 1 has less distance
+        parallel_dist=(corners[0]-loc)*dir;
+        vert_dist=(corners[0]-loc-dir*parallel_dist).length();
+    }
+    help_layer_normal.normalize();
+
+    double p_dist_c0=corners[0]*dir;
+    double p_dist_c1=corners[1]*dir;
+
+    double v_dist_c0=(corners[0]-loc-dir*p_dist_c0).length();
+    double v_dist_c1=(corners[1]-loc-dir*p_dist_c1).length();
+
+    vert_dist=fabs(help_layer_normal*loc);
+
 
     (move_dir-loc-dir*((move_dir-loc)*dir));
 }

@@ -27,7 +27,7 @@ public:
     void move(Vector3d move_p);
     double getDiameter();
     Vector3d getCenter();
-    void getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist,double &horiz_dist);
+    void getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &parallel_dist);
 private:
     void init();
     double height, width, depth;
