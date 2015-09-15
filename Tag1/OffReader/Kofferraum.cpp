@@ -154,6 +154,7 @@ void CGMainWindow::loadPolyhedron() {
 CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent) {
 
     move=false;
+    picked=0;
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -196,6 +197,14 @@ void CGView::paintGL() {
 
     glColor4f(0.0, 0.3, 0.6, 0.7);
     paintModel();
+
+    //DEBUG
+    glColor4f(1.,0.,0.,1.);
+    glLineWidth(3.);
+    glBegin(GL_LINES);
+    glVertex3dv(d_ray_d.ptr());
+    glVertex3dv(d_ray_f.ptr());
+    glEnd();
 }
 
 void CGView::resizeGL(int width, int height) {
@@ -227,10 +236,19 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     oldX = event->x();
     oldY = event->y();
     double epsilon=0.01;
+
+
     if(move){
+    } else {
+
         Vector3d dir, dir_n, near_l;
         worldCoord(oldX,oldY,1,dir);
         worldCoord(oldX,oldY,-1,near_l);
+
+        //DEBUG
+        d_ray_f=near_l;
+        d_ray_d=dir;
+
         dir=dir-near_l;
         dir_n=dir.normalized();
         double min_z=1e300,act_z;
@@ -252,7 +270,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         if(loc_picked>-1 && loc_picked<this->packageList.size())
             this->picked=loc_picked;
 
-    } else {
+
         q_old = q_now;
         if (animationRunning) {
             q_now = q_animated;

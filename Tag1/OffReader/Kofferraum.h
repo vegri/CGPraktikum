@@ -109,6 +109,9 @@ protected:
   bool move;
   const int SLERP = 0;
   const int EULER_ANGLES = 1;
+
+  //DEBUG
+  Vector3d d_ray_f,d_ray_d;
 };
 
 #endif

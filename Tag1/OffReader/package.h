@@ -40,6 +40,9 @@ private:
 
     uint serial;
     static uint next_serial;
+
+    //DEBUG
+    vecvec3d d_ray_lines,d_ray_points;
 };
 
 #endif // PACKAGE_H

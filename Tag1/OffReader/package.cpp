@@ -41,6 +41,21 @@ void Package::draw()
     for(;i<18;++i)
         glVertex3dv(corners[i].ptr());
     glEnd();
+
+    glColor4f(0.,0.,1.,1.);
+    glPointSize(5.);
+    glBegin(GL_POINTS);
+    for (int i = 0; i < this->d_ray_points.size(); ++i) {
+        glVertex3dv(d_ray_points[i].ptr());
+    }
+    glEnd();
+
+    glBegin(GL_LINES);
+    for (int i = 0; i < this->d_ray_lines.size(); ++i) {
+        glVertex3dv(d_ray_lines[i].ptr());
+    }
+    glEnd();
+
     glPopMatrix();
 }
 
@@ -85,6 +100,7 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist
         //insert here decision if 0 or 1 has less distance
         parallel_dist=(corners[0]-loc)*dir;
         vert_dist=(corners[0]-loc-dir*parallel_dist).length();
+        return;
     }
     help_layer_normal.normalize();
 
@@ -98,6 +114,15 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist
 
 
     (move_dir-loc-dir*((move_dir-loc)*dir));
+
+    d_ray_points.push_back(corners[0]);
+    d_ray_points.push_back(corners[1]);
+
+    d_ray_lines.push_back(corners[0]);
+    d_ray_lines.push_back(loc+dir*p_dist_c0);
+
+    d_ray_lines.push_back(corners[1]);
+    d_ray_lines.push_back(loc+dir*p_dist_c1);
 }
 
 void Package::init()
@@ -123,9 +148,9 @@ void Package::init()
     corners[16]=Vector3d(0,width,0);
     corners[17]=Vector3d(0,width,depth);
 
-    center[0]=height/2;
-    center[1]=width/2;
-    center[2]=depth/2;
+    center[0]+=height/2;
+    center[1]+=width/2;
+    center[2]+=depth/2;
 
 
     for (uint i = 0; i < 18; ++i) {
