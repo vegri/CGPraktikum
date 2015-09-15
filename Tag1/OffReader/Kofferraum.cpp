@@ -58,8 +58,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 
     statusBar()->showMessage("Ready",1000);
     loadPackage1();
-    ogl->packageList[0].move(Vector3d(0.2,0.3,0.4));
-    loadPackage2();
+    //ogl->packageList[0].move(Vector3d(0.2,0.3,0.4));
+    //loadPackage2();
 }
 
 
@@ -153,9 +153,7 @@ void CGMainWindow::loadPolyhedron() {
     statusBar()->showMessage ("Loading polyhedron done.",3000);
 }
 
-CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent) {
-
-    move=false;
+CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent), move(Qt::NoButton) {
     picked=0;
     setFocusPolicy(Qt::StrongFocus);
 }
@@ -240,9 +238,8 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     oldY = event->y();
     double epsilon=0.01;
 
-
-    if(move){
-    } else {
+    switch (event->button()) {
+    case Qt::LeftButton:{
 
         Vector3d dir, dir_n, near_l;
         worldCoord(oldX,oldY,1,dir);
@@ -274,22 +271,44 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             this->picked=loc_picked;
             this->packageList[picked].setMoveDir(true);
         }
+        this->move=Qt::LeftButton;
+    }
+        break;
+    case Qt::MidButton:
+        this->move=Qt::MidButton;
+        break;
+    case Qt::RightButton:
+        this->move=Qt::RightButton;
+        break;
+    default:
+        break;
     }
 
 }
 
 void CGView::mouseReleaseEvent(QMouseEvent *event) {
-    Vector3d u;
-    Vector3d v;
-    mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
-    mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
-    Quat4d q;
-    trackball(u, v, q);
-    if (q.lengthSquared() > 0) {
-        q_now = q * q_old;
+    switch (move) {
+    case Qt::LeftButton:
+        this->packageList[picked].setMoveDir(false);
+    case Qt::MidButton:
+        break;
+    case Qt::RightButton:{
+        Vector3d u;
+        Vector3d v;
+        mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
+        mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
+        Quat4d q;
+        trackball(u, v, q);
+        if (q.lengthSquared() > 0) {
+            q_now = q * q_old;
+        }
+        q_old = q_now;
+        updateGL();
     }
-    q_old = q_now;
-    updateGL();
+        break;
+    default:
+        break;
+    }
 }
 
 void CGView::wheelEvent(QWheelEvent* event) {
@@ -300,14 +319,19 @@ void CGView::wheelEvent(QWheelEvent* event) {
 void CGView::mouseMoveEvent(QMouseEvent* event) {
     Vector3d u;
     Vector3d v;
-    if(move){
+
+    switch (move) {
+    case Qt::LeftButton:{
         Vector3d move_vec=Vector3d((1.0*event->x()-oldX)/currentWidth,-(1.0*event->y()-oldY)/currentHeight,0);
         move_vec=q_now.conjugate()*move_vec/zoom;
         this->packageList[picked].move(move_vec);
         oldX=event->x();
         oldY=event->y();
-    } else {
-
+    }
+        break;
+    case Qt::MidButton:
+        break;
+    case Qt::RightButton:{
         mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
         mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
         Quat4d q;
@@ -317,7 +341,11 @@ void CGView::mouseMoveEvent(QMouseEvent* event) {
             // the same pixel. The length of `q` becomes 0, and everything breaks
             // down. To prevent this, we check that `q` is not 0.
             q_now = q * q_old;
-        }        
+        }
+    }
+        break;
+    default:
+        break;
     }
     updateGL();
 }

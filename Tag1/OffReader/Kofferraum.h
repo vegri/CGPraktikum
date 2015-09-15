@@ -107,7 +107,7 @@ protected:
 
   int animationMode;
   uint picked;
-  bool move;
+  QFlag move;
   const int SLERP = 0;
   const int EULER_ANGLES = 1;
 

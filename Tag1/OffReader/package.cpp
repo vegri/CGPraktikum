@@ -235,6 +235,9 @@ void Package::getDistEdge(Vector3d loc_origin, Vector3d direction, uint i, uint 
 void Package::setMoveDir(bool move_dir_p)
 {
     this->move_dir_b=move_dir_p;
+    if(!move_dir_p){
+        this->move_in_dir=-1;
+    }
 }
 
 void Package::init()
