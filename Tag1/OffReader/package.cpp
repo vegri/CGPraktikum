@@ -97,7 +97,8 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist
     Vector3d dir=rot*direction;
     dir.normalize();
     uint i=0;
-    Vector3d edge=corners[0]-corners[1];
+    Vector3d edge=corners[1]-corners[0];
+    //help_layer_normal==direction of distance
     Vector3d help_layer_normal=edge%dir;
     //only if ray and edge are parallel
     if(help_layer_normal.length()==0){
@@ -108,13 +109,13 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist
     }
     help_layer_normal.normalize();
 
-    double p_dist_c0=corners[0]*dir;
-    double p_dist_c1=corners[1]*dir;
+    double p_dist_c0=(corners[0]-loc)*dir;
+    double p_dist_c1=(corners[1]-loc)*dir;
 
     double v_dist_c0=(corners[0]-loc-dir*p_dist_c0).length();
     double v_dist_c1=(corners[1]-loc-dir*p_dist_c1).length();
 
-    vert_dist=fabs(help_layer_normal*loc);
+    vert_dist=help_layer_normal*(loc-corners[0]);
 
     Vector3d res=loc+corners[0]+help_layer_normal*vert_dist;
     double p_dist_ray=(res[1]*edge[0]-res[0]*edge[1])/
@@ -124,13 +125,24 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double &vert_dist
     d_ray_points.push_back(corners[0]);
     d_ray_points.push_back(corners[1]);
 
-    d_ray_lines.push_back( corners[0]);
-    d_ray_lines.push_back(loc);//+dir*p_dist_c0);
+    //d_ray_lines.push_back(corners[0]);
+    //d_ray_lines.push_back(loc+dir*p_dist_c0);
 
-    std::cout << p_dist_c0 << ":" << p_dist_c1 << std::endl;
+    //std::cout << p_dist_c0 << ":" << p_dist_c1 << std::endl;
+    std::cout << p_dist_ray << ":" << p_dist_edge << std::endl;
 
-    d_ray_lines.push_back(corners[1]);
-    d_ray_lines.push_back(loc+dir*p_dist_c1);
+    //d_ray_lines.push_back(corners[1]);
+    //d_ray_lines.push_back(loc+dir*p_dist_c1);
+
+    d_ray_lines.push_back(corners[0]+edge*p_dist_edge);
+    d_ray_lines.push_back(corners[0]+edge*p_dist_edge+help_layer_normal*vert_dist);
+
+    d_ray_lines.push_back(corners[0]+edge*p_dist_edge);
+    d_ray_lines.push_back(corners[0]);
+
+    d_ray_lines.push_back(loc+dir*p_dist_ray);
+    d_ray_lines.push_back(loc);
+
 }
 
 void Package::init()
