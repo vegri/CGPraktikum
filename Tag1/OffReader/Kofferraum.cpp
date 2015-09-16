@@ -238,22 +238,22 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     oldY = event->y();
     double epsilon=0.01;
 
+    Vector3d dir, dir_n, near_l;
+    worldCoord(oldX,oldY,1,dir);
+    worldCoord(oldX,oldY,-1,near_l);
+
+    //DEBUG
+    d_ray_f=near_l;
+    d_ray_d=dir;
+
+    dir=dir-near_l;
+    dir_n=dir.normalized();
+    double min_z=1e300,act_z;
+    int loc_picked=-1;
+    Vector3d hit_point;
+
     switch (event->button()) {
     case Qt::LeftButton:{
-
-        Vector3d dir, dir_n, near_l;
-        worldCoord(oldX,oldY,1,dir);
-        worldCoord(oldX,oldY,-1,near_l);
-
-        //DEBUG
-        d_ray_f=near_l;
-        d_ray_d=dir;
-
-        dir=dir-near_l;
-        dir_n=dir.normalized();
-        double min_z=1e300,act_z;
-        int loc_picked=-1;
-        Vector3d hit_point;
         bool fixedMoveDir=false;
 
         for (uint i = 0; i < this->packageList.size(); ++i) {
@@ -289,8 +289,38 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     case Qt::MidButton:
         this->move=Qt::MidButton;
         break;
-    case Qt::RightButton:
+    case Qt::RightButton:{
+        bool fixedMoveDir=false;
+
+        for (uint i = 0; i < this->packageList.size(); ++i) {
+            Vector3d loc_c=this->packageList[i].getCenter()-near_l;
+            double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
+            if(dist<epsilon+this->packageList[i].getDiameter()/2){
+                this->packageList[i].getDistCircleLine(near_l, dir_n, dist, act_z, hit_point);
+                if(dist<epsilon && min_z>act_z){
+                    loc_picked=i;
+                    min_z=act_z;
+                    fixedMoveDir=true;
+                } /*else if(this->packageList[i].getHit(near_l,dir_n,hit_point,act_z) &&
+                        min_z>act_z){
+                    loc_picked=i;
+                    min_z=act_z;
+                    fixedMoveDir=false;
+                    hit=hit_point-this->packageList[i].getCenter();
+                }*/
+            }
+        }
+
+        if(loc_picked>-1 && loc_picked<this->packageList.size()){
+            if(fixedMoveDir){
+                this->packageList[picked].setMoveDir(false);
+                this->packageList[loc_picked].setMoveDir(true);
+                this->hit=Vector3d(0);
+            }
+            this->picked=loc_picked;
+        }
         this->move=Qt::RightButton;
+    }
         break;
     default:
         break;

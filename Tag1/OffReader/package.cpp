@@ -43,22 +43,21 @@ void Package::draw()
     glEnd();
 
     if(rot_dir_b || true){
-        double max_v=sqrt(fmax(fmax(width*width+height*height,height*height+depth*depth),depth*depth+width*width));
         GLUquadricObj *quadric;
         quadric = gluNewQuadric();
         glPushMatrix();
         gluQuadricDrawStyle(quadric, GLU_LINE);
         //X-Y-Layer
         glColor4d(0,1,0,1);
-        gluDisk(quadric,  max_v*0.499,max_v*0.51,  40, 5);
+        gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         //Y-Z-Layer
         glColor4d(0,0,1,1);
         glMultMatrixd(Matrix4d(Quat4d(3.141592653589793/2,Vector3d(1,0,0))).transpose().ptr());
-        gluDisk(quadric,  max_v*0.499,max_v*0.51,  40, 5);
+        //gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         //X-Z-Layer
         glColor4d(1,0,0,1);
         glMultMatrixd(Matrix4d(Quat4d(-3.141592653589793/2,Vector3d(0,1,0))).transpose().ptr());
-        gluDisk(quadric,  max_v*0.499,max_v*0.51,  40, 5);
+        //gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         glPopMatrix();
     }
     if(rot_ball_b || true){
@@ -67,7 +66,7 @@ void Package::draw()
 
         glColor4d(.1,.1,.1,0.1);
         gluQuadricDrawStyle(quadric, GLU_FILL);
-        gluSphere( quadric , this->getDiameter()/2,40,40);
+        //gluSphere( quadric , this->getDiameter()/2,40,40);
     }
 
     if(move_dir_b){
@@ -321,6 +320,51 @@ bool Package::getHit(Vector3d loc_origin, Vector3d direction, Vector3d &hit, dou
 
 }
 
+void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &parallel_dist, Vector3d &hit)
+{
+    //DEBUG
+    d_ray_lines.clear();
+    d_ray_points.clear();
+    write_lines=false;
+    //DEBUG END
+    Vector3d loc=rot*(loc_origin-center);
+    Vector3d dir=rot*direction;
+    dir.normalize();
+
+    Vector3d plane_vec1=Vector3d(1,0,0);
+    Vector3d plane_vec2=Vector3d(0,1,0);
+    double mu,lam1,lam2;
+
+    getIntersectionLinePlane(loc,  dir, Vector3d(0) , plane_vec1, plane_vec2, mu, lam1, lam2);
+
+    //Get point of intersection to circle plane as second axis (dir is first axis)
+    hit=loc+dir*mu;
+    hit.normalize();
+
+    //Get axis perpendicular to plane with ray (loc+x*dir) and center
+    plane_vec2=dir%(hit%dir);
+    plane_vec2.normalize();
+
+    Vector3d rad=hit*this->circle_rad;
+    Vector3d res=rad-loc;
+
+    //For loop -r/+r
+    uint k=1;
+    //Proove if two times same equation selected||prrove if division by 0 is happening in computation
+    //If one appears test next k
+    //use equation idx_1=k%3 and idx_0=k/3
+    for(;k%3==k/3 || dir[k%3]*plane_vec2[k/3]-dir[k/3]*plane_vec2[k%3]==0 || plane_vec2[k/3]==0;++k){}
+
+    vert_dist=(res[k%3]*plane_vec2[k/3]-res[k/3]*plane_vec2[k%3])/ //mu
+                        (dir[k%3]*plane_vec2[k/3]-dir[k/3]*plane_vec2[k%3]);
+    parallel_dist=vert_dist*dir[k/3]/plane_vec2[k/3]-res[k/3]/plane_vec2[k/3]; //lambda
+
+    hit=rot.inverse()*rad+center;
+
+    d_ray_points.push_back(rad);
+    //d_ray_points.push_back(loc+dir*mu);
+}
+
 //Solves loc+mu*dir=foot+lam1*vec1+lam2*vec2
 void Package::getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir,
                                        const Vector3d &foot, const Vector3d &plane_vec1, const Vector3d &plane_vec2,
@@ -400,5 +444,5 @@ void Package::init()
     move_dir_b=false;
     rot_dir_b=false;
     rot_ball_b=false;
-
+    circle_rad=sqrt(fmax(fmax(width*width+height*height,height*height+depth*depth),depth*depth+width*width))/2;
 }
