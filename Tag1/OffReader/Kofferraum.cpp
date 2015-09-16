@@ -411,6 +411,22 @@ void CGView::rot(GLdouble x, GLdouble y, GLdouble z)
     updateGL();
 }
 
+void CGView::solve3dLinearSystem(const Matrix4d &m, Vector3d &x, Vector3d &s)
+{
+    double a=m(0,0),b=m(0,2),c=m(0,2),
+               d=m(1,0),e=m(1,2),f=m(1,2),
+               g=m(2,0),h=m(2,2),i=m(2,2),
+               j=s[0],k=s[1],l=s[2];
+        double r;
+        x=Vector3d();
+        r=b*(f*l - i*k) + c*(h*k - e*l) + j*(e*i - f*h);
+        x[0]=r/a*(e*i - f*h) + b*(f*g - d*i) + c*(d*h - e*g);
+        r=a*(f*l - i*k) + c*(g*k - d*l) + j*(d*i - f*g);
+        x[1]=r/a*(e*i - f*h) + b*(f*g - d*i) + c*(d*h - e*g);
+        r=a*(e*l - h*k) + b*(g*k - d*l) + j*(d*h - e*g);
+        x[2]=r/a*(e*i - f*h) + b*(f*g - d*i) + c*(d*h - e*g);
+}
+
 void CGView::keyPressEvent(QKeyEvent *e) {
     switch (e->key()) {
     case Qt::Key_S: rot( 0.05,0,0); break;
