@@ -43,21 +43,22 @@ void Package::draw()
     glEnd();
 
     if(rot_dir_b || true){
+        double max_v=sqrt(fmax(fmax(width*width+height*height,height*height+depth*depth),depth*depth+width*width));
         GLUquadricObj *quadric;
         quadric = gluNewQuadric();
         glPushMatrix();
         gluQuadricDrawStyle(quadric, GLU_LINE);
         //X-Y-Layer
         glColor4d(0,1,0,1);
-        gluDisk(quadric,  this->getDiameter()*0.49,this->getDiameter()*0.51,  40, 5);
+        gluDisk(quadric,  max_v*0.499,max_v*0.51,  40, 5);
         //Y-Z-Layer
         glColor4d(0,0,1,1);
         glMultMatrixd(Matrix4d(Quat4d(3.141592653589793/2,Vector3d(1,0,0))).transpose().ptr());
-        gluDisk(quadric,  this->getDiameter()*0.49,this->getDiameter()*0.51,  40, 5);
+        gluDisk(quadric,  max_v*0.499,max_v*0.51,  40, 5);
         //X-Z-Layer
         glColor4d(1,0,0,1);
         glMultMatrixd(Matrix4d(Quat4d(-3.141592653589793/2,Vector3d(0,1,0))).transpose().ptr());
-        gluDisk(quadric,  this->getDiameter()*0.49,this->getDiameter()*0.51,  40, 5);
+        gluDisk(quadric,  max_v*0.499,max_v*0.51,  40, 5);
         glPopMatrix();
     }
     if(rot_ball_b || true){
