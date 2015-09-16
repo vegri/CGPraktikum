@@ -42,7 +42,8 @@ void Package::draw()
         glVertex3dv(corners[i].ptr());
     glEnd();
 
-    if(move_in_dir!=-1){
+
+    if(move_dir_b){
         glLineWidth(4.5);
         glColor4d(0,1,0,1);
         glBegin(GL_LINES);
@@ -235,9 +236,6 @@ void Package::getDistEdge(Vector3d loc_origin, Vector3d direction, uint i, uint 
 void Package::setMoveDir(bool move_dir_p)
 {
     this->move_dir_b=move_dir_p;
-    if(!move_dir_p){
-        this->move_in_dir=-1;
-    }
 }
 
 bool Package::getHit(Vector3d loc_origin, Vector3d direction, double epsilon, Vector3d &hit, double &parallel_dist)
@@ -245,6 +243,11 @@ bool Package::getHit(Vector3d loc_origin, Vector3d direction, double epsilon, Ve
     Vector3d loc=rot*(loc_origin-center);
     Vector3d dir=rot*direction;
     dir.normalize();
+    return false;
+
+    //Loop on all faces
+    //for()
+
 }
 
 void Package::init()

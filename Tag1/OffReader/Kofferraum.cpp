@@ -276,12 +276,12 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         }
 
         if(loc_picked>-1 && loc_picked<this->packageList.size()){
-            if(fixedMoveDir){
+            //if(fixedMoveDir){
                 this->packageList[picked].setMoveDir(false);
-                this->packageList[loc_picked].setMoveDir(true);
-            }
-            this->picked=loc_picked;
 
+            //}
+            this->picked=loc_picked;
+            this->packageList[loc_picked].setMoveDir(true);
         }
         this->move=Qt::LeftButton;
     }
@@ -334,11 +334,22 @@ void CGView::mouseMoveEvent(QMouseEvent* event) {
 
     switch (move) {
     case Qt::LeftButton:{
-        Vector3d move_vec=Vector3d((1.0*event->x()-oldX)/currentWidth,-(1.0*event->y()-oldY)/currentHeight,0);
-        move_vec=q_now.conjugate()*move_vec/zoom;
-        this->packageList[picked].move(move_vec);
-        oldX=event->x();
-        oldY=event->y();
+        if(picked<this->packageList.size()){
+            int x=event->x(),y=event->y();
+            worldCoord(x, y, 0, u);
+            worldCoord(x, y, -42, v);
+
+            Vector3d dp = u - v;
+            dp.normalize();
+
+            Vector3d pack_center=this->packageList[picked].getCenter();
+            this->packageList[picked].move(u+dp*(dp*(pack_center-u))-pack_center);
+        } else {
+            Vector3d move_vec=Vector3d((1.0*event->x()-oldX)/currentWidth,-(1.0*event->y()-oldY)/currentHeight,0);
+            this->center+=q_now.conjugate()*move_vec/zoom;
+            oldX=event->x();
+            oldY=event->y();
+        }
     }
         break;
     case Qt::MidButton:
