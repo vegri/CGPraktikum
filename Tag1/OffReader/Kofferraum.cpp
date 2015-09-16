@@ -64,7 +64,7 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 
 
 void CGMainWindow::loadPackage1(){
-    ogl->packageList.push_back(Package(.340,.30,.460));
+    ogl->packageList.push_back(Package(.10,.10,.10));
 }
 void CGMainWindow::loadPackage2(){
     ogl->packageList.push_back(Package(.410,.160,.1490));
@@ -266,7 +266,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
                     min_z=act_z;
                     fixedMoveDir=true;
                 }
-                if(this->packageList[i].getHit(near_l,dir_n,epsilon,hit_point,act_z) &&
+                if(this->packageList[i].getHit(near_l,dir_n,hit_point,act_z) &&
                         min_z>act_z){
                     loc_picked=i;
                     min_z=act_z;
@@ -276,12 +276,11 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         }
 
         if(loc_picked>-1 && loc_picked<this->packageList.size()){
-            //if(fixedMoveDir){
+            if(fixedMoveDir){
                 this->packageList[picked].setMoveDir(false);
-
-            //}
+                this->packageList[loc_picked].setMoveDir(true);
+            }
             this->picked=loc_picked;
-            this->packageList[loc_picked].setMoveDir(true);
         }
         this->move=Qt::LeftButton;
     }

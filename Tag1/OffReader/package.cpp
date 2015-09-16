@@ -238,36 +238,55 @@ void Package::setMoveDir(bool move_dir_p)
     this->move_dir_b=move_dir_p;
 }
 
-bool Package::getHit(Vector3d loc_origin, Vector3d direction, double epsilon, Vector3d &hit, double &parallel_dist)
+bool Package::getHit(Vector3d loc_origin, Vector3d direction, Vector3d &hit, double &parallel_dist)
 {
     Vector3d loc=rot*(loc_origin-center);
     Vector3d dir=rot*direction;
     dir.normalize();
-    return false;
+    bool result=false;
 
-    //Loop on all faces
-    //for()
+    std::vector<uint> idx_set(18);
+    idx_set[ 0]=0; idx_set[ 1]=1; idx_set[ 2]=3;
+    idx_set[ 3]=0; idx_set[ 4]=1; idx_set[ 5]=5;
+    idx_set[ 6]=1; idx_set[ 7]=6; idx_set[ 8]=2;
+    idx_set[ 9]=6; idx_set[10]=5; idx_set[11]=7;
+    idx_set[12]=5; idx_set[13]=0; idx_set[14]=4;
+    idx_set[15]=4; idx_set[16]=3; idx_set[17]=7;
+
+    parallel_dist=1e300;
+    for (uint i = 0; i < 18; i+=3) {
+        Vector3d foot=corners[idx_set[i]];
+        Vector3d plane_vec1=corners[idx_set[i+1]]-corners[idx_set[i]];
+        Vector3d plane_vec2=corners[idx_set[i+2]]-corners[idx_set[i]];
+
+        double mu,lam1,lam2;
+        getIntersectionLinePlane(loc,  dir, foot, plane_vec1, plane_vec2, mu, lam1, lam2);
+        if(0<lam1 && lam1<1 && 0<lam2 && lam2<1 && mu < parallel_dist){
+            hit=foot+plane_vec1*lam1+plane_vec2*lam2;
+            parallel_dist=mu;
+            result=true;
+        }
+        //DEBUG
+        if(true){
+            d_ray_lines.push_back(foot);
+            d_ray_lines.push_back(foot+plane_vec1+plane_vec2);
+        }
+        //DEBUG END
+    }
+
+    //DEBUG
+    if(result){
+        //d_ray_points.push_back(hit);
+        //d_ray_lines.push_back(loc+dir*parallel_dist);
+        //d_ray_lines.push_back(loc);
+    }
+    //DEBUG END
+
+    hit=rot.inverse()*hit+center;
+
+    return result;
 
 }
-
-void Package::solve3dLinearSystem(const Matrix4d &m, Vector3d &x, const Vector3d &s)
-{
-    double a=m(0,0),b=m(0,2),c=m(0,2),
-           d=m(1,0),e=m(1,2),f=m(1,2),
-           g=m(2,0),h=m(2,2),i=m(2,2),
-           j=s[0],k=s[1],l=s[2];
-    double r,det;
-    x=Vector3d();
-    det=a*(e*i - f*h) + b*(f*g - d*i) + c*(d*h - e*g);
-
-    r=b*(f*l - i*k) + c*(h*k - e*l) + j*(e*i - f*h);
-    x[0]=r/det;
-    r=a*(f*l - i*k) + c*(g*k - d*l) + j*(d*i - f*g);
-    x[1]=r/det;
-    r=a*(e*l - h*k) + b*(g*k - d*l) + j*(d*h - e*g);
-    x[2]=r/det;
-}
-
 
 //Solves loc+mu*dir=foot+lam1*vec1+lam2*vec2
 void Package::getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir,
@@ -287,6 +306,24 @@ void Package::getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir
     lam1=res[1];
     lam2=res[2];
 
+}
+
+void Package::solve3dLinearSystem(const Matrix4d &m, Vector3d &x, const Vector3d &s)
+{
+    double a=m(0,0),b=m(0,2),c=m(0,2),
+           d=m(1,0),e=m(1,2),f=m(1,2),
+           g=m(2,0),h=m(2,2),i=m(2,2),
+           j=s[0],k=s[1],l=s[2];
+    double r,det;
+    x=Vector3d();
+    det=a*(e*i - f*h) + b*(f*g - d*i) + c*(d*h - e*g);
+
+    r=b*(f*l - i*k) + c*(h*k - e*l) + j*(e*i - f*h);
+    x[0]=r/det;
+    r=a*(f*l - i*k) + c*(g*k - d*l) + j*(d*i - f*g);
+    x[1]=r/det;
+    r=a*(e*l - h*k) + b*(g*k - d*l) + j*(d*h - e*g);
+    x[2]=r/det;
 }
 
 void Package::init()

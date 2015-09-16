@@ -31,7 +31,7 @@ public:
     void getDist(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist);
     void getDistEdge(Vector3d loc_origin, Vector3d direction, uint i, uint j, double &vert_dist, double &parallel_dist);
     void setMoveDir(bool move_dir_p);
-    bool getHit(Vector3d loc_origin, Vector3d direction, double epsilon, Vector3d &hit, double &parallel_dist);
+    bool getHit(Vector3d loc_origin, Vector3d direction, Vector3d &hit, double &parallel_dist);
     void solve3dLinearSystem(const Matrix4d &m, Vector3d &x, const Vector3d &s);
     void getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir,
                                            const Vector3d &foot, const Vector3d &plane_vec1, const Vector3d &plane_vec2,
