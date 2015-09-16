@@ -42,6 +42,32 @@ void Package::draw()
         glVertex3dv(corners[i].ptr());
     glEnd();
 
+    if(rot_dir_b || true){
+        GLUquadricObj *quadric;
+        quadric = gluNewQuadric();
+        glPushMatrix();
+        gluQuadricDrawStyle(quadric, GLU_LINE);
+        //X-Y-Layer
+        glColor4d(0,1,0,1);
+        gluDisk(quadric,  this->getDiameter()*0.49,this->getDiameter()*0.51,  40, 5);
+        //Y-Z-Layer
+        glColor4d(0,0,1,1);
+        glMultMatrixd(Matrix4d(Quat4d(3.141592653589793/2,Vector3d(1,0,0))).transpose().ptr());
+        gluDisk(quadric,  this->getDiameter()*0.49,this->getDiameter()*0.51,  40, 5);
+        //X-Z-Layer
+        glColor4d(1,0,0,1);
+        glMultMatrixd(Matrix4d(Quat4d(-3.141592653589793/2,Vector3d(0,1,0))).transpose().ptr());
+        gluDisk(quadric,  this->getDiameter()*0.49,this->getDiameter()*0.51,  40, 5);
+        glPopMatrix();
+    }
+    if(rot_ball_b || true){
+        GLUquadricObj *quadric;
+        quadric = gluNewQuadric();
+
+        glColor4d(.1,.1,.1,0.1);
+        gluQuadricDrawStyle(quadric, GLU_FILL);
+        gluSphere( quadric , this->getDiameter()/2,40,40);
+    }
 
     if(move_dir_b){
         glLineWidth(4.5);
@@ -54,7 +80,7 @@ void Package::draw()
     }
 
     glColor4f(0.,0.,1.,1.);
-    glPointSize(5.);
+    glPointSize(8.);
     glBegin(GL_POINTS);
     for (uint i = 0; i < this->d_ray_points.size(); ++i) {
         glVertex3dv(d_ray_points[i].ptr());
@@ -75,7 +101,7 @@ void Package::resetColor()
     color[0]=(serial%3)/3.0;
     color[1]=(serial/3%3)/3.0;
     color[2]=(serial/9%3)/3.0;
-    color[3]=0.8;
+    color[3]=0.5;
 }
 
 void Package::setColor(Vector4d color_p)
@@ -266,17 +292,23 @@ bool Package::getHit(Vector3d loc_origin, Vector3d direction, Vector3d &hit, dou
             parallel_dist=mu;
             result=true;
         }
+
         //DEBUG
-        if(true){
+        if(false){
             d_ray_lines.push_back(foot);
             d_ray_lines.push_back(foot+plane_vec1+plane_vec2);
+
+            d_ray_points.push_back(foot+plane_vec1*lam1+plane_vec2*lam2);
+            d_ray_points.push_back(loc+dir*mu);
+            d_ray_points.push_back(foot+plane_vec1);
+            d_ray_points.push_back(foot);
         }
         //DEBUG END
     }
 
     //DEBUG
     if(result){
-        //d_ray_points.push_back(hit);
+        d_ray_points.push_back(hit);
         //d_ray_lines.push_back(loc+dir*parallel_dist);
         //d_ray_lines.push_back(loc);
     }
@@ -297,7 +329,7 @@ void Package::getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir
     mat.makeIdentity();
     for(uint i=0;i<3;++i){
         mat(i,0)=-dir[i];
-        mat(i,1)=plane_vec1[i];
+        mat(i,1)=-plane_vec1[i];
         mat(i,2)=plane_vec2[i];
     }
 
@@ -310,9 +342,9 @@ void Package::getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir
 
 void Package::solve3dLinearSystem(const Matrix4d &m, Vector3d &x, const Vector3d &s)
 {
-    double a=m(0,0),b=m(0,2),c=m(0,2),
-           d=m(1,0),e=m(1,2),f=m(1,2),
-           g=m(2,0),h=m(2,2),i=m(2,2),
+    double a=m(0,0),b=m(0,1),c=m(0,2),
+           d=m(1,0),e=m(1,1),f=m(1,2),
+           g=m(2,0),h=m(2,1),i=m(2,2),
            j=s[0],k=s[1],l=s[2];
     double r,det;
     x=Vector3d();
@@ -363,4 +395,9 @@ void Package::init()
     serial=next_serial;
     ++next_serial;
     move_in_dir=-1;
+    rot_dir=0;
+    move_dir_b=false;
+    rot_dir_b=false;
+    rot_ball_b=false;
+
 }

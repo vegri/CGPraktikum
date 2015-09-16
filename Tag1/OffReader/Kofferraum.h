@@ -69,7 +69,7 @@ public:
 	void worldCoord(int x, int y, int z, Vector3d &v);
     void rot(GLdouble x, GLdouble y, GLdouble z);
 
-  Vector3d min, max, center;	
+  Vector3d min, max, center, hit;
   std::vector<Vector3d> coord; // the coords of the loaded model
   std::vector<Package> packageList;
   std::vector<std::vector<int> > ifs;   // the faces of the loaded model, ifs[i] contains the indices of the i-th face

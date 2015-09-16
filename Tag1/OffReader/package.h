@@ -42,7 +42,10 @@ private:
     Vector3d center;
     Vector3d move_dir;
     int move_in_dir;
+    int rot_dir;
     bool move_dir_b;
+    bool rot_dir_b;
+    bool rot_ball_b;
     Vector4d color;
     Quat4d rot;
     vecvec3d corners;

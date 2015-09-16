@@ -165,7 +165,7 @@ void CGView::initializeGL() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
 
 }
 
@@ -265,12 +265,12 @@ void CGView::mousePressEvent(QMouseEvent *event) {
                     loc_picked=i;
                     min_z=act_z;
                     fixedMoveDir=true;
-                }
-                if(this->packageList[i].getHit(near_l,dir_n,hit_point,act_z) &&
+                } else if(this->packageList[i].getHit(near_l,dir_n,hit_point,act_z) &&
                         min_z>act_z){
                     loc_picked=i;
                     min_z=act_z;
                     fixedMoveDir=false;
+                    hit=hit_point-this->packageList[i].getCenter();
                 }
             }
         }
@@ -279,6 +279,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             if(fixedMoveDir){
                 this->packageList[picked].setMoveDir(false);
                 this->packageList[loc_picked].setMoveDir(true);
+                this->hit=Vector3d(0);
             }
             this->picked=loc_picked;
         }
@@ -294,7 +295,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     default:
         break;
     }
-
+    updateGL();
 }
 
 void CGView::mouseReleaseEvent(QMouseEvent *event) {
@@ -341,7 +342,7 @@ void CGView::mouseMoveEvent(QMouseEvent* event) {
             Vector3d dp = u - v;
             dp.normalize();
 
-            Vector3d pack_center=this->packageList[picked].getCenter();
+            Vector3d pack_center=this->packageList[picked].getCenter()+hit;
             this->packageList[picked].move(u+dp*(dp*(pack_center-u))-pack_center);
         } else {
             Vector3d move_vec=Vector3d((1.0*event->x()-oldX)/currentWidth,-(1.0*event->y()-oldY)/currentHeight,0);
