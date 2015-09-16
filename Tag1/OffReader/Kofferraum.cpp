@@ -299,7 +299,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
 }
 
 void CGView::mouseReleaseEvent(QMouseEvent *event) {
-    switch (move) {
+    switch ((uint) move) {
     case Qt::LeftButton:
         this->packageList[picked].setMoveDir(false);
     case Qt::MidButton:
@@ -332,7 +332,7 @@ void CGView::mouseMoveEvent(QMouseEvent* event) {
     Vector3d u;
     Vector3d v;
 
-    switch (move) {
+    switch ((uint) move) {
     case Qt::LeftButton:{
         if(picked<this->packageList.size()){
             int x=event->x(),y=event->y();
@@ -420,8 +420,6 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_A: rot(0,0,-0.05); break;
     case Qt::Key_D: rot(0,0, 0.05); break;
     case Qt::Key_Space:
-        move=!move;
-        std::cout << move << std::endl;
         break;
     case Qt::Key_X:
         this->packageList[this->picked].resetColor();
