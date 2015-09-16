@@ -68,6 +68,7 @@ public:
 		after invocation of paintGL) and stores the result in v */
 	void worldCoord(int x, int y, int z, Vector3d &v);
     void rot(GLdouble x, GLdouble y, GLdouble z);
+    void solve3dLinearSystem(Matrix4d const &m, Vector3d &x, Vector3d &s);
 
   Vector3d min, max, center;	
   std::vector<Vector3d> coord; // the coords of the loaded model
