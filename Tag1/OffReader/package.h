@@ -32,6 +32,7 @@ public:
     void getDistEdge(Vector3d loc_origin, Vector3d direction, uint i, uint j, double &vert_dist, double &parallel_dist);
     void setMoveDir(bool move_dir_p);
     bool getHit(Vector3d loc_origin, Vector3d direction, double epsilon, Vector3d &hit, double &parallel_dist);
+    void solve3dLinearSystem(const Matrix4d &m, Vector3d &x, Vector3d &s);
 private:
     void init();
     double height, width, depth;
