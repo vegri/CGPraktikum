@@ -1,7 +1,7 @@
 
 import sympy as sp
 
-lst=sp.symbols("x,y,z,a1,a2,a3,b1,b2,b3,c1,c2,c3,d1,d2,d3")
+lst=sp.symbols("x,y,z,a,b,c,d,e,f,g,h,i,j,k,l")
 
 x=lst[0:3]
 A=lst[3:12]

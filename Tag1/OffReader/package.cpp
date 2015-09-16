@@ -250,6 +250,45 @@ bool Package::getHit(Vector3d loc_origin, Vector3d direction, double epsilon, Ve
 
 }
 
+void Package::solve3dLinearSystem(const Matrix4d &m, Vector3d &x, const Vector3d &s)
+{
+    double a=m(0,0),b=m(0,2),c=m(0,2),
+           d=m(1,0),e=m(1,2),f=m(1,2),
+           g=m(2,0),h=m(2,2),i=m(2,2),
+           j=s[0],k=s[1],l=s[2];
+    double r,det;
+    x=Vector3d();
+    det=a*(e*i - f*h) + b*(f*g - d*i) + c*(d*h - e*g);
+
+    r=b*(f*l - i*k) + c*(h*k - e*l) + j*(e*i - f*h);
+    x[0]=r/det;
+    r=a*(f*l - i*k) + c*(g*k - d*l) + j*(d*i - f*g);
+    x[1]=r/det;
+    r=a*(e*l - h*k) + b*(g*k - d*l) + j*(d*h - e*g);
+    x[2]=r/det;
+}
+
+
+//Solves loc+mu*dir=foot+lam1*vec1+lam2*vec2
+void Package::getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir,
+                                       const Vector3d &foot, const Vector3d &plane_vec1, const Vector3d &plane_vec2,
+                                       double &mu, double &lam1, double &lam2){
+    Vector3d res;
+    Matrix4d mat;
+    mat.makeIdentity();
+    for(uint i=0;i<3;++i){
+        mat(i,0)=-dir[i];
+        mat(i,1)=plane_vec1[i];
+        mat(i,2)=plane_vec2[i];
+    }
+
+    solve3dLinearSystem(mat,res,loc-foot);
+    mu=res[0];
+    lam1=res[1];
+    lam2=res[2];
+
+}
+
 void Package::init()
 {
     corners[ 0]=Vector3d(0,0,0);
