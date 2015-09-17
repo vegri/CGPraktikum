@@ -320,6 +320,8 @@ bool Package::getHit(Vector3d loc_origin, Vector3d direction, Vector3d &hit, dou
 
 }
 
+
+//Javadoc
 void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist, Vector3d &hit)
 {
     //DEBUG
@@ -331,70 +333,71 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
     Vector3d dir=rot*direction;
     dir.normalize();
 
-    //for(i<3;++i){
-    //perpendicular=perp=senkrecht to circle
 
     uint i=0,j=1,k=2;
+    rot_dir=-1;
+    parallel_dist=1e300;
 
     for (;i<3;++i) {
         j=(i+1)%3;
         k=(i+2)%3;
-    }
-    Vector3d perp_circ=Vector3d(0);
-    perp_circ[k]=1;
-    Vector3d para_dir=Vector3d(0);
-    para_dir[i]=1;
-    Vector3d perp_dir=Vector3d(0);
-    perp_dir[j]=1;
 
-    //plane vectors
-    Vector3d para_dir=Vector3d(0,0,1);
-    Vector3d perp_dir=Vector3d(0,1,0);
-    double mu,lam1,lam2;
+        //perpendicular=perp=senkrecht to circle
+        //plane normal
+        Vector3d perp_circ=Vector3d(0);
+        perp_circ[k]=1;
+        //plane vectors
+        Vector3d para_dir =Vector3d(0);
+        para_dir[i]=1;
+        Vector3d perp_dir =Vector3d(0);
+        perp_dir[j]=1;
 
-    for(int l=-1;l<2;l+=2){
-        getIntersectionLinePlane(loc,  dir,  Vector3d(0,0,l*epsilon) , para_dir, perp_dir, mu, lam1, lam2);
-        hit=loc+dir*mu;
-        if(hit.length()<this->circle_rad+epsilon && hit.length()>this->circle_rad-epsilon){
-            parallel_dist=mu;
-            vert_dist=fabs(hit.length()-this->circle_rad);
-            d_ray_points.push_back(hit);
-            hit=rot.inverse()*hit+center;
+        double mu,lam1,lam2;
+
+        int l=-1;
+        for(;l<2;l+=2){
+            getIntersectionLinePlane(loc,  dir,  Vector3d(0,0,l*epsilon) , para_dir, perp_dir, mu, lam1, lam2);
+            hit=loc+dir*mu;
+            if(hit.length()<this->circle_rad+epsilon && hit.length()>this->circle_rad-epsilon && parallel_dist>fabs(mu)){
+                parallel_dist=fabs(mu);
+                vert_dist=fabs(hit.length()-this->circle_rad);
+                d_ray_points.push_back(hit);
+                hit=rot.inverse()*hit+center;
+                rot_dir=k;
+                l=4;
+            }
+        }
+        if(l==4 || l==6){
+            continue;
+        }
+
+        //solves loc+parallel_dist*dir=vert_dist*(dir%perp_circ)
+        perp_dir=dir%perp_circ;
+        perp_dir.normalize();
+        double v_dist_loc,p_dist_loc;
+        if(dir[i]*perp_dir[j]-dir[j]*perp_dir[i]!=0 && perp_dir[j]!=0){
+            v_dist_loc=(loc[i]*perp_dir[j]-loc[j]*perp_dir[i])/ //mu
+                            (dir[i]*perp_dir[j]-dir[j]*perp_dir[i]);
+            p_dist_loc=v_dist_loc*dir[j]/perp_dir[j]-loc[j]/perp_dir[j]; //lambda
+        } else if(dir[j]*perp_dir[i]-dir[i]*perp_dir[j]!=0 && perp_dir[i]!=0){
+            v_dist_loc=(loc[j]*perp_dir[i]-loc[i]*perp_dir[j])/ //mu
+                            (dir[j]*perp_dir[i]-dir[i]*perp_dir[j]);
+            p_dist_loc=v_dist_loc*dir[i]/perp_dir[i]-loc[i]/perp_dir[i]; //lambda
+        } else {
+            std::cout << "Strange things happening, package.cpp getDistCircleLine()" << std::endl;
             return;
         }
-    }
 
-    //solves loc+parallel_dist*dir=vert_dist*(dir%perp_circ)
-    perp_dir=dir%perp_circ;
-    perp_dir.normalize();
-    if(dir[i]*perp_dir[j]-dir[j]*perp_dir[i]!=0 && perp_dir[j]!=0){
-        vert_dist=(loc[i]*perp_dir[j]-loc[j]*perp_dir[i])/ //mu
-                        (dir[i]*perp_dir[j]-dir[j]*perp_dir[i]);
-        parallel_dist=vert_dist*dir[j]/perp_dir[j]-loc[j]/perp_dir[j]; //lambda
-    } else if(dir[j]*perp_dir[i]-dir[i]*perp_dir[j]!=0 && perp_dir[i]!=0){
-        vert_dist=(loc[j]*perp_dir[i]-loc[i]*perp_dir[j])/ //mu
-                        (dir[j]*perp_dir[i]-dir[i]*perp_dir[j]);
-        parallel_dist=vert_dist*dir[i]/perp_dir[i]-loc[i]/perp_dir[i]; //lambda
-    } else {
-        std::cout << "Strange things happening, package.cpp getDistCircleLine()" << std::endl;
-        return;
-    }
-
-    if(vert_dist<this->circle_rad+epsilon && vert_dist>this->circle_rad-epsilon){
-        hit=loc+dir*parallel_dist;
-        if(hit[k]>-epsilon || hit[k]<epsilon){
-            vert_dist=1e300;
-            parallel_dist=1e300;
-        } else {
-            d_ray_points.push_back(hit);
+        if(vert_dist<this->circle_rad+epsilon && vert_dist>this->circle_rad-epsilon){
+            if(hit[k]>-epsilon && hit[k]<epsilon && fabs(p_dist_loc)<parallel_dist){
+                hit=loc+dir*parallel_dist;
+                d_ray_points.push_back(hit);
+                vert_dist=v_dist_loc;
+                parallel_dist=p_dist_loc;
+                rot_dir=k;
+            }
         }
-    } else {
-        vert_dist=1e300;
-        parallel_dist=1e300;
     }
-
-
-
 
     //d_ray_points.push_back(perp_circ);
 
