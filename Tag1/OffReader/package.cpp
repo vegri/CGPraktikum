@@ -138,7 +138,11 @@ Vector3d Package::getCenter()
 
 void Package::pick(bool picked)
 {
-
+    this->picked=picked;
+    if(picked)
+        setColor(Vector4d(1-color.x(),1-color.y(),1-color.z(),color.w()));
+    else
+        resetColor();
 }
 
 Vector3d Package::getRotProjection()

@@ -49,6 +49,7 @@ private:
     bool move_dir_b;
     bool rot_dir_b;
     bool rot_ball_b;
+    bool picked=false;
     double circle_rad;
     Vector4d color;
     Quat4d rot;
