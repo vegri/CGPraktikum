@@ -42,7 +42,7 @@ void Package::draw()
         glVertex3dv(corners[i].ptr());
     glEnd();
 
-    if(rot_dir_b){
+    if(picked){
         GLUquadricObj *quadric;
         quadric = gluNewQuadric();
         glPushMatrix();
@@ -69,12 +69,12 @@ void Package::draw()
         gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         glPopMatrix();
     }
-    if(rot_ball_b){
+    if(picked){
         GLUquadricObj *quadric;
         quadric = gluNewQuadric();
 
         glColor4d(.1,.1,.1,0.1);
-        gluQuadricDrawStyle(quadric, GLU_FILL);
+        gluQuadricDrawStyle(quadric, GLU_LINE);
         gluSphere( quadric , this->getDiameter()/2,40,40);
     }
 
@@ -140,9 +140,10 @@ void Package::pick(bool picked)
 {
     this->picked=picked;
     if(picked)
-        setColor(Vector4d(1-color.x(),1-color.y(),1-color.z(),color.w()));
+        setColor(Vector4d(0,1,1,color.w()));
     else
         resetColor();
+    rot_dir=-1;
 }
 
 Vector3d Package::getRotProjection()
@@ -510,10 +511,12 @@ void Package::init()
     for (uint i = 0; i < 18; ++i) {
         corners[i]-=center;
     }
-
-    serial=next_serial;
+    do{
+        serial=next_serial;
+        ++next_serial;
+    }
+    while( (serial/9%3)/3.0>0.5);
     resetColor();
-    ++next_serial;
     move_in_dir=-1;
     rot_dir=0;
     move_dir_b=false;
