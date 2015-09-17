@@ -404,13 +404,15 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
             return;
         }
 
-        d_ray_points.push_back(loc+dir*p_dist_loc);
-        d_ray_lines.push_back(loc+dir*p_dist_loc);
-        d_ray_lines.push_back(loc+dir*p_dist_loc+perp_dir*v_dist_loc);
 
-        if(v_dist_loc<this->circle_rad+epsilon && v_dist_loc>this->circle_rad-epsilon){
-            if(hit[k]>-epsilon && hit[k]<epsilon && fabs(p_dist_loc)<parallel_dist){
-                hit=loc+dir*p_dist_loc;
+        if(fabs(v_dist_loc)<this->circle_rad+epsilon){
+            t=sqrt((circle_rad+epsilon)*(circle_rad+epsilon)-v_dist_loc*v_dist_loc);
+            if(p_dist_loc<0)
+                t=-t;
+            p_dist_loc=p_dist_loc-t;
+
+            if(fabs((loc-dir*p_dist_loc)[k])<epsilon && fabs(p_dist_loc)<parallel_dist){
+                hit=loc-dir*p_dist_loc;
                 d_ray_points.push_back(hit);
                 vert_dist=fabs(v_dist_loc);
                 parallel_dist=fabs(p_dist_loc);
