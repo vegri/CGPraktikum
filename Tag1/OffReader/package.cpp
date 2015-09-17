@@ -48,14 +48,23 @@ void Package::draw()
         glPushMatrix();
         gluQuadricDrawStyle(quadric, GLU_LINE);
         //X-Y-Layer
-        glColor4d(0,1,0,1);
-        //gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
+        if(this->rot_dir==2)
+            glColor4d(1,1,0,1);
+        else
+            glColor4d(0,1,0,1);
+        gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         //Y-Z-Layer
-        glColor4d(0,0,1,1);
+        if(this->rot_dir==1)
+            glColor4d(1,1,0,1);
+        else
+            glColor4d(0,0,1,1);
         glMultMatrixd(Matrix4d(Quat4d(3.141592653589793/2,Vector3d(1,0,0))).transpose().ptr());
-        //gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
+        gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         //X-Z-Layer
-        glColor4d(1,0,1,1);
+        if(this->rot_dir==0)
+            glColor4d(1,1,0,1);
+        else
+            glColor4d(1,0,1,1);
         glMultMatrixd(Matrix4d(Quat4d(-3.141592653589793/2,Vector3d(0,1,0))).transpose().ptr());
         gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         glPopMatrix();
@@ -368,7 +377,7 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
             }
         }
         if(l==4 || l==6){
-            continue;
+            //continue;
         }
 
         //solves loc+parallel_dist*dir=vert_dist*(dir%perp_circ)
@@ -388,12 +397,15 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
             return;
         }
 
-        if(vert_dist<this->circle_rad+epsilon && vert_dist>this->circle_rad-epsilon){
+        d_ray_lines.push_back(loc+dir*p_dist_loc);
+        d_ray_lines.push_back(loc+dir*p_dist_loc+perp_dir*v_dist_loc);
+
+        if(v_dist_loc<this->circle_rad+epsilon && v_dist_loc>this->circle_rad-epsilon){
             if(hit[k]>-epsilon && hit[k]<epsilon && fabs(p_dist_loc)<parallel_dist){
-                hit=loc+dir*parallel_dist;
+                hit=loc+dir*p_dist_loc;
                 d_ray_points.push_back(hit);
-                vert_dist=v_dist_loc;
-                parallel_dist=p_dist_loc;
+                vert_dist=fabs(v_dist_loc);
+                parallel_dist=fabs(p_dist_loc);
                 rot_dir=k;
             }
         }
@@ -487,5 +499,6 @@ void Package::init()
     move_dir_b=false;
     rot_dir_b=false;
     rot_ball_b=false;
+    rot_dir=-1;
     circle_rad=sqrt(fmax(fmax(width*width+height*height,height*height+depth*depth),depth*depth+width*width))/2;
 }
