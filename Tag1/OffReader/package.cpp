@@ -435,6 +435,11 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
     }
 }
 
+double Package::getCircleRad()
+{
+    return circle_rad;
+}
+
 //Solves loc+mu*dir=foot+lam1*vec1+lam2*vec2
 void Package::getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir,
                                        const Vector3d &foot, const Vector3d &plane_vec1, const Vector3d &plane_vec2,
