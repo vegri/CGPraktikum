@@ -347,7 +347,7 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
     rot_dir=-1;
     parallel_dist=1e300;
 
-    for (;i<3;++i) {
+    for (i=2;i<3;++i) {
         j=(i+1)%3;
         k=(i+2)%3;
 
@@ -363,6 +363,7 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
 
         double mu,lam1,lam2;
 
+        //cap and bottom
         int l=-1;
         for(;l<2;l+=2){
             getIntersectionLinePlane(loc,  dir,  Vector3d(0,0,l*epsilon) , para_dir, perp_dir, mu, lam1, lam2);
@@ -380,23 +381,30 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
             //continue;
         }
 
+        d_ray_lines.push_back(Vector3d(0));
+        d_ray_lines.push_back(perp_circ);
+
+        //sides
         //solves loc+parallel_dist*dir=vert_dist*(dir%perp_circ)
+        double t=dir[k];
+        dir[k]=0;
         perp_dir=dir%perp_circ;
         perp_dir.normalize();
+        dir[k]=t;
+
         double v_dist_loc,p_dist_loc;
-        if(dir[i]*perp_dir[j]-dir[j]*perp_dir[i]!=0 && perp_dir[j]!=0){
-            v_dist_loc=(loc[i]*perp_dir[j]-loc[j]*perp_dir[i])/ //mu
-                            (dir[i]*perp_dir[j]-dir[j]*perp_dir[i]);
-            p_dist_loc=v_dist_loc*dir[j]/perp_dir[j]-loc[j]/perp_dir[j]; //lambda
-        } else if(dir[j]*perp_dir[i]-dir[i]*perp_dir[j]!=0 && perp_dir[i]!=0){
-            v_dist_loc=(loc[j]*perp_dir[i]-loc[i]*perp_dir[j])/ //mu
-                            (dir[j]*perp_dir[i]-dir[i]*perp_dir[j]);
-            p_dist_loc=v_dist_loc*dir[i]/perp_dir[i]-loc[i]/perp_dir[i]; //lambda
+        p_dist_loc=(loc[j]*perp_dir[i]-loc[i]*perp_dir[j])/ //mu
+                        (dir[j]*perp_dir[i]-dir[i]*perp_dir[j]);
+        if(perp_dir[j]!=0){
+            v_dist_loc=-p_dist_loc*dir[j]/perp_dir[j]-loc[j]/perp_dir[j]; //lambda
+        } else if(perp_dir[i]!=0){
+            v_dist_loc=p_dist_loc*dir[i]/perp_dir[i]-loc[i]/perp_dir[i]; //lambda
         } else {
             std::cout << "Strange things happening, package.cpp getDistCircleLine()" << std::endl;
             return;
         }
 
+        d_ray_points.push_back(loc+dir*p_dist_loc);
         d_ray_lines.push_back(loc+dir*p_dist_loc);
         d_ray_lines.push_back(loc+dir*p_dist_loc+perp_dir*v_dist_loc);
 
