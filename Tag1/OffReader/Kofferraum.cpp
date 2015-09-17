@@ -189,6 +189,7 @@ void CGView::paintGL() {
 
     // draw the rotated model
     glLoadIdentity();
+
     glTranslated(0, 0, -3);
     glMultMatrixd(R.transpose().ptr());
     glScaled(zoom, zoom, zoom);
@@ -254,11 +255,6 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     int loc_picked=-1;
     Vector3d hit_point;
 
-    if(!picked< this->packageList.size()){
-        this->mouse_mode=event->button();
-        return;
-    }
-
     switch (event->button()) {
     case Qt::LeftButton:{
         bool fixedMoveDir=false;
@@ -282,18 +278,20 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             }
         }
 
+        if(picked<this->packageList.size()){
+            this->packageList[picked].pick(false);
+            this->packageList[picked].setMoveDir(false);
+        }
+
         if(loc_picked>-1 && loc_picked<this->packageList.size()){
             if(fixedMoveDir){
-                this->packageList[picked].setMoveDir(false);
                 this->packageList[loc_picked].setMoveDir(true);
                 this->hit=Vector3d(0);
             }
-            this->packageList[picked].pick(false);
             this->picked=loc_picked;
             this->packageList[picked].pick(true);
             picked_active=true;
         } else {
-            this->packageList[picked].pick(false);
             picked_active=false;
         }
         this->mouse_mode=Qt::LeftButton;
@@ -303,16 +301,20 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         this->mouse_mode=Qt::MidButton;
         break;
     case Qt::RightButton:{
-
-        Vector3d loc_c=this->packageList[picked].getCenter()-near_l;
-        double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
-        this->packageList[picked].getDistCircleLine(near_l, dir_n, epsilon, dist, act_z, hit_point);
-        if(dist<epsilon){
-            this->projRot=true;
-        } else {
-            this->projRot=false;
+        if(picked< this->packageList.size()){
+            Vector3d loc_c=this->packageList[picked].getCenter()-near_l;
+            double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
+            this->packageList[picked].getDistCircleLine(near_l, dir_n, epsilon, dist, act_z, hit_point);
+            if(dist<epsilon){
+                this->projRot=true;
+            } else {
+                this->projRot=false;
+            }
+            this->packageList[picked].markRot();
         }
 
+        mouseToTrackball(oldX, oldY, currentWidth, currentHeight);
+        this->trackballU=this->trackballV;
         this->mouse_mode=Qt::RightButton;
     }
         break;
@@ -325,21 +327,25 @@ void CGView::mousePressEvent(QMouseEvent *event) {
 void CGView::mouseReleaseEvent(QMouseEvent *event) {
     switch ((uint) mouse_mode) {
     case Qt::LeftButton:
-        this->packageList[picked].setMoveDir(false);
+        if(this->picked<this->packageList.size())
+            this->packageList[picked].setMoveDir(false);
     case Qt::MidButton:
         break;
     case Qt::RightButton:{
         this->projRot=false;
-        Vector3d u;
-        Vector3d v;
-        mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
-        mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
+
+        mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight);
         Quat4d q;
-        trackball(u, v, q);
+        trackball(trackballU, trackballV, q);
         if (q.lengthSquared() > 0) {
-            q_now = q * q_old;
+            if(this->picked_active){
+                this->packageList[picked].rotateMarked(q);
+            } else {
+                q_now = q * q_old;
+            }
         }
-        q_old = q_now;
+        if(!this->picked_active)
+            q_old = q_now;
         updateGL();
     }
         break;
@@ -380,12 +386,15 @@ void CGView::mouseMoveEvent(QMouseEvent* event){
     case Qt::MidButton:
         break;
     case Qt::RightButton:{
-        mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
-        mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight, v);
+        mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight);
         Quat4d q;
-        trackball(u, v, q);
+        trackball(trackballU, trackballV, q);
         if (q.lengthSquared() > 0) {
-            q_now = q * q_old;
+            if(this->picked_active){
+                this->packageList[picked].rotateMarked(q);
+            } else {
+                q_now = q * q_old;
+            }
         }
     }
         break;
@@ -395,24 +404,45 @@ void CGView::mouseMoveEvent(QMouseEvent* event){
     updateGL();
 }
 
-void CGView::mouseToTrackball(int x, int y, int w, int h, Vector3d &v){
+void CGView::mouseToTrackball(int x, int y, int w, int h){
     double r,cx,cy;
 
     //gluProject(GLdouble objX,  GLdouble objY,  GLdouble objZ,  const GLdouble * model,  const GLdouble * proj,  const GLint * view,  GLdouble* winX,  GLdouble* winY,  GLdouble* winZ);
 
     if(picked_active && picked<this->packageList.size()){
-        Vector3d rot_c=this->packageList[picked];
-        r=this->packageList[picked].getCircleRad();
+        Vector3d n,dir,c=this->packageList[picked].getCenter();
+        double rad=this->packageList[picked].getDiameter()/2;
+        worldCoord(x,y,0,n);
+        worldCoord(x,y,-42,dir);
+        dir=dir-n;
+        dir.normalize();
 
-        GLint viewport[4];
-        glGetIntegerv(GL_VIEWPORT,viewport);
-        GLdouble M[16], P[16];
-        glGetDoublev(GL_PROJECTION_MATRIX,P);
-        glGetDoublev(GL_MODELVIEW_MATRIX,M);
+        Vector3d loc_c=c-n;
 
-        Matrix4d mod=Matrix4d((* double) M);
+        Vector3d point=dir*(dir*loc_c);
+        Vector3d v=point-loc_c;
+        if(v.length()>rad)
+            return;
 
-        gluUnProject(x,viewport[3]-1-y,z,M,P,viewport,&v[0],&v[1],&v[2]);
+        v=v+dir*sqrt(rad*rad-v.lengthSquared());
+
+        if(this->packageList[picked].d_ray_points.size()==0)
+            this->packageList[picked].d_ray_points.push_back(v);
+
+        if(this->packageList[picked].d_ray_points.size()<2){
+            this->packageList[picked].d_ray_points.push_back(v);
+        } else {
+            this->packageList[picked].d_ray_points[1]=v;
+        }
+
+        //this->packageList[picked].d_ray_points.push_back(v);
+        //this->packageList[picked].d_ray_points.push_back(point-c);
+        trackballV=v;
+        return;
+
+        r = fmin(w, h) / 2.0;
+        cx = w / 2.0;
+        cy = h / 2.0;
     } else {
         r = fmin(w, h) / 2.0;
         cx = w / 2.0;
@@ -429,13 +459,13 @@ void CGView::mouseToTrackball(int x, int y, int w, int h, Vector3d &v){
     } else {
         z = sqrt(1 - rho * rho);
     }
-    v.v[0] = dx;
-    v.v[1] = dy;
-    v.v[2] = z;
+    trackballV[0] = dx;
+    trackballV[1] = dy;
+    trackballV[2] = z;
 }
 
 void CGView::trackball(Vector3d u, Vector3d v, Quat4d &q) {
-    q.set(1 + u.dot(v), u % v);
+    q.makeRotate(u,v);
     q.normalize();
 }
 
@@ -446,9 +476,13 @@ void CGView::rot(GLdouble x, GLdouble y, GLdouble z){
     q_z=Quat4d(0,0,std::sin(z/2),std::cos(z/2));
 
     t_q=q_x*q_z*q_y;
-    q_now=t_q*q_now;
-    q_now.normalize();
-    q_old=q_now;
+    if(this->picked<this->packageList.size() && this->picked_active==true){
+        this->packageList[picked].rotate(t_q);
+    } else {
+        q_now=t_q*q_now;
+        q_now.normalize();
+        q_old=q_now;
+    }
     updateGL();
 }
 
@@ -456,7 +490,7 @@ void CGView::move(GLdouble x, GLdouble y, GLdouble z){
     if(this->picked<this->packageList.size() && this->picked_active==true){
         this->packageList[picked].move(Vector3d(x,y,z)/zoom);
     } else {
-        this->center+=Vector3d(x,y,z)/zoom;
+        this->center+=q_now*(Vector3d(x,y,z))/zoom;
     }
     updateGL();
 }
@@ -479,18 +513,19 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_Space:
         break;
     case Qt::Key_X:
-        this->packageList[this->picked].resetColor();
+        this->packageList[this->picked].pick(false);
         this->picked=(this->packageList.size()+this->picked+1)%this->packageList.size();
-        this->packageList[this->picked].setColor(Vector4d(0,0,0,1));
+        this->packageList[this->picked].pick(true);
         break;
     case Qt::Key_Y:
-        this->packageList[this->picked].resetColor();
+        this->packageList[this->picked].pick(false);
         this->picked=(this->packageList.size()+this->picked-1)%this->packageList.size();
-        this->packageList[this->picked].setColor(Vector4d(0,0,0,1));
+        this->packageList[this->picked].pick(true);
         break;
     default:
         break;
     }
+    updateGL();
 }
 
 int main (int argc, char **argv) {

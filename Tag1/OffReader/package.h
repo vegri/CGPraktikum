@@ -26,6 +26,10 @@ public:
     void resetColor();
     void setColor(Vector4d color_p);
     void move(Vector3d move_p);
+    void setRot(Quat4d rot_p);
+    void rotate(Quat4d rot_p);
+    void markRot();
+    void rotateMarked(Quat4d rot_p);
     double getDiameter();
     Vector3d getCenter();
     void pick(bool picked);
@@ -54,6 +58,8 @@ private:
     double circle_rad;
     Vector4d color;
     Quat4d rot;
+    //Necessary because trackball rotates relative to picked point
+    Quat4d rot_old;
     vecvec3d corners;
 
     uint serial;
@@ -61,6 +67,8 @@ private:
 
     //DEBUG
     bool write_lines;
+
+public:
     vecvec3d d_ray_lines,d_ray_points;
 };
 

@@ -70,7 +70,7 @@ public:
     void rot(GLdouble x, GLdouble y, GLdouble z);
     void move(GLdouble x, GLdouble y, GLdouble z);
 
-  Vector3d min, max, center, hit;
+  Vector3d min, max, center, hit, trackballV, trackballU;
   std::vector<Vector3d> coord; // the coords of the loaded model
   std::vector<Package> packageList;
   std::vector<std::vector<int> > ifs;   // the faces of the loaded model, ifs[i] contains the indices of the i-th face
@@ -98,7 +98,7 @@ protected:
 
   int oldX,oldY;
   int currentWidth, currentHeight;
-  void mouseToTrackball(int x, int y, int w, int h, Vector3d &v);
+  void mouseToTrackball(int x, int y, int w, int h);
   void trackball(Vector3d u, Vector3d v, Quat4d &q);
   
   bool animationRunning;
@@ -115,6 +115,7 @@ protected:
 
   //DEBUG
   Vector3d d_ray_f,d_ray_d;
+  vecvec3d d_window_points;
 };
 
 #endif

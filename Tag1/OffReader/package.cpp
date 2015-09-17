@@ -29,8 +29,9 @@ Package::Package(double &height_p, double &width_p, double &depth_p, Vector3d &c
 void Package::draw()
 {
     glPushMatrix();
-    glMultMatrixd(Matrix4d(rot).transpose().ptr());
+
     glTranslated(center[0],center[1],center[2]);
+    glMultMatrixd(Matrix4d(rot).transpose().ptr());
     glColor4dv(color.ptr());
     uint i=0;
     glBegin(GL_QUADS);
@@ -124,6 +125,27 @@ void Package::move(Vector3d move_p)
         this->center+=move_dir*(move_p*move_dir/move_dir.lengthSquared());
     } else
         this->center+=move_p;
+}
+
+void Package::setRot(Quat4d rot_p)
+{
+    this->rot=rot_p;
+}
+
+void Package::rotate(Quat4d rot_p)
+{
+    this->rot=rot_p*this->rot;
+    this->rot.normalize();
+}
+
+void Package::markRot()
+{
+    this->rot_old=rot;
+}
+
+void Package::rotateMarked(Quat4d rot_p)
+{
+    this->rot=rot_p*rot_old;
 }
 
 double Package::getDiameter()
