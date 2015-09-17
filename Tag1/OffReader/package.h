@@ -28,6 +28,8 @@ public:
     void move(Vector3d move_p);
     double getDiameter();
     Vector3d getCenter();
+    void Pick(bool picked);
+    Vector3d getRotProjection();
     void getDist(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist);
     void getDistEdge(Vector3d loc_origin, Vector3d direction, uint i, uint j, double &vert_dist, double &parallel_dist);
     void setMoveDir(bool move_dir_p);

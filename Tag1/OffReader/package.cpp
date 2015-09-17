@@ -136,6 +136,16 @@ Vector3d Package::getCenter()
     return center;
 }
 
+void Package::Pick(bool picked)
+{
+
+}
+
+Vector3d Package::getRotProjection()
+{
+
+}
+
 void Package::getDist(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist)
 {
     //DEBUG
