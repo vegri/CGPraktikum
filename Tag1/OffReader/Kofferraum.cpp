@@ -281,7 +281,10 @@ void CGView::mousePressEvent(QMouseEvent *event) {
                 this->packageList[loc_picked].setMoveDir(true);
                 this->hit=Vector3d(0);
             }
+            this->packageList[picked].disablePick();
             this->picked=loc_picked;
+            this->packageList[picked].enalbePick();
+
         }
         this->mouse_mode=Qt::LeftButton;
     }
