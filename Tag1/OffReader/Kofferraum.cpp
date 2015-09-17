@@ -281,7 +281,10 @@ void CGView::mousePressEvent(QMouseEvent *event) {
                 this->packageList[loc_picked].setMoveDir(true);
                 this->hit=Vector3d(0);
             }
+            this->packageList[picked].disablePick();
             this->picked=loc_picked;
+            this->packageList[picked].enalbePick();
+
         }
         this->mouse_mode=Qt::LeftButton;
     }
@@ -292,33 +295,13 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     case Qt::RightButton:{
         bool fixedMoveDir=false;
 
-        for (uint i = 0; i < this->packageList.size(); ++i) {
-            Vector3d loc_c=this->packageList[i].getCenter()-near_l;
-            double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
-            //if(dist<epsilon+this->packageList[i].getDiameter()/2){
-                this->packageList[i].getDistCircleLine(near_l, dir_n, epsilon, dist, act_z, hit_point);
-                if(dist<epsilon && min_z>act_z){
-                    loc_picked=i;
-                    min_z=act_z;
-                    fixedMoveDir=true;
-                } /*else if(this->packageList[i].getHit(near_l,dir_n,hit_point,act_z) &&
-                        min_z>act_z){
-                    loc_picked=i;
-                    min_z=act_z;
-                    fixedMoveDir=false;
-                    hit=hit_point-this->packageList[i].getCenter();
-                }*/
-            //}
+        Vector3d loc_c=this->packageList[picked].getCenter()-near_l;
+        double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
+        this->packageList[picked].getDistCircleLine(near_l, dir_n, epsilon, dist, act_z, hit_point);
+        if(dist<epsilon){
+            fixedMoveDir=true;
         }
 
-        /*if(loc_picked>-1 && loc_picked<this->packageList.size()){
-            if(fixedMoveDir){
-                this->packageList[picked].setMoveDir(false);
-                this->packageList[loc_picked].setMoveDir(true);
-                this->hit=Vector3d(0);
-            }
-            this->picked=loc_picked;
-        }*/
         this->mouse_mode=Qt::RightButton;
     }
         break;

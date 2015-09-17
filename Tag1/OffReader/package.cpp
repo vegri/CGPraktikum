@@ -35,14 +35,14 @@ void Package::draw()
     uint i=0;
     glBegin(GL_QUADS);
     for(;i<8;++i)
-        //glVertex3dv(corners[i].ptr());
+        glVertex3dv(corners[i].ptr());
     glEnd();
     glBegin(GL_QUAD_STRIP);
     for(;i<18;++i)
         glVertex3dv(corners[i].ptr());
     glEnd();
 
-    if(rot_dir_b || true){
+    if(rot_dir_b){
         GLUquadricObj *quadric;
         quadric = gluNewQuadric();
         glPushMatrix();
@@ -69,13 +69,13 @@ void Package::draw()
         gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         glPopMatrix();
     }
-    if(rot_ball_b || true){
+    if(rot_ball_b){
         GLUquadricObj *quadric;
         quadric = gluNewQuadric();
 
         glColor4d(.1,.1,.1,0.1);
         gluQuadricDrawStyle(quadric, GLU_FILL);
-        //gluSphere( quadric , this->getDiameter()/2,40,40);
+        gluSphere( quadric , this->getDiameter()/2,40,40);
     }
 
     if(move_dir_b){
@@ -357,7 +357,7 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
     rot_dir=-1;
     parallel_dist=1e300;
 
-    for (i=2;i<3;++i) {
+    for (;i<3;++i) {
         j=(i+1)%3;
         k=(i+2)%3;
 
@@ -388,11 +388,8 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
             }
         }
         if(l==4 || l==6){
-            //continue;
+            continue;
         }
-
-        d_ray_lines.push_back(Vector3d(0));
-        d_ray_lines.push_back(perp_circ);
 
         //sides
         //solves loc+parallel_dist*dir=vert_dist*(dir%perp_circ)
@@ -417,7 +414,7 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
 
         if(fabs(v_dist_loc)<this->circle_rad+epsilon){
             t=sqrt((circle_rad+epsilon)*(circle_rad+epsilon)-v_dist_loc*v_dist_loc);
-            if(p_dist_loc<0)
+            if(p_dist_loc-t<0)
                 t=-t;
             p_dist_loc=p_dist_loc-t;
 
@@ -430,14 +427,6 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
             }
         }
     }
-
-    //d_ray_points.push_back(perp_circ);
-
-    //d_ray_lines.push_back(Vector3d(0));
-    //d_ray_lines.push_back(perp_circ);
-
-    //d_ray_lines.push_back(loc-dir*parallel_dist);
-    //d_ray_lines.push_back(loc-dir*parallel_dist+perp_dir);
 }
 
 //Solves loc+mu*dir=foot+lam1*vec1+lam2*vec2
