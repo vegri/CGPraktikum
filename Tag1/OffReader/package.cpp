@@ -35,11 +35,11 @@ void Package::draw()
     uint i=0;
     glBegin(GL_QUADS);
     for(;i<8;++i)
-        glVertex3dv(corners[i].ptr());
+        //glVertex3dv(corners[i].ptr());
     glEnd();
     glBegin(GL_QUAD_STRIP);
     for(;i<18;++i)
-        //glVertex3dv(corners[i].ptr());
+        glVertex3dv(corners[i].ptr());
     glEnd();
 
     if(rot_dir_b || true){
@@ -49,15 +49,15 @@ void Package::draw()
         gluQuadricDrawStyle(quadric, GLU_LINE);
         //X-Y-Layer
         glColor4d(0,1,0,1);
-        gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
+        //gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         //Y-Z-Layer
         glColor4d(0,0,1,1);
         glMultMatrixd(Matrix4d(Quat4d(3.141592653589793/2,Vector3d(1,0,0))).transpose().ptr());
         //gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         //X-Z-Layer
-        glColor4d(1,0,0,1);
+        glColor4d(1,0,1,1);
         glMultMatrixd(Matrix4d(Quat4d(-3.141592653589793/2,Vector3d(0,1,0))).transpose().ptr());
-        //gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
+        gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         glPopMatrix();
     }
     if(rot_ball_b || true){
@@ -333,9 +333,22 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
 
     //for(i<3;++i){
     //perpendicular=perp=senkrecht to circle
-    Vector3d perp_circ=Vector3d(0,0,1);
+
+    uint i=0,j=1,k=2;
+
+    for (;i<3;++i) {
+        j=(i+1)%3;
+        k=(i+2)%3;
+    }
+    Vector3d perp_circ=Vector3d(0);
+    perp_circ[k]=1;
+    Vector3d para_dir=Vector3d(0);
+    para_dir[i]=1;
+    Vector3d perp_dir=Vector3d(0);
+    perp_dir[j]=1;
+
     //plane vectors
-    Vector3d para_dir=Vector3d(1,0,0);
+    Vector3d para_dir=Vector3d(0,0,1);
     Vector3d perp_dir=Vector3d(0,1,0);
     double mu,lam1,lam2;
 
@@ -350,10 +363,6 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
             return;
         }
     }
-
-    //For loop -r/+r
-    uint k=2;
-    uint i=0,j=1;
 
     //solves loc+parallel_dist*dir=vert_dist*(dir%perp_circ)
     perp_dir=dir%perp_circ;
@@ -376,6 +385,8 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
         if(hit[k]>-epsilon || hit[k]<epsilon){
             vert_dist=1e300;
             parallel_dist=1e300;
+        } else {
+            d_ray_points.push_back(hit);
         }
     } else {
         vert_dist=1e300;
@@ -384,14 +395,14 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
 
 
 
-    d_ray_points.push_back(hit);
+
     //d_ray_points.push_back(perp_circ);
 
-    d_ray_lines.push_back(Vector3d(0));
-    d_ray_lines.push_back(perp_circ);
+    //d_ray_lines.push_back(Vector3d(0));
+    //d_ray_lines.push_back(perp_circ);
 
-    d_ray_lines.push_back(loc-dir*parallel_dist);
-    d_ray_lines.push_back(loc-dir*parallel_dist+perp_dir);
+    //d_ray_lines.push_back(loc-dir*parallel_dist);
+    //d_ray_lines.push_back(loc-dir*parallel_dist+perp_dir);
 }
 
 //Solves loc+mu*dir=foot+lam1*vec1+lam2*vec2

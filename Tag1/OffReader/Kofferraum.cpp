@@ -58,13 +58,13 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 
     statusBar()->showMessage("Ready",1000);
     loadPackage1();
-    //ogl->packageList[0].move(Vector3d(0.2,0.3,0.4));
+    ogl->packageList[0].move(Vector3d(-0.25,-0.25,-0.25));
     //loadPackage2();
 }
 
 
 void CGMainWindow::loadPackage1(){
-    ogl->packageList.push_back(Package(.10,.10,.10));
+    ogl->packageList.push_back(Package(.50,.50,.50));
 }
 void CGMainWindow::loadPackage2(){
     ogl->packageList.push_back(Package(.410,.160,.1490));
@@ -236,7 +236,7 @@ void CGView::worldCoord(int x, int y, int z, Vector3d &v) {
 void CGView::mousePressEvent(QMouseEvent *event) {
     oldX = event->x();
     oldY = event->y();
-    double epsilon=0.01;
+    double epsilon=0.1;
 
     Vector3d dir, dir_n, near_l;
     worldCoord(oldX,oldY,1,dir);
