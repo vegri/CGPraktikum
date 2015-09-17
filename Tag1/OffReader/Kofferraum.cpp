@@ -254,6 +254,11 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     int loc_picked=-1;
     Vector3d hit_point;
 
+    if(!picked< this->packageList.size()){
+        this->mouse_mode=event->button();
+        return;
+    }
+
     switch (event->button()) {
     case Qt::LeftButton:{
         bool fixedMoveDir=false;
@@ -391,9 +396,28 @@ void CGView::mouseMoveEvent(QMouseEvent* event){
 }
 
 void CGView::mouseToTrackball(int x, int y, int w, int h, Vector3d &v){
-    double r = fmin(w, h) / 2.0;
-    double cx = w / 2.0;
-    double cy = h / 2.0;
+    double r,cx,cy;
+
+    //gluProject(GLdouble objX,  GLdouble objY,  GLdouble objZ,  const GLdouble * model,  const GLdouble * proj,  const GLint * view,  GLdouble* winX,  GLdouble* winY,  GLdouble* winZ);
+
+    if(picked_active && picked<this->packageList.size()){
+        Vector3d rot_c=this->packageList[picked];
+        r=this->packageList[picked].getCircleRad();
+
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT,viewport);
+        GLdouble M[16], P[16];
+        glGetDoublev(GL_PROJECTION_MATRIX,P);
+        glGetDoublev(GL_MODELVIEW_MATRIX,M);
+
+        Matrix4d mod=Matrix4d((* double) M);
+
+        gluUnProject(x,viewport[3]-1-y,z,M,P,viewport,&v[0],&v[1],&v[2]);
+    } else {
+        r = fmin(w, h) / 2.0;
+        cx = w / 2.0;
+        cy = h / 2.0;
+    }
     double dx = (x - cx) / r;
     double dy = -(y - cy) / r;
     double rho = hypot(dx, dy);
