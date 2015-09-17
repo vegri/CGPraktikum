@@ -143,7 +143,9 @@ void Package::pick(bool picked)
 
 Vector3d Package::getRotProjection()
 {
-
+    Vector3d v=Vector3d(0);
+    v[rot_dir]=1;
+    return v;
 }
 
 void Package::getDist(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist)
