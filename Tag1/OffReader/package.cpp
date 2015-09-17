@@ -69,12 +69,12 @@ void Package::draw()
         gluDisk(quadric,  circle_rad*0.999,circle_rad*1.01,  40, 5);
         glPopMatrix();
     }
-    if(rot_ball_b){
+    if(picked){
         GLUquadricObj *quadric;
         quadric = gluNewQuadric();
 
         glColor4d(.1,.1,.1,0.1);
-        gluQuadricDrawStyle(quadric, GLU_FILL);
+        gluQuadricDrawStyle(quadric, GLU_LINE);
         gluSphere( quadric , this->getDiameter()/2,40,40);
     }
 
