@@ -154,7 +154,7 @@ void CGMainWindow::loadPolyhedron() {
 }
 
 CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent), mouse_mode(Qt::NoButton) {
-    picked=0;
+    picked=-1;
     picked_active=false;
     projRot=false;
     setFocusPolicy(Qt::StrongFocus);
@@ -288,6 +288,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             this->packageList[picked].pick(true);
             picked_active=true;
         } else {
+            this->packageList[picked].pick(false);
             picked_active=false;
         }
         this->mouse_mode=Qt::LeftButton;
@@ -323,6 +324,7 @@ void CGView::mouseReleaseEvent(QMouseEvent *event) {
     case Qt::MidButton:
         break;
     case Qt::RightButton:{
+        this->projRot=false;
         Vector3d u;
         Vector3d v;
         mouseToTrackball(oldX, oldY, currentWidth, currentHeight, u);
@@ -346,13 +348,13 @@ void CGView::wheelEvent(QWheelEvent* event) {
     update();
 }
 
-void CGView::mouseMoveEvent(QMouseEvent* event) {
+void CGView::mouseMoveEvent(QMouseEvent* event){
     Vector3d u;
     Vector3d v;
 
     switch ((uint) mouse_mode) {
     case Qt::LeftButton:{
-        if(picked<this->packageList.size()){
+        if(picked<this->packageList.size() && picked_active){
             int x=event->x(),y=event->y();
             worldCoord(x, y, 0, u);
             worldCoord(x, y, -42, v);
@@ -378,9 +380,6 @@ void CGView::mouseMoveEvent(QMouseEvent* event) {
         Quat4d q;
         trackball(u, v, q);
         if (q.lengthSquared() > 0) {
-            // sometimes mouseMove events occur even when the mouse stays on
-            // the same pixel. The length of `q` becomes 0, and everything breaks
-            // down. To prevent this, we check that `q` is not 0.
             q_now = q * q_old;
         }
     }
@@ -391,7 +390,7 @@ void CGView::mouseMoveEvent(QMouseEvent* event) {
     updateGL();
 }
 
-void CGView::mouseToTrackball(int x, int y, int w, int h, Vector3d &v) {
+void CGView::mouseToTrackball(int x, int y, int w, int h, Vector3d &v){
     double r = fmin(w, h) / 2.0;
     double cx = w / 2.0;
     double cy = h / 2.0;
@@ -416,8 +415,7 @@ void CGView::trackball(Vector3d u, Vector3d v, Quat4d &q) {
     q.normalize();
 }
 
-void CGView::rot(GLdouble x, GLdouble y, GLdouble z)
-{
+void CGView::rot(GLdouble x, GLdouble y, GLdouble z){
     Quat4d t_q,q_x,q_y,q_z;
     q_x=Quat4d(std::sin(x/2),0,0,std::cos(x/2));
     q_y=Quat4d(0,std::sin(y/2),0,std::cos(y/2));
@@ -430,10 +428,11 @@ void CGView::rot(GLdouble x, GLdouble y, GLdouble z)
     updateGL();
 }
 
-void CGView::move(GLdouble x, GLdouble y, GLdouble z)
-{
-    if(this->picked<this->packageList.size()){
+void CGView::move(GLdouble x, GLdouble y, GLdouble z){
+    if(this->picked<this->packageList.size() && this->picked_active==true){
         this->packageList[picked].move(Vector3d(x,y,z)/zoom);
+    } else {
+        this->center+=Vector3d(x,y,z)/zoom;
     }
     updateGL();
 }
