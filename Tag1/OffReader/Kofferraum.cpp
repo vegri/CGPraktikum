@@ -281,10 +281,9 @@ void CGView::mousePressEvent(QMouseEvent *event) {
                 this->packageList[loc_picked].setMoveDir(true);
                 this->hit=Vector3d(0);
             }
-            this->packageList[picked].disablePick();
+            this->packageList[picked].pick(false);
             this->picked=loc_picked;
-            this->packageList[picked].enalbePick();
-
+            this->packageList[picked].pick(true);
         }
         this->mouse_mode=Qt::LeftButton;
     }
@@ -299,6 +298,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
         this->packageList[picked].getDistCircleLine(near_l, dir_n, epsilon, dist, act_z, hit_point);
         if(dist<epsilon){
+            this->packageList[picked].getRotProjection();
             fixedMoveDir=true;
         }
 

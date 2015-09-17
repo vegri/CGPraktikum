@@ -76,10 +76,8 @@ public:
   std::vector<std::vector<int> > ifs;   // the faces of the loaded model, ifs[i] contains the indices of the i-th face
 	double zoom;
   Quat4d q_old;
-	Quat4d q_now;
-  Quat4d q_animated;
-  //Matrix4d currentRotationMatrix;
-	
+  Quat4d q_now;
+
   void keyPressEvent(QKeyEvent *e);
 
 public slots:
