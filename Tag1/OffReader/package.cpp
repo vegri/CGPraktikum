@@ -1,6 +1,6 @@
 #include "package.h"
 
-uint Package::next_serial=0;
+uint Package::next_serial=1;
 
 Package::Package():
     center(Vector3d(0,0,0)),rot(Quat4d(0,0,0,1)),corners(vecvec3d(18))
@@ -506,8 +506,8 @@ void Package::init()
         corners[i]-=center;
     }
 
-    resetColor();
     serial=next_serial;
+    resetColor();
     ++next_serial;
     move_in_dir=-1;
     rot_dir=0;
