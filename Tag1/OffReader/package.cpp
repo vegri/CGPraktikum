@@ -172,6 +172,7 @@ Vector3d Package::getRotProjection()
 {
     Vector3d v=Vector3d(0);
     v[rot_dir]=1;
+    v=rot*v;
     return v;
 }
 

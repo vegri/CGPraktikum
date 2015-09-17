@@ -407,8 +407,6 @@ void CGView::mouseMoveEvent(QMouseEvent* event){
 void CGView::mouseToTrackball(int x, int y, int w, int h){
     double r,cx,cy;
 
-    //gluProject(GLdouble objX,  GLdouble objY,  GLdouble objZ,  const GLdouble * model,  const GLdouble * proj,  const GLint * view,  GLdouble* winX,  GLdouble* winY,  GLdouble* winZ);
-
     if(picked_active && picked<this->packageList.size()){
         Vector3d n,dir,c=this->packageList[picked].getCenter();
         double rad=this->packageList[picked].getDiameter()/2;
@@ -426,6 +424,13 @@ void CGView::mouseToTrackball(int x, int y, int w, int h){
 
         v=v+dir*sqrt(rad*rad-v.lengthSquared());
 
+        if(projRot){
+            Vector3d h=this->packageList[picked].getRotProjection();
+            v=v-h*(h*v);
+            v.normalize();
+            v=v*rad;
+        }
+
         if(this->packageList[picked].d_ray_points.size()==0)
             this->packageList[picked].d_ray_points.push_back(v);
 
@@ -435,8 +440,6 @@ void CGView::mouseToTrackball(int x, int y, int w, int h){
             this->packageList[picked].d_ray_points[1]=v;
         }
 
-        //this->packageList[picked].d_ray_points.push_back(v);
-        //this->packageList[picked].d_ray_points.push_back(point-c);
         trackballV=v;
         return;
 
