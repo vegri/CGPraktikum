@@ -36,7 +36,7 @@ public:
     void getIntersectionLinePlane(const Vector3d &loc,  const Vector3d &dir,
                                            const Vector3d &foot, const Vector3d &plane_vec1, const Vector3d &plane_vec2,
                                            double &mu, double &lam1, double &lam2);
-    void getDistCircleLine(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &parallel_dist, Vector3d &hit);
+    void getDistCircleLine(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist, Vector3d &hit);
 private:
     void init();
     double height, width, depth;

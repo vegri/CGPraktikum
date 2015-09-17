@@ -153,7 +153,7 @@ void CGMainWindow::loadPolyhedron() {
     statusBar()->showMessage ("Loading polyhedron done.",3000);
 }
 
-CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent), move(Qt::NoButton) {
+CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent), mouse_mode(Qt::NoButton) {
     picked=0;
     setFocusPolicy(Qt::StrongFocus);
 }
@@ -283,11 +283,11 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             }
             this->picked=loc_picked;
         }
-        this->move=Qt::LeftButton;
+        this->mouse_mode=Qt::LeftButton;
     }
         break;
     case Qt::MidButton:
-        this->move=Qt::MidButton;
+        this->mouse_mode=Qt::MidButton;
         break;
     case Qt::RightButton:{
         bool fixedMoveDir=false;
@@ -295,8 +295,8 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         for (uint i = 0; i < this->packageList.size(); ++i) {
             Vector3d loc_c=this->packageList[i].getCenter()-near_l;
             double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
-            if(dist<epsilon+this->packageList[i].getDiameter()/2){
-                this->packageList[i].getDistCircleLine(near_l, dir_n, dist, act_z, hit_point);
+            //if(dist<epsilon+this->packageList[i].getDiameter()/2){
+                this->packageList[i].getDistCircleLine(near_l, dir_n, epsilon, dist, act_z, hit_point);
                 if(dist<epsilon && min_z>act_z){
                     loc_picked=i;
                     min_z=act_z;
@@ -308,18 +308,18 @@ void CGView::mousePressEvent(QMouseEvent *event) {
                     fixedMoveDir=false;
                     hit=hit_point-this->packageList[i].getCenter();
                 }*/
-            }
+            //}
         }
 
-        if(loc_picked>-1 && loc_picked<this->packageList.size()){
+        /*if(loc_picked>-1 && loc_picked<this->packageList.size()){
             if(fixedMoveDir){
                 this->packageList[picked].setMoveDir(false);
                 this->packageList[loc_picked].setMoveDir(true);
                 this->hit=Vector3d(0);
             }
             this->picked=loc_picked;
-        }
-        this->move=Qt::RightButton;
+        }*/
+        this->mouse_mode=Qt::RightButton;
     }
         break;
     default:
@@ -329,7 +329,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
 }
 
 void CGView::mouseReleaseEvent(QMouseEvent *event) {
-    switch ((uint) move) {
+    switch ((uint) mouse_mode) {
     case Qt::LeftButton:
         this->packageList[picked].setMoveDir(false);
     case Qt::MidButton:
@@ -362,7 +362,7 @@ void CGView::mouseMoveEvent(QMouseEvent* event) {
     Vector3d u;
     Vector3d v;
 
-    switch ((uint) move) {
+    switch ((uint) mouse_mode) {
     case Qt::LeftButton:{
         if(picked<this->packageList.size()){
             int x=event->x(),y=event->y();
@@ -438,10 +438,20 @@ void CGView::rot(GLdouble x, GLdouble y, GLdouble z)
     t_q=q_x*q_z*q_y;
     q_now=t_q*q_now;
     q_now.normalize();
+    q_old=q_now;
+    updateGL();
+}
+
+void CGView::move(GLdouble x, GLdouble y, GLdouble z)
+{
+    if(this->picked<this->packageList.size()){
+        this->packageList[picked].move(Vector3d(x,y,z)/zoom);
+    }
     updateGL();
 }
 
 void CGView::keyPressEvent(QKeyEvent *e) {
+    //std::cout << e->key() << std::endl;
     switch (e->key()) {
     case Qt::Key_S: rot( 0.05,0,0); break;
     case Qt::Key_W: rot(-0.05,0,0); break;
@@ -449,6 +459,12 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_Q: rot(0, 0.05,0); break;
     case Qt::Key_A: rot(0,0,-0.05); break;
     case Qt::Key_D: rot(0,0, 0.05); break;
+    case Qt::Key_Left:       move(-0.05,0,0); break;
+    case Qt::Key_Right:      move( 0.05,0,0); break;
+    case Qt::Key_Up:         move(0, 0.05,0); break;
+    case Qt::Key_Down:       move(0,-0.05,0); break;
+    case Qt::Key_NumberSign: move(0,0, 0.05); break;
+    case Qt::Key_Plus:       move(0,0,-0.05); break;
     case Qt::Key_Space:
         break;
     case Qt::Key_X:

@@ -39,7 +39,7 @@ void Package::draw()
     glEnd();
     glBegin(GL_QUAD_STRIP);
     for(;i<18;++i)
-        glVertex3dv(corners[i].ptr());
+        //glVertex3dv(corners[i].ptr());
     glEnd();
 
     if(rot_dir_b || true){
@@ -320,7 +320,7 @@ bool Package::getHit(Vector3d loc_origin, Vector3d direction, Vector3d &hit, dou
 
 }
 
-void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double &vert_dist, double &parallel_dist, Vector3d &hit)
+void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist, Vector3d &hit)
 {
     //DEBUG
     d_ray_lines.clear();
@@ -331,38 +331,67 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
     Vector3d dir=rot*direction;
     dir.normalize();
 
-    Vector3d plane_vec1=Vector3d(1,0,0);
-    Vector3d plane_vec2=Vector3d(0,1,0);
+    //for(i<3;++i){
+    //perpendicular=perp=senkrecht to circle
+    Vector3d perp_circ=Vector3d(0,0,1);
+    //plane vectors
+    Vector3d para_dir=Vector3d(1,0,0);
+    Vector3d perp_dir=Vector3d(0,1,0);
     double mu,lam1,lam2;
 
-    getIntersectionLinePlane(loc,  dir, Vector3d(0) , plane_vec1, plane_vec2, mu, lam1, lam2);
-
-    //Get point of intersection to circle plane as second axis (dir is first axis)
-    hit=loc+dir*mu;
-    hit.normalize();
-
-    //Get axis perpendicular to plane with ray (loc+x*dir) and center
-    plane_vec2=dir%(hit%dir);
-    plane_vec2.normalize();
-
-    Vector3d rad=hit*this->circle_rad;
-    Vector3d res=rad-loc;
+    for(int l=-1;l<2;l+=2){
+        getIntersectionLinePlane(loc,  dir,  Vector3d(0,0,l*epsilon) , para_dir, perp_dir, mu, lam1, lam2);
+        hit=loc+dir*mu;
+        if(hit.length()<this->circle_rad+epsilon && hit.length()>this->circle_rad-epsilon){
+            parallel_dist=mu;
+            vert_dist=fabs(hit.length()-this->circle_rad);
+            d_ray_points.push_back(hit);
+            hit=rot.inverse()*hit+center;
+            return;
+        }
+    }
 
     //For loop -r/+r
-    uint k=1;
-    //Proove if two times same equation selected||prrove if division by 0 is happening in computation
-    //If one appears test next k
-    //use equation idx_1=k%3 and idx_0=k/3
-    for(;k%3==k/3 || dir[k%3]*plane_vec2[k/3]-dir[k/3]*plane_vec2[k%3]==0 || plane_vec2[k/3]==0;++k){}
+    uint k=2;
+    uint i=0,j=1;
 
-    vert_dist=(res[k%3]*plane_vec2[k/3]-res[k/3]*plane_vec2[k%3])/ //mu
-                        (dir[k%3]*plane_vec2[k/3]-dir[k/3]*plane_vec2[k%3]);
-    parallel_dist=vert_dist*dir[k/3]/plane_vec2[k/3]-res[k/3]/plane_vec2[k/3]; //lambda
+    //solves loc+parallel_dist*dir=vert_dist*(dir%perp_circ)
+    perp_dir=dir%perp_circ;
+    perp_dir.normalize();
+    if(dir[i]*perp_dir[j]-dir[j]*perp_dir[i]!=0 && perp_dir[j]!=0){
+        vert_dist=(loc[i]*perp_dir[j]-loc[j]*perp_dir[i])/ //mu
+                        (dir[i]*perp_dir[j]-dir[j]*perp_dir[i]);
+        parallel_dist=vert_dist*dir[j]/perp_dir[j]-loc[j]/perp_dir[j]; //lambda
+    } else if(dir[j]*perp_dir[i]-dir[i]*perp_dir[j]!=0 && perp_dir[i]!=0){
+        vert_dist=(loc[j]*perp_dir[i]-loc[i]*perp_dir[j])/ //mu
+                        (dir[j]*perp_dir[i]-dir[i]*perp_dir[j]);
+        parallel_dist=vert_dist*dir[i]/perp_dir[i]-loc[i]/perp_dir[i]; //lambda
+    } else {
+        std::cout << "Strange things happening, package.cpp getDistCircleLine()" << std::endl;
+        return;
+    }
 
-    hit=rot.inverse()*rad+center;
+    if(vert_dist<this->circle_rad+epsilon && vert_dist>this->circle_rad-epsilon){
+        hit=loc+dir*parallel_dist;
+        if(hit[k]>-epsilon || hit[k]<epsilon){
+            vert_dist=1e300;
+            parallel_dist=1e300;
+        }
+    } else {
+        vert_dist=1e300;
+        parallel_dist=1e300;
+    }
 
-    d_ray_points.push_back(rad);
-    //d_ray_points.push_back(loc+dir*mu);
+
+
+    d_ray_points.push_back(hit);
+    //d_ray_points.push_back(perp_circ);
+
+    d_ray_lines.push_back(Vector3d(0));
+    d_ray_lines.push_back(perp_circ);
+
+    d_ray_lines.push_back(loc-dir*parallel_dist);
+    d_ray_lines.push_back(loc-dir*parallel_dist+perp_dir);
 }
 
 //Solves loc+mu*dir=foot+lam1*vec1+lam2*vec2

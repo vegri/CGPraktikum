@@ -68,6 +68,7 @@ public:
 		after invocation of paintGL) and stores the result in v */
 	void worldCoord(int x, int y, int z, Vector3d &v);
     void rot(GLdouble x, GLdouble y, GLdouble z);
+    void move(GLdouble x, GLdouble y, GLdouble z);
 
   Vector3d min, max, center, hit;
   std::vector<Vector3d> coord; // the coords of the loaded model
@@ -107,7 +108,7 @@ protected:
 
   int animationMode;
   uint picked;
-  QFlag move;
+  QFlag mouse_mode;
   const int SLERP = 0;
   const int EULER_ANGLES = 1;
 
