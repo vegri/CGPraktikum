@@ -136,7 +136,7 @@ Vector3d Package::getCenter()
     return center;
 }
 
-void Package::Pick(bool picked)
+void Package::pick(bool picked)
 {
 
 }
