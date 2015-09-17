@@ -155,6 +155,8 @@ void CGMainWindow::loadPolyhedron() {
 
 CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent), mouse_mode(Qt::NoButton) {
     picked=0;
+    picked_active=false;
+    projRot=false;
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -284,6 +286,9 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             this->packageList[picked].pick(false);
             this->picked=loc_picked;
             this->packageList[picked].pick(true);
+            picked_active=true;
+        } else {
+            picked_active=false;
         }
         this->mouse_mode=Qt::LeftButton;
     }
@@ -292,14 +297,14 @@ void CGView::mousePressEvent(QMouseEvent *event) {
         this->mouse_mode=Qt::MidButton;
         break;
     case Qt::RightButton:{
-        bool fixedMoveDir=false;
 
         Vector3d loc_c=this->packageList[picked].getCenter()-near_l;
         double dist=(loc_c-dir_n*(loc_c*dir_n)).length();
         this->packageList[picked].getDistCircleLine(near_l, dir_n, epsilon, dist, act_z, hit_point);
         if(dist<epsilon){
-            this->packageList[picked].getRotProjection();
-            fixedMoveDir=true;
+            this->projRot=true;
+        } else {
+            this->projRot=false;
         }
 
         this->mouse_mode=Qt::RightButton;

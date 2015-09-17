@@ -106,6 +106,9 @@ protected:
 
   int animationMode;
   uint picked;
+
+  bool picked_active;
+  bool projRot;
   QFlag mouse_mode;
   const int SLERP = 0;
   const int EULER_ANGLES = 1;
