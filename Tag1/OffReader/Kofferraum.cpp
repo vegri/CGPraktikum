@@ -105,17 +105,28 @@ void CGMainWindow::loadPackage10(){
 }
 void CGMainWindow::loadAllPackages(){
 
-    ogl->packageList.push_back(Package(.50,.50,.50));
-    ogl->packageList.push_back(Package(.410,.160,.1490));
-    ogl->packageList.push_back(Package(.340,.40,.740));
-    ogl->packageList.push_back(Package(.140,.190,.800));
-    ogl->packageList.push_back(Package(.110,.50,.480));
-    ogl->packageList.push_back(Package(.360,.40,.600));
-    ogl->packageList.push_back(Package(.250,.100,.310));
-    ogl->packageList.push_back(Package(.310,.190,.320));
-    ogl->packageList.push_back(Package(.470,.440,.680));
-    ogl->packageList.push_back(Package(.310,.280,.450));
+    for(uint i=0;i<2;++i){
+        ogl->packageList.push_back(Package(.50,.50,.50));
+        ogl->packageList.push_back(Package(.410,.160,.1490));
+        ogl->packageList.push_back(Package(.340,.40,.740));
+        ogl->packageList.push_back(Package(.140,.190,.800));
+        ogl->packageList.push_back(Package(.110,.50,.480));
+        ogl->packageList.push_back(Package(.360,.40,.600));
+        ogl->packageList.push_back(Package(.250,.100,.310));
+        ogl->packageList.push_back(Package(.310,.190,.320));
+        ogl->packageList.push_back(Package(.470,.440,.680));
+        ogl->packageList.push_back(Package(.310,.280,.450));
+    }
 
+    srand(time(NULL));
+
+    for (uint i = 0; i < ogl->packageList.size(); ++i) {
+        Vector3d epsilon=Vector3d(random()*ULONG_MAX,random()*ULONG_MAX,random()*ULONG_MAX).normalized()*2-1;
+        Quat4d rot=Quat4d(random(),random(),random(),random());
+        rot.normalize();
+        ogl->packageList[i].move(epsilon);
+        //ogl->packageList[i].rotate(rot);
+    }
     ogl->updateGL();
 }
 
@@ -144,7 +155,7 @@ void CGMainWindow::loadPolyhedron() {
 
     for(int i=0;i<vn;i++) {
         file >> ogl->coord[i][0] >> ogl->coord[i][1] >> ogl->coord[i][2];
-
+        ogl->coord[i]=ogl->coord[i]*(1/1500.0);
         for(int j=0;j<3;++j) {
             if (ogl->coord[i][j] < ogl->min[j]) ogl->min[j] = ogl->coord[i][j];
             if (ogl->coord[i][j] > ogl->max[j]) ogl->max[j] = ogl->coord[i][j];
@@ -351,6 +362,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
     default:
         break;
     }
+    updateGL();
     updateGL();
 }
 
@@ -567,7 +579,10 @@ void CGView::keyPressEvent(QKeyEvent *e) {
                 }
             }
             std::cout << collisionResolved <<std::endl;
+            updateGL();
+            updateGL();
         }
+
     }
         break;
     case Qt::Key_X:
