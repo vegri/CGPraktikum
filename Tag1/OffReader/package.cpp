@@ -574,25 +574,6 @@ void Package::init()
     circle_rad=sqrt(fmax(fmax(width*width+height*height,height*height+depth*depth),depth*depth+width*width))/2;
 }
 
-//collision calculation
-bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc){
-    double res=0;
-    for (int i = 0; i < 3; ++i) {
-        res+=std::abs(alpha[i]*(v.dot(a[i])))+std::abs(beta[i]*(v.dot(b[i])));
-    }
-    double tmp=v.dot(dc);
-    if(std::abs(tmp)>res){
-        this->normal=v;
-        normal.normalize();
-        this->base=-dc/zoom_val/2;
-    } else {
-        this->normal=0;
-        this->base=0;
-    }
-
-    return std::abs(v.dot(dc))>res;
-}
-
 bool Package::isPicked()
 {
     return picked;
@@ -607,6 +588,31 @@ void Package::resetCollision()
 {
     this->collision=false;
 }
+//collision calculation
+bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc){
+    double res=0;
+    for (int i = 0; i < 3; ++i) {
+        res+=std::abs(alpha[i]*(v.dot(a[i])))+std::abs(beta[i]*(v.dot(b[i])));
+    }
+
+    if(std::abs(v.dot(dc))<res)
+        this->collDir=v.normalized()*(std::abs(v.dot(dc))-res);
+    else
+        this->collDir=0;
+
+    return std::abs(v.dot(dc))>res;
+}
+
+bool Package::resolveCollision(Package &B){
+    bool intersectionOccured=intersect(B);
+
+    if((this->center-B.center-collDir).lengthSquared()<(this->center-B.center).lengthSquared())
+        collDir=-collDir;
+    this->center-=collDir/2;
+    B.center+=collDir/2;
+    return intersectionOccured;
+}
+
 
 bool Package::intersect(Package &B){
 

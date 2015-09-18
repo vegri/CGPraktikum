@@ -47,6 +47,7 @@ public:
     double getCircleRad();
 
     bool intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc);
+    bool resolveCollision(Package &B);
     bool isPicked();
     Vector3d normal;
     Vector3d base;
@@ -80,6 +81,8 @@ private:
     static uint next_serial;
     static Vector4d pickColor;
     static Vector4d pickColorColl;
+
+    Vector3d collDir;
 
     //DEBUG
     bool write_lines;
