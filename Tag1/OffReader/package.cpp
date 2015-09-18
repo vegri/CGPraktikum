@@ -1,6 +1,8 @@
 #include "package.h"
 
 uint Package::next_serial=1;
+Vector4d Package::pickColor=Vector4d(0,1,1,0.8);
+Vector4d Package::pickColorColl=Vector4d(1,0.4,0,0.8);
 
 Package::Package():
     center(Vector3d(0,0,0)),rot(Quat4d(0,0,0,1)),corners(vecvec3d(18))
@@ -42,6 +44,19 @@ void Package::draw()
     for(;i<18;++i)
         glVertex3dv(corners[i].ptr());
     glEnd();
+
+    if(collision){
+        if(picked)
+            setColor(pickColorColl);
+        else
+            setColor(Vector4d(1,0,0,0.5));
+    }
+    else{
+        if(picked)
+            setColor(pickColor);
+        else
+            resetColor();
+    }
 
     if(picked){
         GLUquadricObj *quadric;
@@ -163,10 +178,7 @@ Vector3d Package::getCenter()
 void Package::pick(bool picked)
 {
     this->picked=picked;
-    if(picked)
-        setColor(Vector4d(0,1,1,color.w()));
-    else
-        resetColor();
+
     rot_dir=-1;
 }
 
@@ -551,7 +563,7 @@ void Package::init()
         serial=next_serial;
         ++next_serial;
     }
-    while( (serial/9%3)/3.0>0.5);
+    while( (serial/9%3)/3.0>0.5 && (serial%3)/3.0>0.6);
     resetColor();
     move_in_dir=-1;
     rot_dir=0;
@@ -579,6 +591,21 @@ bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alp
     }
 
     return std::abs(v.dot(dc))>res;
+}
+
+bool Package::isPicked()
+{
+    return picked;
+}
+
+void Package::setCollision(Package &other)
+{
+    this->collision=true;
+}
+
+void Package::resetCollision()
+{
+    this->collision=false;
 }
 
 bool Package::intersect(Package &B){

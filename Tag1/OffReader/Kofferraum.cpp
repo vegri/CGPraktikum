@@ -65,36 +65,47 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
 
 void CGMainWindow::loadPackage1(){
     ogl->packageList.push_back(Package(.50,.50,.50));
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage2(){
     ogl->packageList.push_back(Package(.410,.160,.1490));
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage3(){
     ogl->packageList.push_back(Package(.340,.40,.740));
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage4(){
-    ogl->packageList.push_back(Package(.140,.190,.800));
+    ogl->packageList.push_back(Package(.140,.190,.800));    
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage5(){
     ogl->packageList.push_back(Package(.110,.50,.480));
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage6(){
     ogl->packageList.push_back(Package(.360,.40,.600));
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage7(){
     ogl->packageList.push_back(Package(.250,.100,.310));
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage8(){
     ogl->packageList.push_back(Package(.310,.190,.320));
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage9(){
     ogl->packageList.push_back(Package(.470,.440,.680));
+    ogl->updateGL();
 }
 void CGMainWindow::loadPackage10(){
     ogl->packageList.push_back(Package(.310,.280,.450));
+    ogl->updateGL();
 }
 void CGMainWindow::loadAllPackages(){
 
+    ogl->updateGL();
 }
 
 CGMainWindow::~CGMainWindow () {}
@@ -194,6 +205,14 @@ void CGView::paintGL() {
     glMultMatrixd(R.transpose().ptr());
     glScaled(zoom, zoom, zoom);
     glTranslated(-center[0],-center[1],-center[2]);
+    for (uint i = 0; i < this->packageList.size(); ++i) {
+        this->packageList[i].resetCollision();
+        for (uint j = 0; j < this->packageList.size(); ++j){
+            if (i!=j && this->packageList[i].intersect(this->packageList[j])){
+                this->packageList[i].setCollision(this->packageList[j]);
+            }
+        }
+    }
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         this->packageList[i].draw();
