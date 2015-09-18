@@ -597,7 +597,7 @@ bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alp
 
     if(std::abs(v.dot(dc))<res)
         this->collDir=v.normalized()*(std::abs(v.dot(dc))-res);
-    std::cout << res <<  std::endl;
+    //std::cout << res <<  std::endl;
 
     return std::abs(v.dot(dc))>res;
 }
