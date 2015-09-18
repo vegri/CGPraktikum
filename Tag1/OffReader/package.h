@@ -3,6 +3,9 @@
 #include "vecmath.h"
 #include <vector>
 #include <iostream>
+#include <time.h>
+#include <stdlib.h>
+#include <limits.h>
 
 #if _MSC_VER
     #include <gl/glu.h>

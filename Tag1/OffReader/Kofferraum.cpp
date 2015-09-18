@@ -533,7 +533,26 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_Down:       move(0,-0.05,0); break;
     case Qt::Key_NumberSign: move(0,0, 0.05); break;
     case Qt::Key_Plus:       move(0,0,-0.05); break;
-    case Qt::Key_Space:
+    case Qt::Key_Space:{
+        bool collisionResolved=true;
+        srand(time(NULL));
+        for(uint s=0;s<30;++s)
+            while(collisionResolved){
+                collisionResolved=false;
+                uint n=this->packageList.size();
+                for (uint i = 0; i < this->packageList.size(); ++i) {
+                    this->packageList[((uint) rand())%n].resolveCollision(this->packageList[((uint) rand())%n]);
+                }
+
+                for (uint i = 0; i < this->packageList.size(); ++i) {
+                    for (uint j = i+1; j < this->packageList.size(); ++j){
+                        collisionResolved=collisionResolved || this->packageList[i].resolveCollision(this->packageList[j]);
+                    }
+                }
+                updateGL();
+                updateGL();
+            }
+    }
         break;
     case Qt::Key_X:
         this->packageList[this->picked].pick(false);
@@ -548,6 +567,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     default:
         break;
     }
+    updateGL();
     updateGL();
 }
 
