@@ -548,9 +548,11 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         uint collisionResolved=true;
         srand(time(NULL));
         uint k=0;
-        while(collisionResolved!=0 && k<25000){
+        while(collisionResolved!=0 && k<20){
             uint collisionResolved=0;
-            uint n=0;k++;
+            uint n=0;
+
+            k++;
             for (uint i = 0; i < this->packageList.size(); ++i) {
                 n=((uint) rand())%this->packageList.size();
                 for (uint j = 0; j < this->packageList.size(); ++j){

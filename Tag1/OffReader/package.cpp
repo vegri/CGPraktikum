@@ -595,7 +595,7 @@ bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alp
         res+=std::abs(alpha[i]*(v.dot(a[i])))+std::abs(beta[i]*(v.dot(b[i])));
     }
 
-    if(std::abs(v.dot(dc))<res)
+    if(std::abs(v.dot(dc))<res && collDir.length()>fabs(std::abs(v.dot(dc))-res))
         this->collDir=v.normalized()*(std::abs(v.dot(dc))-res);
     //std::cout << res <<  std::endl;
 
@@ -603,7 +603,7 @@ bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alp
 }
 
 bool Package::resolveCollision(Package &B){
-    this->collDir=0;
+    this->collDir=Vector3d(1,0,0)*1e300;
 
     srand(time(NULL));
     //Vector3d epsilon=Vector3d(random()*ULONG_MAX,random()*ULONG_MAX,random()*ULONG_MAX).normalized()*0.0001*B.getDiameter();
@@ -612,8 +612,13 @@ bool Package::resolveCollision(Package &B){
     if(intersectionOccured){
         if((this->center-B.center-collDir).lengthSquared()<(this->center-B.center).lengthSquared())
             collDir=-collDir;
-        this->center-=collDir*1.01/2;
-        B.center+=collDir*1.01/2;
+        this->center-=collDir*1.02/2;
+        B.center+=collDir*1.02/2;
+        if(collDir.length()<1e-10){
+            collDir.normalize();
+            this->center-=collDir*1e-10;
+            B.center+=collDir*1e-10;
+        }
     }
     this->collDir=0;
     B.collDir=0;
