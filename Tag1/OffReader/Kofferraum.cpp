@@ -548,8 +548,8 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         uint collisionResolved=true;
         srand(time(NULL));
         uint k=0;
-        while(collisionResolved!=0 && k<20){
-            uint collisionResolved=0;
+        while(collisionResolved!=0 && k<5000){
+            collisionResolved=0;
             uint n=0;
 
             k++;
