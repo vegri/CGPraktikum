@@ -34,6 +34,7 @@ public:
     Vector3d getCenter();
     void pick(bool picked);
     Vector3d getRotProjection();
+    void removeRot();
     void getDist(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist);
     void getDistEdge(Vector3d loc_origin, Vector3d direction, uint i, uint j, double &vert_dist, double &parallel_dist);
     void setMoveDir(bool move_dir_p);

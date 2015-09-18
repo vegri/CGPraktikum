@@ -122,7 +122,8 @@ void Package::setColor(Vector4d color_p)
 void Package::move(Vector3d move_p)
 {
     if(move_dir_b){
-        this->center+=move_dir*(move_p*move_dir/move_dir.lengthSquared());
+        //move_p=u+dp*(dp*(pack_center-u))-pack_center
+        this->center+=rot*move_dir*(move_p*(rot*move_dir)/move_dir.lengthSquared());
     } else
         this->center+=move_p;
 }
@@ -176,6 +177,11 @@ Vector3d Package::getRotProjection()
     return v;
 }
 
+void Package::removeRot()
+{
+    this->rot_dir=-1;
+}
+
 void Package::getDist(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist)
 {
     //DEBUG
@@ -227,8 +233,8 @@ void Package::getDist(Vector3d loc_origin, Vector3d direction, double epsilon, d
 void Package::getDistEdge(Vector3d loc_origin, Vector3d direction, uint i, uint j, double &vert_dist, double &parallel_dist)
 {
     //origin of ray in object coordinates
-    Vector3d loc=rot*(loc_origin-center);
-    Vector3d dir=rot*direction;
+    Vector3d loc=rot.inverse()*(loc_origin-center);
+    Vector3d dir=rot.inverse()*direction;
     dir.normalize();
 
     Vector3d edge=corners[j]-corners[i];
@@ -315,8 +321,8 @@ void Package::setMoveDir(bool move_dir_p)
 
 bool Package::getHit(Vector3d loc_origin, Vector3d direction, Vector3d &hit, double &parallel_dist)
 {
-    Vector3d loc=rot*(loc_origin-center);
-    Vector3d dir=rot*direction;
+    Vector3d loc=rot.inverse()*(loc_origin-center);
+    Vector3d dir=rot.inverse()*direction;
     dir.normalize();
     bool result=false;
 
@@ -363,7 +369,7 @@ bool Package::getHit(Vector3d loc_origin, Vector3d direction, Vector3d &hit, dou
     }
     //DEBUG END
 
-    hit=rot.inverse()*hit+center;
+    hit=rot*hit+center;
 
     return result;
 
@@ -378,8 +384,8 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
     d_ray_points.clear();
     write_lines=false;
     //DEBUG END
-    Vector3d loc=rot*(loc_origin-center);
-    Vector3d dir=rot*direction;
+    Vector3d loc=rot.inverse()*(loc_origin-center);
+    Vector3d dir=rot.inverse()*direction;
     dir.normalize();
 
 
@@ -412,7 +418,7 @@ void Package::getDistCircleLine(Vector3d loc_origin, Vector3d direction, double 
                 parallel_dist=fabs(mu);
                 vert_dist=fabs(hit.length()-this->circle_rad);
                 d_ray_points.push_back(hit);
-                hit=rot.inverse()*hit+center;
+                hit=rot*hit+center;
                 rot_dir=k;
                 l=4;
             }

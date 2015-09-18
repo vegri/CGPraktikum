@@ -332,8 +332,6 @@ void CGView::mouseReleaseEvent(QMouseEvent *event) {
     case Qt::MidButton:
         break;
     case Qt::RightButton:{
-        this->projRot=false;
-
         mouseToTrackball(event->x(), event->y(), currentWidth, currentHeight);
         Quat4d q;
         trackball(trackballU, trackballV, q);
@@ -346,6 +344,9 @@ void CGView::mouseReleaseEvent(QMouseEvent *event) {
         }
         if(!this->picked_active)
             q_old = q_now;
+        else
+            this->packageList[picked].removeRot();
+        this->projRot=false;
         updateGL();
     }
         break;
