@@ -545,22 +545,26 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_NumberSign: move(0,0, 0.05); break;
     case Qt::Key_Plus:       move(0,0,-0.05); break;
     case Qt::Key_Space:{
-        bool collisionResolved=true;
+        uint collisionResolved=true;
         srand(time(NULL));
-        while(collisionResolved){
-            collisionResolved=false;
-            uint n=this->packageList.size();
+        uint k=0;
+        while(collisionResolved!=0 && k<25000){
+            uint collisionResolved=0;
+            uint n=0;k++;
             for (uint i = 0; i < this->packageList.size(); ++i) {
-                this->packageList[((uint) rand())%n].resolveCollision(this->packageList[((uint) rand())%n]);
+                n=((uint) rand())%this->packageList.size();
+                for (uint j = 0; j < this->packageList.size(); ++j){
+                    if(j!=n)
+                        this->packageList[n].resolveCollision(this->packageList[j]);
+                }
             }
 
             for (uint i = 0; i < this->packageList.size(); ++i) {
                 for (uint j = i+1; j < this->packageList.size(); ++j){
-                    collisionResolved=collisionResolved || this->packageList[i].resolveCollision(this->packageList[j]);
+                    collisionResolved+=this->packageList[i].resolveCollision(this->packageList[j]);
                 }
             }
-            updateGL();
-            updateGL();
+            std::cout << collisionResolved <<std::endl;
         }
     }
         break;
