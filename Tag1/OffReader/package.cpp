@@ -597,7 +597,7 @@ bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alp
 
     if(std::abs(v.dot(dc))<res)
         this->collDir=v.normalized()*(std::abs(v.dot(dc))-res);
-    std::cout << res<<  std::endl;
+    std::cout << res <<  std::endl;
 
     return std::abs(v.dot(dc))>res;
 }
@@ -609,14 +609,12 @@ bool Package::resolveCollision(Package &B){
     //Vector3d epsilon=Vector3d(random()*ULONG_MAX,random()*ULONG_MAX,random()*ULONG_MAX).normalized()*0.0001*B.getDiameter();
     //B.center+=epsilon;
     bool intersectionOccured=intersect(B);
-    //if(!intersectionOccured)
-      //  B.center-=epsilon;
-
-
-    if((this->center-B.center-collDir).lengthSquared()<(this->center-B.center).lengthSquared())
-        collDir=-collDir;
-    this->center-=collDir*1.01/2;
-    B.center+=collDir*1.01/2;
+    if(intersectionOccured){
+        if((this->center-B.center-collDir).lengthSquared()<(this->center-B.center).lengthSquared())
+            collDir=-collDir;
+        this->center-=collDir*1.01/2;
+        B.center+=collDir*1.01/2;
+    }
     this->collDir=0;
     B.collDir=0;
     return intersectionOccured;

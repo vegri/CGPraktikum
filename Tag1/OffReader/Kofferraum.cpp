@@ -105,6 +105,17 @@ void CGMainWindow::loadPackage10(){
 }
 void CGMainWindow::loadAllPackages(){
 
+    ogl->packageList.push_back(Package(.50,.50,.50));
+    ogl->packageList.push_back(Package(.410,.160,.1490));
+    ogl->packageList.push_back(Package(.340,.40,.740));
+    ogl->packageList.push_back(Package(.140,.190,.800));
+    ogl->packageList.push_back(Package(.110,.50,.480));
+    ogl->packageList.push_back(Package(.360,.40,.600));
+    ogl->packageList.push_back(Package(.250,.100,.310));
+    ogl->packageList.push_back(Package(.310,.190,.320));
+    ogl->packageList.push_back(Package(.470,.440,.680));
+    ogl->packageList.push_back(Package(.310,.280,.450));
+
     ogl->updateGL();
 }
 
@@ -536,22 +547,21 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_Space:{
         bool collisionResolved=true;
         srand(time(NULL));
-        for(uint s=0;s<30;++s)
-            while(collisionResolved){
-                collisionResolved=false;
-                uint n=this->packageList.size();
-                for (uint i = 0; i < this->packageList.size(); ++i) {
-                    this->packageList[((uint) rand())%n].resolveCollision(this->packageList[((uint) rand())%n]);
-                }
-
-                for (uint i = 0; i < this->packageList.size(); ++i) {
-                    for (uint j = i+1; j < this->packageList.size(); ++j){
-                        collisionResolved=collisionResolved || this->packageList[i].resolveCollision(this->packageList[j]);
-                    }
-                }
-                updateGL();
-                updateGL();
+        while(collisionResolved){
+            collisionResolved=false;
+            uint n=this->packageList.size();
+            for (uint i = 0; i < this->packageList.size(); ++i) {
+                this->packageList[((uint) rand())%n].resolveCollision(this->packageList[((uint) rand())%n]);
             }
+
+            for (uint i = 0; i < this->packageList.size(); ++i) {
+                for (uint j = i+1; j < this->packageList.size(); ++j){
+                    collisionResolved=collisionResolved || this->packageList[i].resolveCollision(this->packageList[j]);
+                }
+            }
+            updateGL();
+            updateGL();
+        }
     }
         break;
     case Qt::Key_X:
