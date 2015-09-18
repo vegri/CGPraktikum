@@ -122,6 +122,7 @@ void Package::setColor(Vector4d color_p)
 void Package::move(Vector3d move_p)
 {
     if(move_dir_b){
+        //pack_center=center+hit
         //move_p=u+dp*(dp*(pack_center-u))-pack_center
         this->center+=rot*move_dir*(move_p*(rot*move_dir)/move_dir.lengthSquared());
     } else
@@ -536,6 +537,12 @@ void Package::init()
     center[1]+=width/2;
     center[2]+=depth/2;
 
+    halflength=center;
+
+    axis.resize(3);
+    axis[0]=Vector3d(1,0,0);
+    axis[1]=Vector3d(0,1,0);
+    axis[2]=Vector3d(0,0,1);
 
     for (uint i = 0; i < 18; ++i) {
         corners[i]-=center;
@@ -553,4 +560,56 @@ void Package::init()
     rot_ball_b=false;
     rot_dir=-1;
     circle_rad=sqrt(fmax(fmax(width*width+height*height,height*height+depth*depth),depth*depth+width*width))/2;
+}
+
+//collision calculation
+bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc){
+    double res=0;
+    for (int i = 0; i < 3; ++i) {
+        res+=std::abs(alpha[i]*(v.dot(a[i])))+std::abs(beta[i]*(v.dot(b[i])));
+    }
+    double tmp=v.dot(dc);
+    if(std::abs(tmp)>res){
+        this->normal=v;
+        normal.normalize();
+        this->base=-dc/zoom_val/2;
+    } else {
+        this->normal=0;
+        this->base=0;
+    }
+
+    return std::abs(v.dot(dc))>res;
+}
+
+bool Package::intersect(Package &B){
+
+    vecvec3d a,b,v;
+
+    a.resize(3);b.resize(3);v.resize(3);
+
+    for (int i = 0; i < 3; ++i) {
+        a[i]=rot*axis[i];
+        b[i]=B.rot*B.axis[i];
+    }
+    Vector3d alpha=halflength*zoom_val;
+    Vector3d beta=B.halflength*B.zoom_val;
+    Vector3d dc=B.center-center;
+
+    for(int i=0;i<3;i++){
+        if(this->intersectAxis(a[i],a,b,alpha,beta,dc))
+            return false;
+        if(this->intersectAxis(b[i],a,b,alpha,beta,dc))
+            return false;
+    }
+    for(int i=0;i<3;i++){
+        for(int k=0;k<3;k++){
+            Vector3d co=0;
+            co.cross(a[i],b[k]);
+            co.normalize();
+            if(this->intersectAxis(co,a,b,alpha,beta,dc))
+                return false;
+        }
+    }
+    return true;
+
 }

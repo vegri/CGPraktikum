@@ -45,6 +45,15 @@ public:
                                            double &mu, double &lam1, double &lam2);
     void getDistCircleLine(Vector3d loc_origin, Vector3d direction, double epsilon, double &vert_dist, double &parallel_dist, Vector3d &hit);
     double getCircleRad();
+
+    bool intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc);
+    Vector3d normal;
+    Vector3d base;
+    vecvec3d axis;
+    Vector3d halflength;
+    double zoom_val=1.0;
+
+    bool intersect(Package &B);
 private:
     void init();
     double height, width, depth;
