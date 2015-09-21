@@ -45,7 +45,7 @@ class BVT
 	public:
 
 		/// create new node
-        BVT (const vecvecuint &idx_p, const vecvec3d *points_p, uint depth);
+        BVT (const vecvecuint &idx_p, vecvec3d *points_p, uint depth);
         BVT (const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, vecvec3d *ball_points, uint depth);
 
         void draw();
