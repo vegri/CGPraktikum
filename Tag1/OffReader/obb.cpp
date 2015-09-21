@@ -7,11 +7,13 @@ OBB::OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
 
     this->color=color_p;
     this->box_color=Vector3d(0,1,0);
+    this->points=vecvec3d(ind.size()*3);
 
     center=0;
     for(unsigned int i=0;i<ind.size();i++){
         for(uint j=0;j<ind[i].size();j++){
             center=center+p->at(ind[i][j]);
+            points[i*3+j]=p->at(ind[i][j]);
         }
     }
     center=center/(ind.size()*3);
@@ -19,8 +21,6 @@ OBB::OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
     this->q_now=Quat4d(0,0,0,1);
 
     bodycenter=0;
-
-    caluculateC(p,ind);
     setCorner(p,ind);
 }
 
@@ -80,11 +80,12 @@ bool OBB::intersect(OBB &B){
 
 void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //double min_x,min_y,min_z,max_x,max_y,max_z;
-
+    caluculateC(p,ind);
 
     Matrix4d m=Matrix4d();//.transpose();
     m.invert_4x4(R);
-    //m=R.transpose();
+    m=R.transpose();
+    m=m.identity();
 
     Vector3d loc_p=m*p->at(ind[0][0]);
     max_x=loc_p.x();
@@ -138,7 +139,7 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
         axis[i].normalize();
     }
     for (uint i = 0; i < corner.size(); ++i) {
-        this->corner[i]=R*this->corner[i];
+        //this->corner[i]=R*this->corner[i];
     }
 
     this->q_now.set(m);
@@ -148,7 +149,7 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
 void OBB::caluculateC(const vecvec3d *p, const vecvecuint ind){
     C=Matrix4d(0.0);
     for(uint i=0;i<ind.size();i++){
-        for(uint j=0;j<ind[i].size();j++){
+        for(uint j=0;j<3;j++){
             C+=dyadicProdukt((*p)[ind[i][j]],(*p)[ind[i][j]]);
         }
     }
@@ -167,6 +168,15 @@ Matrix4d OBB::dyadicProdukt(Vector3d v1, Vector3d v2){
 void OBB::draw(){
     glPushMatrix();
 
+    glPointSize(5);
+    glColor3d(1,0,1);
+    glBegin(GL_POINTS);
+    for(uint i =0; i < points.size(); ++i)
+    {
+        glVertex3dv(points[i].ptr());
+    }
+    glEnd();
+
 //    glBegin(GL_LINES);
 //    glVertex3d(0,0,0);
 //    glVertex3dv((bodycenter+center).ptr());
@@ -178,8 +188,8 @@ void OBB::draw(){
 
     //glTranslated(-center[0], -center[1], -center[2]);
     //glTranslated(-bodycenter[0], -bodycenter[1], -bodycenter[2]);
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-    //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glDisable(GL_LIGHTING);
     glColor3d(0.5,0,0);
 

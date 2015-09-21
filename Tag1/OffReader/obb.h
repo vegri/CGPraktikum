@@ -38,7 +38,7 @@ class OBB{
         Matrix4d dyadicProdukt(Vector3d v1,Vector3d v2);
 
         //variablen
-        //std::vector<Vector3d> points;
+        std::vector<Vector3d> points;
         std::vector<Vector3d> corner;
         std::vector<Vector3d> axis;
         Vector3d color;

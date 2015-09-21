@@ -19,7 +19,11 @@ BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *poi
     triMids(triMids_p), idx(idx_p), points(points_p),/* box(ball_points),*/ actualDepth(depth)
 {
     box=OBB(points_p,idx_p,Vector3d(0.5,0.5,0.));
-    debug_points=vecvec3d(points_p->begin(),points_p->end());
+    debug_points=vecvec3d(idx_p.size()*3);
+    for (uint i = 0; i < debug_points.size(); ++i) {
+        debug_points[i]=(*points_p)[idx_p[i/3][i%3]];
+    }
+
     init(false);
 }
 
@@ -44,8 +48,8 @@ void BVT::draw(uint depth)
         } else {
             if(this->left!=0x0)
                 this->left->draw(depth);
-            if(this->right!=0x0)
-                this->right->draw(depth);
+            //if(this->right!=0x0)
+              //  this->right->draw(depth);
         }
     }
     if(drawModel && this->actualDepth==0){
