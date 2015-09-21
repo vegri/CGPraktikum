@@ -8,6 +8,7 @@
 #include <iostream>
 #include <algorithm>
 
+#define uint unsigned int
 
 typedef std::vector<Vector3d> vecvec3d;
 typedef std::vector<uint> vecuint;

@@ -16,7 +16,7 @@
 #endif
 
 typedef std::vector<Vector3d> vecvec3d;
-typedef unsigned int uint;
+//typedef unsigned int uint;
 
 class Package
 {

@@ -4,7 +4,7 @@
 
 #define maximal_points 10
 
-#define uint unsigned int
+//#define uint unsigned int
 using namespace std;
 
 // Construktor
@@ -77,7 +77,9 @@ void BVT::split ()
 {
     vecvec3d left, right, allSorted=this->getPoints();
     std::map<vecvec3d,vecvecuint> midTriangMap;
+    for (uint i = 0; i < triMids.size(); ++i) {
 
+    }
 
 
 
