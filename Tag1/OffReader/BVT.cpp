@@ -33,9 +33,9 @@ void BVT::draw(uint depth)
            this->box.draw();
         else{
             if(this->left!=0x0)
-                this->left->draw(depth-1);
+                this->left->draw(depth);
             if(this->right!=0x0)
-                this->right->draw(depth-1);
+                this->right->draw(depth);
         }
     }
     if(drawModel && this->actualDepth==0){
