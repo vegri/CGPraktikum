@@ -26,6 +26,7 @@ class BVT
         vecvec3d triMids;
         const vecvecuint idx;
         const vecvec3d *points;
+        vecvec3d debug_points;
 
 		/// mass center of point set
         Vector3d mass_center;

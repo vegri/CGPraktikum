@@ -11,6 +11,7 @@ BVT::BVT (const vecvecuint& idx_p, const vecvec3d *points_p, uint depth):
     triMids(idx_p.size()), idx(idx_p), points(points_p),/* box(*points_p),*/ actualDepth(depth)
 {
     box=OBB(points_p,idx_p,Vector3d(0.5,0.5,0.));
+    debug_points=vecvec3d(points_p->begin(),points_p->end());
     init(true);
 }
 
@@ -18,6 +19,7 @@ BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *poi
     triMids(triMids_p), idx(idx_p), points(points_p),/* box(ball_points),*/ actualDepth(depth)
 {
     box=OBB(points_p,idx_p,Vector3d(0.5,0.5,0.));
+    debug_points=vecvec3d(points_p->begin(),points_p->end());
     init(false);
 }
 
@@ -29,14 +31,22 @@ void BVT::draw()
 void BVT::draw(uint depth)
 {
     if(drawBoxes){
-        if (depth>=this->actualDepth)
-           this->box.draw();
-
+        if (depth==this->actualDepth){
+            this->box.draw();
+            glPointSize(5);
+            glColor3d(1,0,0);
+            glBegin(GL_POINTS);
+            for(uint i =0; i < debug_points.size(); ++i)
+            {
+                glVertex3dv(debug_points[i].ptr());
+            }
+            glEnd();
+        } else {
             if(this->left!=0x0)
                 this->left->draw(depth);
             if(this->right!=0x0)
                 this->right->draw(depth);
-
+        }
     }
     if(drawModel && this->actualDepth==0){
         glPushMatrix();
@@ -65,6 +75,7 @@ void BVT::init(bool init_midtriange)
     center=0;
     rot=Quat4d(0,0,0,1);
     model_color=Vector4d(0,0.5,0.5,0.8);
+    this->drawModel=true;
 
     uint i,j;
     Vector3d r;

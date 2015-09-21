@@ -167,11 +167,16 @@ Matrix4d OBB::dyadicProdukt(Vector3d v1, Vector3d v2){
 void OBB::draw(){
     glPushMatrix();
 
-    glBegin(GL_LINES);
-    glVertex3d(0,0,0);
-    glVertex3dv(bodycenter.ptr());
-    glEnd();
+//    glBegin(GL_LINES);
+//    glVertex3d(0,0,0);
+//    glVertex3dv((bodycenter+center).ptr());
+//    glVertex3d(0,0,0);
+//    glVertex3dv((bodycenter).ptr());
+//    glVertex3d(0,0,0);
+//    glVertex3dv((center).ptr());
+//    glEnd();
 
+    //glTranslated(-center[0], -center[1], -center[2]);
     //glTranslated(-bodycenter[0], -bodycenter[1], -bodycenter[2]);
     glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
