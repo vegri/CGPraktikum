@@ -1,9 +1,6 @@
 #include "BVT.h"
 
-#include "Sphere.h"
 
-#include <iostream>
-#include <algorithm>
 
 #define maximal_points 10
 
@@ -11,51 +8,76 @@
 using namespace std;
 
 // Construktor
-BVT::BVT (const std::vector<Vector3d>& points,int depth) : points_ (points), ball_ (points)
+BVT::BVT (const vecvecuint& idx_p, const vecvec3d& points_p,uint depth):
+    triMids(idx_p.size()), idx(idx_p), points(points_p), ball(points_p), actualDepth(depth)
 {
-  this->actualDeep=depth;
-  for(unsigned int i=0;i<points_.size();i++)
-    mass_center_ += points_[i];
-  mass_center_ /= points_.size();
+    init(true);
+}
 
-	// Compute inetria matrix
-  for(unsigned int i=0;i<points_.size ();i++) {
-    const Vector3d& r = points_[i] - mass_center_;
-    inertia_(0,0) += r[1]*r[1]+r[2]*r[2];
-    inertia_(1,1) += r[0]*r[0]+r[2]*r[2];
-    inertia_(2,2) += r[0]*r[0]+r[1]*r[1];
-    inertia_(0,1) -= r[0]*r[1];
-    inertia_(0,2) -= r[0]*r[2];
-    inertia_(1,2) -= r[1]*r[2];
-  }
- 
-	/// Due to the fact that we work with Matrix4d, expand the last row/column by (0,0,0,1)
-  inertia_(0,3) = inertia_(3,0) = 0.0;
-  inertia_(1,3) = inertia_(3,1) = 0.0;
-  inertia_(2,3) = inertia_(3,2) = 0.0;
-  inertia_(3,3) = 1.0;
-	
-	// Kinder! Blaetter haben NULL-Pointer als Kinder!
-	left_ = NULL;
-	right_ = NULL;
+BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d &points_p, unsigned int depth):
+    triMids(triMids_p), idx(idx_p), points(points_p), ball(points_p), actualDepth(depth)
+{
+    init(false);
+}
+
+void BVT::init(bool init_midtriange)
+{
+    uint i,j;
+    Vector3d r;
+    for(i=0;i<idx.size();++i){
+        r=0;
+        for (j = 0; j < 3; ++j){
+            r += points[idx[i][j]]/3;
+        }
+        if(init_midtriange)
+            triMids[i]=r;
+        mass_center+=r;
+    }
+    mass_center /= idx.size();
+
+    // Compute inetria matrix
+
+    for(unsigned int i=0;i<points.size ();i++) {
+        r=-mass_center;
+        for (j = 0; j < 3; ++j){
+            r += points[idx[i][j]]/3;
+        }
+
+        inertia(0,0) += r[1]*r[1]+r[2]*r[2];
+        inertia(1,1) += r[0]*r[0]+r[2]*r[2];
+        inertia(2,2) += r[0]*r[0]+r[1]*r[1];
+        inertia(0,1) -= r[0]*r[1];
+        inertia(0,2) -= r[0]*r[2];
+        inertia(1,2) -= r[1]*r[2];
+    }
+
+    /// Due to the fact that we work with Matrix4d, expand the last row/column by (0,0,0,1)
+    inertia(0,3) = inertia(3,0) = 0.0;
+    inertia(1,3) = inertia(3,1) = 0.0;
+    inertia(2,3) = inertia(3,2) = 0.0;
+    inertia(3,3) = 1.0;
+
+    // Kinder! Blaetter haben NULL-Pointer als Kinder!
+    left = NULL;
+    right = NULL;
 }
 
 
 /********************************************************
-** Construcs an optimal splitting of points_ into two disjoint sets
+** Construcs an optimal splitting of points into two disjoint sets
 ** links and rechts and increases the BVT-tree by 1. 
 ** The splitting follows the idea of the lecture:
-** (1) Compute the inertia matrix M of points_
+** (1) Compute the inertia matrix M of points
 ** (2) Compute the eigenvalues/eigenvectors of M by M.jacoby() (vecmath!)
 ** (3) Let v be the most stable eigenvector and c be the mass center.
-**     Split points_ by plane p: (x-c)^T*v = 0 
+**     Split points by plane p: (x-c)^T*v = 0
 *********************************************************/
 
 void BVT::split ()
 {
-    std::vector<Vector3d> left;
-    std::vector<Vector3d> right;
-    std::vector<Vector3d> allSorted=this->getPoints();
+    vecvec3d left, right, allSorted=this->getPoints();
+    std::map<vecvec3d,vecvecuint> midTriangMap;
+
 
 
 
@@ -64,12 +86,10 @@ void BVT::split ()
 	Matrix4d eigenvector;
 	int nrot; /// not important
 
-	/// Dont forget to compute inertia_ first!
-	inertia_.jacobi (eigenvalue, eigenvector, nrot);
+    /// Dont forget to compute inertia first!
+    inertia.jacobi (eigenvalue, eigenvector, nrot);
     Quat4d q;
     q.set(eigenvector.inverse(eigenvector));
-
-	/// ADD YOUR CODE HERE!!!
 
     //search for eigenvector to the smallest eigenvalue
     //splitting along this vector
@@ -109,8 +129,8 @@ void BVT::split ()
 
 
 	/// Kinder sind wieder Baeume! Wichtig das NEW!
-    left_ = new BVT (left,this->actualDeep+1);
-    right_ = new BVT (right,this->actualDeep+1);
+    //left = new BVT (left,this->actualDeep+1);
+    //right = new BVT (right,this->actualDeep+1);
 
 }
 
@@ -131,25 +151,25 @@ void BVT::drawPoints(Vector3d color)
 
     glPointSize(5*2.5);
     glBegin(GL_POINTS);
-    for (uint i = 0; i < this->points_.size(); ++i) {
-        glVertex3dv(this->points_[i].ptr());
+    for (uint i = 0; i < this->points.size(); ++i) {
+        glVertex3dv(this->points[i].ptr());
     }
     glEnd();
 }
 
 bool BVT::intersect(const Sphere &S)
 {
-    if (S.intersect(this->ball())){
-        if(NULL!=this->left_){
-            if (this->left_->intersect(S))
+    if (S.intersect(this->ball)){
+        if(NULL!=this->left){
+            if (this->left->intersect(S))
                 return true;
         }
-        if(NULL!=this->right_){
-            if (this->right_->intersect(S))
+        if(NULL!=this->right){
+            if (this->right->intersect(S))
                 return true;
-        } else if(NULL==this->left_){
-            for (uint i = 0; i < this->points_.size(); ++i) {
-                if (S.intersect(this->points_[i]))
+        } else if(NULL==this->left){
+            for (uint i = 0; i < this->points.size(); ++i) {
+                if (S.intersect(this->points[i]))
                     return true;
             }
         }
@@ -160,25 +180,25 @@ bool BVT::intersect(const Sphere &S)
 
 bool BVT::intersect(const BVT &S)
 {
-    if (S.ball_.intersect(this->ball())){
-        if(NULL!=S.left_){
-            if (S.left_->intersect(*this))
+    if (S.ball.intersect(this->ball)){
+        if(NULL!=S.left){
+            if (S.left->intersect(*this))
                 return true;
         }
-        if(NULL!=S.right_){
-            if (S.right_->intersect(*this))
+        if(NULL!=S.right){
+            if (S.right->intersect(*this))
                 return true;
-        } else if(NULL==S.left_){
-            if(NULL!=this->left_){
-                if (this->left_->intersect(S))
+        } else if(NULL==S.left){
+            if(NULL!=this->left){
+                if (this->left->intersect(S))
                     return true;
             }
-            if(NULL!=this->right_){
-                if (this->right_->intersect(S))
+            if(NULL!=this->right){
+                if (this->right->intersect(S))
                     return true;
-            } else if(NULL==this->left_){
-                for (uint i = 0; i < this->points_.size(); ++i) {
-                    if (S.ball_.intersect(this->points_[i]))
+            } else if(NULL==this->left){
+                for (uint i = 0; i < this->points.size(); ++i) {
+                    if (S.ball.intersect(this->points[i]))
                         return true;
                 }
             }

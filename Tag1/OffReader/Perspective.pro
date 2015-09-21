@@ -2,10 +2,9 @@ TEMPLATE = app
 TARGET = Perspective
 QT += gui opengl
 CONFIG += console
-HEADERS += *.h \
-    package.h
+HEADERS += *.h
 SOURCES += Kofferraum.cpp \
-    package.cpp
+    package.cpp BVT.cpp Sphere.cpp
 SOURCES += vecmath.cpp
 
 macx: QMAKE_MAC_SDK = macosx10.9
