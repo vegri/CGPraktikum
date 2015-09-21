@@ -80,23 +80,48 @@ bool OBB::intersect(OBB &B){
 
 void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //double min_x,min_y,min_z,max_x,max_y,max_z;
-    caluculateC(p,ind);
+    //caluculateC(p,ind);
+
+    C=Matrix4d();
+    Vector3d r;
+
+    for(uint i=0;i<ind.size()*3;i++) {
+      r = (*p)[ind[i/3][i%3]] - center;
+      C(0,0) += r[1]*r[1]+r[2]*r[2];
+      C(1,1) += r[0]*r[0]+r[2]*r[2];
+      C(2,2) += r[0]*r[0]+r[1]*r[1];
+      C(0,1) -= r[0]*r[1];
+      C(0,2) -= r[0]*r[2];
+      C(1,2) -= r[1]*r[2];
+    }
+
+    C(1,0) = C(0,1);  //nutze Symmetrie der Covarianzmatrix
+    C(2,0) = C(0,2);
+    C(2,1) = C(1,2);
+
+    C(0,3) = C(3,0) = 0.0;
+    C(1,3) = C(3,1) = 0.0;
+    C(2,3) = C(3,2) = 0.0;
+    C(3,3) = 1.0;
+
+    //berechne Eigenwerte und Eigenvektoren
+    int nrot;
+    C.jacobi(eigenvaluesC,R,nrot);
 
     Matrix4d m=Matrix4d();//.transpose();
-    m.invert_4x4(R);
     m=R.transpose();
-    m=m.identity();
+    //m=m.identity();
 
-    Vector3d loc_p=m*p->at(ind[0][0]);
-    max_x=loc_p.x();
-    max_y=loc_p.y();
-    max_z=loc_p.z();
-    min_x=loc_p.x();
-    min_y=loc_p.y();
-    min_z=loc_p.z();
+    Vector3d loc_p;
+    max_x=-1e300;
+    max_y=-1e300;
+    max_z=-1e300;
+    min_x= 1e300;
+    min_y= 1e300;
+    min_z= 1e300;
     for(unsigned int i=0;i<ind.size();i++){
         for(uint j=0;j<ind[i].size();j++){
-            loc_p=m*p->at(ind[i][j]);
+            loc_p=m*(p->at(ind[i][j])-center);
             max_x=std::max(max_x,loc_p.x());
             max_y=std::max(max_y,loc_p.y());
             max_z=std::max(max_z,loc_p.z());
@@ -105,6 +130,9 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
             min_z=std::min(min_z,loc_p.z());
         }
     }
+
+
+
 //    int row=0;
 //    if( halflength[1]>halflength[0]&& halflength[1]>halflength[2])
 //        row=1;
@@ -158,10 +186,15 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
 //    this->longestAxis=Vector3d(R(row,0),R(row,1),R(row,2));
 //    this->longestAxis.normalize();
 
+
+
     halflength=Vector3d(std::abs((max_x-min_x)/2.),std::abs((max_y-min_y)/2.),std::abs((max_z-min_z)/2.0));
     Vector3d boxCenter=Vector3d(max_x+min_x,max_y+min_y,max_z+min_z);
     boxCenter/=2;
     this->setBodyCenter(boxCenter);
+
+    //center=boxCenter;
+    //center = R * center;
 
     corner.clear();
     corner.push_back(Vector3d (min_x,max_y,max_z));
@@ -229,14 +262,13 @@ void OBB::draw(){
 //    glVertex3dv((center).ptr());
 //    glEnd();
 
-    //glTranslated(-center[0], -center[1], -center[2]);
+    glTranslated(center[0], center[1], center[2]);
     //glTranslated(-bodycenter[0], -bodycenter[1], -bodycenter[2]);
     //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glDisable(GL_LIGHTING);
     glColor3d(0.5,0,0);
 
-    Matrix4d R(q_now);
     Matrix4d RT = R.transpose();
     glMultMatrixd(RT.ptr());
 
