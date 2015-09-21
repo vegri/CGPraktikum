@@ -8,13 +8,13 @@ using namespace std;
 
 // Construktor
 BVT::BVT (const vecvecuint& idx_p, const vecvec3d *points_p, uint depth):
-    triMids(idx_p.size()), idx(idx_p), points(points_p), ball(*points_p), actualDepth(depth)
+    triMids(idx_p.size()), idx(idx_p), points(points_p),/* box(*points_p),*/ actualDepth(depth)
 {
     init(true);
 }
 
-BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, const vecvec3d ball_points, unsigned int depth):
-    triMids(triMids_p), idx(idx_p), points(points_p), ball(ball_points), actualDepth(depth)
+BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, vecvec3d *ball_points, uint depth):
+    triMids(triMids_p), idx(idx_p), points(points_p),/* box(ball_points),*/ actualDepth(depth)
 {
     init(false);
 }
@@ -144,8 +144,8 @@ void BVT::split ()
     }
 
 	/// Kinder sind wieder Baeume! Wichtig das NEW!
-    left  = new BVT (left_vec,  left_idx,  points, left_points,  this->actualDepth+1);
-    right = new BVT (right_vec, right_idx, points, right_points, this->actualDepth+1);
+    left  = new BVT (left_vec,  left_idx,  points, &left_points,  this->actualDepth+1);
+    right = new BVT (right_vec, right_idx, points, &right_points, this->actualDepth+1);
 
 }
 
@@ -172,9 +172,9 @@ void BVT::drawPoints(Vector3d color)
     glEnd();
 }
 
-bool BVT::intersect(const Sphere &S)
+bool BVT::intersect(OBB &S)
 {
-    if (S.intersect(this->ball)){
+    if (S.intersect(this->box)){
         if(NULL!=this->left){
             if (this->left->intersect(S))
                 return true;
@@ -182,20 +182,20 @@ bool BVT::intersect(const Sphere &S)
         if(NULL!=this->right){
             if (this->right->intersect(S))
                 return true;
-        } else if(NULL==this->left){
+        } /*else if(NULL==this->left){
             for (uint i = 0; i < this->points->size(); ++i) {
                 if (S.intersect(this->points[i]))
                     return true;
             }
-        }
+        }*/
 
     }
     return false;
 }
 
-bool BVT::intersect(const BVT &S)
+bool BVT::intersect(BVT &S)
 {
-    if (S.ball.intersect(this->ball)){
+    if (S.box.intersect(this->box)){
         if(NULL!=S.left){
             if (S.left->intersect(*this))
                 return true;
@@ -211,12 +211,12 @@ bool BVT::intersect(const BVT &S)
             if(NULL!=this->right){
                 if (this->right->intersect(S))
                     return true;
-            } else if(NULL==this->left){
+            } /*else if(NULL==this->left){
                 for (uint i = 0; i < this->points->size(); ++i) {
-                    if (S.ball.intersect(this->points[i]))
+                    if (S.box.intersect(this->points[i]))
                         return true;
                 }
-            }
+            }*/
         }
 
     }

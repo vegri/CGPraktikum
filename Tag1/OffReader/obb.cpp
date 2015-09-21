@@ -13,9 +13,11 @@ OBB::OBB(vecvec3d *p_p, vecvecuint ind_p, Vector3d color_p){
     //this->center=0;
     //this->box_calculated=false;
     this->q_now=Quat4d(0,0,0,1);
-    center=p->at(0);
-    for(unsigned int i=1;i<points.size();i++){
-        center=center+p->at(i);
+    //center=p->at(ind_p[0]);
+    for(unsigned int i=0;i<ind_p.size();i++){
+        for(uint j=0;j<ind_p[i].size();j++){
+            center=center+p->at(ind_p[i][j]);
+        }
     }
     center=center/points.size();
     bodycenter=Vector3d(0,0,0);

@@ -7,8 +7,9 @@
 #include "Sphere.h"
 #include <iostream>
 #include <algorithm>
+#include "obb.h"
 
-#define uint unsigned int
+typedef unsigned int uint;
 
 typedef std::vector<Vector3d> vecvec3d;
 typedef std::vector<uint> vecuint;
@@ -33,7 +34,7 @@ class BVT
         Matrix4d inertia;
 	
 		/// smallest enclosing sphere of point set	
-        const Sphere ball;
+        OBB box;
 	
         BVT * left;
         BVT * right;
@@ -42,15 +43,14 @@ class BVT
 	public:
 
 		/// create new node
-        BVT (const vecvecuint &idx_p, const vecvec3d *points_p, unsigned int depth);
-        BVT (const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, const vecvec3d ball_points, unsigned int depth);
+        BVT (const vecvecuint &idx_p, const vecvec3d *points_p, uint depth);
+        BVT (const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, vecvec3d *ball_points, uint depth);
 
-        int actualDepth;
+        uint actualDepth;
 
 		/// get children
         BVT * getLeft() {return left;}
         BVT * getRight() {return right;}
-        void setBall(std::vector<Vector3d> points);
         vecvec3d getPoints(){return *points;}
         vecvecuint getIdx(){return idx;}
 
@@ -66,13 +66,13 @@ class BVT
         void drawPoints(Vector3d color=Vector3d(0.8,0.3,0.2));
 
 		/// get sphere
-        const Sphere& getBall() {return ball;}
+        OBB& getBox() {return box;}
 
 		/// anzahl der Punkte
         int nr_of_points () {return points->size();}
 
-        bool intersect(const Sphere & S);
-        bool intersect(const BVT & S);
+        bool intersect(OBB &S);
+        bool intersect(BVT & S);
 
         int createTree(uint &minPoints);
 };
