@@ -7,9 +7,10 @@
 using namespace std;
 
 // Construktor
-BVT::BVT (const vecvecuint& idx_p, const vecvec3d *points_p, uint depth):
+BVT::BVT (const vecvecuint& idx_p, vecvec3d *points_p, uint depth):
     triMids(idx_p.size()), idx(idx_p), points(points_p),/* box(*points_p),*/ actualDepth(depth)
 {
+    box=OBB(points_p,idx_p,Vector3d(0.5,0.5,0.));
     init(true);
 }
 
