@@ -29,14 +29,14 @@ void BVT::draw()
 void BVT::draw(uint depth)
 {
     if(drawBoxes){
-        if (depth==this->actualDepth)
+        if (depth>=this->actualDepth)
            this->box.draw();
-        else{
+
             if(this->left!=0x0)
                 this->left->draw(depth);
             if(this->right!=0x0)
                 this->right->draw(depth);
-        }
+
     }
     if(drawModel && this->actualDepth==0){
         glPushMatrix();
@@ -123,36 +123,51 @@ void BVT::split ()
     vecvecuint left_idx,right_idx;
     std::map<Vector3d,vecuint> midTriangMap;
 
-	// Computes the eigenvalues/vectors from the inertia matrix
-	Vector4d eigenvalue;
-	Matrix4d eigenvector;
-	int nrot; /// not important
-
-    /// Dont forget to compute inertia first!
-    inertia.jacobi (eigenvalue, eigenvector, nrot);
     Quat4d q;
-    q.set(eigenvector.inverse(eigenvector));
 
-    //search for eigenvector to the smallest eigenvalue
-    //splitting along this vector
-
-    int m=0;
-    if(eigenvalue[m]>eigenvalue[1])
-        m=1;
-    if(eigenvalue[m]>eigenvalue[2])
-        m=2;
-
-    splitAxis=Vector3d(eigenvector(m,0),eigenvector(m,1),eigenvector(m,2));
-    for(uint i=0;i<allSorted.size();i++){
-        allSorted[i]=q*allSorted[i];
+    q.set(this->box.R.inverse(this->box.R));
+    for (uint i=0;i<triMids.size();i++){
+        allSorted[i]=q*triMids[i];
         midTriangMap[allSorted[i]]=idx[i];
     }
+
+    //Find longest Axis
+    uint m=0;
+    for (uint i = 0; i < 3; ++i) {
+        if(this->box.halflength[i]>this->box.halflength[m])
+            m=i;
+    }
+
+	// Computes the eigenvalues/vectors from the inertia matrix
+//	Vector4d eigenvalue;
+//	Matrix4d eigenvector;
+//	int nrot; /// not important
+
+//    /// Dont forget to compute inertia first!
+//    inertia.jacobi (eigenvalue, eigenvector, nrot);
+//    Quat4d q;
+//    q.set(eigenvector.inverse(eigenvector));
+
+//    //search for eigenvector to the smallest eigenvalue
+//    //splitting along this vector
+
+//    int m=0;
+//    if(eigenvalue[m]>eigenvalue[1])
+//        m=1;
+//    if(eigenvalue[m]>eigenvalue[2])
+//        m=2;
+
+//    splitAxis=Vector3d(eigenvector(m,0),eigenvector(m,1),eigenvector(m,2));
+//    for(uint i=0;i<allSorted.size();i++){
+//        allSorted[i]=q*allSorted[i];
+//        midTriangMap[allSorted[i]]=idx[i];
+//    }
     switch(m){
         case 0:std::sort(allSorted.begin(),allSorted.end(),&sortFkt0);break;
         case 1:std::sort(allSorted.begin(),allSorted.end(),&sortFkt1);break;
         case 2:std::sort(allSorted.begin(),allSorted.end(),&sortFkt2);break;
     }
-    q.set(eigenvector);
+//    q.set(eigenvector);
     //for(uint i=0;i<allSorted.size();i++)
     //    allSorted[i]=q*allSorted[i];
 
