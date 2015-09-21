@@ -147,6 +147,10 @@ class Vector3d {
             return v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
         }
 
+        inline double max() const {
+            return std::max ( std::max( v[0],v[1]),v[2]);
+        }
+
         double angle(const Vector3d& a) {
             double l = length();
             double al = a.length();
@@ -399,14 +403,6 @@ class Quat4d {
             q[3] = w;
         }
         
-        // AWW COME ON, REALLY? REAL COMPONENT IS THE FOURTH, NOT THE FIRST???
-        inline void set(double r, Vector3d v) {
-          q[3] = r;
-          q[0] = v.v[0];
-          q[1] = v.v[1];
-          q[2] = v.v[2];
-        }
-
         void set(const Matrix4d& M);
         
         void get(Matrix4d& M) const;
@@ -568,6 +564,7 @@ class Matrix4d {
     public:
     
         inline Matrix4d() { makeIdentity(); }
+        inline Matrix4d(double v) { makeIdentity(); this->operator *=(v); }
         inline Matrix4d( const Matrix4d& A) { set(A.ptr()); }
         inline Matrix4d( double const * const ptr ) { set(ptr); }
         inline Matrix4d( const Quat4d& quat ) { makeRotate(quat); }
@@ -747,7 +744,15 @@ class Matrix4d {
         void preMult( const Matrix4d& );
         void postMult( const Matrix4d& );
 
-        inline void operator *= ( const Matrix4d& other ) {    
+        inline void operator *= ( const double s ) {
+            for(int row=0; row<4; ++row) {
+                for(int col=0; col<4; ++col) {
+                    M[row][col]*=s;
+                }
+            }
+        }
+
+        inline void operator *= ( const Matrix4d& other ) {
             if( this == &other ) {
                 Matrix4d temp(other);
                 postMult( temp );
@@ -755,11 +760,41 @@ class Matrix4d {
             else postMult( other ); 
         }
 
+        inline void operator += ( const Matrix4d& other ) {
+            for(int row=0; row<4; ++row) {
+                for(int col=0; col<4; ++col) {
+                    M[row][col]+=other.M[row][col];
+                }
+            }
+        }
+
+        inline Matrix4d operator * ( const double m ) const {
+            Matrix4d A(*this);
+            for(int row=0; row<4; ++row) {
+                for(int col=0; col<4; ++col) {
+                    A.M[row][col]=M[row][col]*m;
+                }
+            }
+            return A;
+        }
+
         inline Matrix4d operator * ( const Matrix4d &m ) const {
             Matrix4d A;
             A.mult(*this,m);
             return A;
         }
+
+        inline Matrix4d operator + ( const Matrix4d &m ) const {
+            Matrix4d A;
+            for(int row=0; row<4; ++row) {
+                for(int col=0; col<4; ++col) {
+                    A.M[row][col]=M[row][col]+m.M[row][col];
+                }
+            }
+            return A;
+        }
+
+
 
     protected:
         double M[4][4];
