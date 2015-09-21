@@ -17,18 +17,17 @@
 #include "vecmath.h"
 #include "boundingbody.h"
 
-class OBB: public BoundingBody{
-
+class OBB{
     public:
         //methodes
         OBB();
-        OBB(vecvec3d *p_p, vecvecuint ind_p, Vector3d color_p);
+        OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p);
 
         //OBB( OBB &o);
         void draw();
-        void caluculateC();
+        void caluculateC(const vecvec3d *p, const vecvecuint ind);
         void caluculateHalfL();
-        void setCorner();
+        void setCorner(const vecvec3d *p, const vecvecuint ind);
         bool intersect(OBB &B);
         void splitOBB(const OBB& A, OBB& A1, OBB& A2);
         static bool sortFkt0(const Vector3d &a,const Vector3d &b);
@@ -42,7 +41,6 @@ class OBB: public BoundingBody{
         //std::vector<Vector3d> points;
         std::vector<Vector3d> corner;
         std::vector<Vector3d> axis;
-        Vector3d longestAxis;
         Vector3d color;
         //Vector3d center;
         Vector3d halflength;
@@ -53,7 +51,23 @@ class OBB: public BoundingBody{
         Matrix4d C;
         double min_x,min_y,min_z,max_x,max_y,max_z;
 
+public:
+    void setBoxColor(Vector3d color_p);
+    void setCollisionColor(Vector3d color_p);
+    Vector3d getCenter();
+    Vector3d getBodyCenter();
+    Vector3d getColor();
+    void setRotation(Quat4d q);
+    void setCenter(Vector3d center_p);
+    void move(Vector3d motion);
+    void rotate(Quat4d rotation);
 
+    Quat4d q_now;
+
+protected:
+    Vector3d min, max, center, bodycenter;
+    bool selected;
+    Vector3d box_color,collision_color,selected_color,selected_collision_color;
 };
 
 

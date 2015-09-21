@@ -3,34 +3,26 @@
 
 OBB::OBB(){}
 
-OBB::OBB(vecvec3d *p_p, vecvecuint ind_p, Vector3d color_p){
+OBB::OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
 
-    this->p=p_p;
-    this->ind=ind_p;
     this->color=color_p;
     this->box_color=Vector3d(0,1,0);
-    this->zoom_val=1.0;
-    //this->center=0;
-    //this->box_calculated=false;
-    this->q_now=Quat4d(0,0,0,1);
-    //center=p->at(ind_p[0]);
-    center=Vector3d(0);
-    for(unsigned int i=0;i<ind_p.size();i++){
-        for(uint j=0;j<ind_p[i].size();j++){
-            center=center+p->at(ind_p[i][j]);
+
+    center=0;
+    for(unsigned int i=0;i<ind.size();i++){
+        for(uint j=0;j<ind[i].size();j++){
+            center=center+p->at(ind[i][j]);
         }
     }
-    center=center/(ind_p.size()*3);
-    bodycenter=Vector3d(0,0,0);
-    caluculateC();
-    setCorner();
+    center=center/(ind.size()*3);
+
+    this->q_now=Quat4d(0,0,0,1);
+
+    bodycenter=0;
+
+    caluculateC(p,ind);
+    setCorner(p,ind);
 }
-
-
-
-/*OBB::OBB( OBB& o){
-    OBB(o.getP(),o.getInd(),o.getColor());
-}*/
 
 void OBB::setBodyCenter(Vector3d center_b){
     this->bodycenter=center_b;
@@ -45,7 +37,7 @@ bool OBB::intersectAxis(Vector3d &v,vecvec3d &a, vecvec3d &b,Vector3d &alpha,Vec
     if(std::abs(tmp)>res){
         this->normal=v;
         normal.normalize();
-        this->base=-dc/zoom_val/2;
+        this->base=-dc/2;
     } else {
         this->normal=0;
         this->base=0;
@@ -63,8 +55,8 @@ bool OBB::intersect(OBB &B){
         a[i]=q_now*axis[i];
         b[i]=B.q_now*B.axis[i];
     }
-    Vector3d alpha=halflength*zoom_val;
-    Vector3d beta=B.halflength*B.zoom_val;
+    Vector3d alpha=halflength;
+    Vector3d beta=B.halflength;
     Vector3d dc=B.center-center;
 
     for(int i=0;i<3;i++){
@@ -86,7 +78,7 @@ bool OBB::intersect(OBB &B){
 
 }
 
-void OBB::setCorner(){
+void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //double min_x,min_y,min_z,max_x,max_y,max_z;
 
 
@@ -153,7 +145,7 @@ void OBB::setCorner(){
 }
 
 
-void OBB::caluculateC(){
+void OBB::caluculateC(const vecvec3d *p, const vecvecuint ind){
     C=Matrix4d(0.0);
     for(uint i=0;i<ind.size();i++){
         for(uint j=0;j<ind[i].size();j++){
@@ -175,37 +167,12 @@ Matrix4d OBB::dyadicProdukt(Vector3d v1, Vector3d v2){
 void OBB::draw(){
     glPushMatrix();
 
-    glTranslated(-center[0], -center[1], -center[2]);    
-    glScaled(zoom_val,zoom_val,zoom_val);
+    glTranslated(-center[0], -center[1], -center[2]);
     glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glDisable(GL_LIGHTING);
     glColor3d(0.5,0,0);
 
-/*
-    //debug
-    Vector3d a=normal%Vector3d(1,0,0);
-    Vector3d b=normal%a;
-
-    vec3dd pi=vec3dd(4);
-    double s=8;
-    pi[0]=base-a*halflength[0]*s;
-    pi[1]=base-b*halflength[1]*s;
-    pi[2]=base+a*halflength[0]*s;
-    pi[3]=base+b*halflength[1]*s;
-
-    glPointSize(25);
-    glBegin(GL_POINTS);
-    //glVertex3d(0,0,0);
-    glVertex3dv(base.ptr());
-    for (int i = 0; i < 3; ++i) {
-        Vector3d c=q_now*axis[i];
-        c=c*halflength[i];
-        glVertex3dv(c.ptr());
-        glColor3d(0,0,0);
-    }
-    glEnd();
-*/
     Matrix4d R(q_now);
     Matrix4d RT = R.transpose();
     glMultMatrixd(RT.ptr());
@@ -223,75 +190,4 @@ void OBB::draw(){
     //glEnable(GL_LIGHTING);
     glPopMatrix();
 
-    /*
-    //debug
-    glPushMatrix();
-    glTranslated(-center[0], -center[1], -center[2]);
-    glScaled(zoom_val,zoom_val,zoom_val);
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-    glColor4d(1,69.0/255,0,0.2);
-    glBegin(GL_QUADS);
-    for (int i = 0; i < 4; ++i) {
-        glVertex3dv(pi[i].ptr());
-    }
-    glEnd();
-    glPopMatrix();*/
-}
-
-bool OBB::sortFkt0(const Vector3d &a, const Vector3d &b){ return a[0]<b[0]; }
-bool OBB::sortFkt1(const Vector3d &a, const Vector3d &b){ return a[1]<b[1]; }
-bool OBB::sortFkt2(const Vector3d &a, const Vector3d &b){ return a[2]<b[2]; }
-
-void OBB::splitOBB(const OBB &A, OBB &A1, OBB &A2){
-//    vecvec3d *p=new vecvec3d(A.p->size());
-//    vecvec3d *pA1=new vecvec3d(A.p->size()/2);
-//    vecvec3d *pA2=new vecvec3d(A.p->size()/2);
-//    Quat4d q;
-
-//    q.set(A.R.inverse(A.R));
-//    for (uint i=0;i<A.p->size();i++)
-//        (*p)[i]=q*(A.points)[i];
-
-//    //Find longest Axis
-//    uint j=0;
-//    for (int i = 0; i < 3; ++i) {
-//        if(A.halflength[i]>A.halflength[j])
-//            j=i;
-//    }
-
-//    //Sort on found axis
-//    switch (j) {
-//    case 0:
-//        std::sort(p->begin(),p->end(),&sortFkt0);
-//        break;
-//    case 1:
-//        std::sort(p->begin(),p->end(),&sortFkt1);
-//        break;
-//    case 2:
-//        std::sort(p->begin(),p->end(),&sortFkt2);
-//        break;
-//    default:
-//        break;
-//    }
-
-//    for(uint i=0;i<pA1->size();i++){
-//        (*pA1)[i]=(*p)[i];
-//        (*pA2)[i]=(*p)[i+pA1->size()];
-//    }
-//    if(2*pA1->size()<p->size())
-//        pA2->push_back((*p)[p->size()-1]);
-//    vecvecuint s;
-//    s.resize(0);
-//    A1=OBB(pA1,s,Vector3d());
-//    A2=OBB(pA2,s,Vector3d());
-//    A1.q_now=q*A1.q_now;
-//    A1.center=A.center;
-//    A1.zoom_val=A.zoom_val;
-//    A2.q_now=q*A2.q_now;
-//    A2.center=A.center;
-//    A2.zoom_val=A.zoom_val;
-//    A1.caluculateC();
-//    A1.setCorner();
-//    A2.caluculateC();
-//    A2.setCorner();
 }

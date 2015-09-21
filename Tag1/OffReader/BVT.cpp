@@ -7,7 +7,7 @@
 using namespace std;
 
 // Construktor
-BVT::BVT (const vecvecuint& idx_p, vecvec3d *points_p, uint depth):
+BVT::BVT (const vecvecuint& idx_p, const vecvec3d *points_p, uint depth):
     triMids(idx_p.size()), idx(idx_p), points(points_p),/* box(*points_p),*/ actualDepth(depth)
 {
     box=OBB(points_p,idx_p,Vector3d(0.5,0.5,0.));
@@ -17,6 +17,7 @@ BVT::BVT (const vecvecuint& idx_p, vecvec3d *points_p, uint depth):
 BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, vecvec3d *ball_points, uint depth):
     triMids(triMids_p), idx(idx_p), points(points_p),/* box(ball_points),*/ actualDepth(depth)
 {
+    box=OBB(points_p,idx_p,Vector3d(0.5,0.5,0.));
     init(false);
 }
 
@@ -260,4 +261,13 @@ bool BVT::intersect(BVT &S)
 
     }
     return false;
+}
+
+int BVT::createTree(const uint minPoints)
+{
+    if(this->idx.size()<=minPoints) return 0;
+    this->split();
+    this->left->createTree(minPoints);
+    this->right->createTree(minPoints);
+    return 0;
 }
