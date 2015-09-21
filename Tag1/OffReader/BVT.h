@@ -24,7 +24,7 @@ class BVT
 	private:
         vecvec3d triMids;
         const vecvecuint idx;
-        const vecvec3d points;
+        const vecvec3d *points;
 
 		/// mass center of point set
         Vector3d mass_center;
@@ -42,8 +42,8 @@ class BVT
 	public:
 
 		/// create new node
-        BVT (const vecvecuint &idx_p, const vecvec3d &points_p, unsigned int depth);
-        BVT (const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d &points_p, unsigned int depth);
+        BVT (const vecvecuint &idx_p, const vecvec3d *points_p, unsigned int depth);
+        BVT (const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, const vecvec3d ball_points, unsigned int depth);
 
         int actualDepth;
 
@@ -51,7 +51,9 @@ class BVT
         BVT * getLeft() {return left;}
         BVT * getRight() {return right;}
         void setBall(std::vector<Vector3d> points);
-        std::vector<Vector3d> getPoints(){return points;}
+        vecvec3d getPoints(){return *points;}
+        vecvecuint getIdx(){return idx;}
+
 		/// one recursion step to create left and right child
 		void split ();
         Vector3d splitAxis;
@@ -67,7 +69,7 @@ class BVT
         const Sphere& getBall() {return ball;}
 
 		/// anzahl der Punkte
-        int nr_of_points () {return points.size ();}
+        int nr_of_points () {return points->size();}
 
         bool intersect(const Sphere & S);
         bool intersect(const BVT & S);

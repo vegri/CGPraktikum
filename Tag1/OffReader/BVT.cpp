@@ -7,14 +7,14 @@
 using namespace std;
 
 // Construktor
-BVT::BVT (const vecvecuint& idx_p, const vecvec3d& points_p,uint depth):
-    triMids(idx_p.size()), idx(idx_p), points(points_p), ball(points_p), actualDepth(depth)
+BVT::BVT (const vecvecuint& idx_p, const vecvec3d *points_p, uint depth):
+    triMids(idx_p.size()), idx(idx_p), points(points_p), ball(*points_p), actualDepth(depth)
 {
     init(true);
 }
 
-BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d &points_p, unsigned int depth):
-    triMids(triMids_p), idx(idx_p), points(points_p), ball(points_p), actualDepth(depth)
+BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, const vecvec3d ball_points, unsigned int depth):
+    triMids(triMids_p), idx(idx_p), points(points_p), ball(ball_points), actualDepth(depth)
 {
     init(false);
 }
@@ -26,7 +26,7 @@ void BVT::init(bool init_midtriange)
     for(i=0;i<idx.size();++i){
         r=0;
         for (j = 0; j < 3; ++j){
-            r += points[idx[i][j]]/3;
+            r += (*points)[idx[i][j]]/3;
         }
         if(init_midtriange)
             triMids[i]=r;
@@ -36,10 +36,10 @@ void BVT::init(bool init_midtriange)
 
     // Compute inetria matrix
 
-    for(unsigned int i=0;i<points.size ();i++) {
+    for(unsigned int i=0;i<idx.size ();i++) {
         r=-mass_center;
         for (j = 0; j < 3; ++j){
-            r += points[idx[i][j]]/3;
+            r += (*points)[idx[i][j]]/3;
         }
 
         inertia(0,0) += r[1]*r[1]+r[2]*r[2];
@@ -74,14 +74,9 @@ void BVT::init(bool init_midtriange)
 
 void BVT::split ()
 {
-    vecvec3d left_vec, right_vec, allSorted=triMids;
+    vecvec3d left_vec, left_points, right_vec, right_points, allSorted=triMids;
     vecvecuint left_idx,right_idx;
     std::map<Vector3d,vecuint> midTriangMap;
-    for (uint i = 0; i < triMids.size(); ++i) {
-        midTriangMap[triMids[i]]=idx[i];
-    }
-
-
 
 	// Computes the eigenvalues/vectors from the inertia matrix
 	Vector4d eigenvalue;
@@ -103,37 +98,54 @@ void BVT::split ()
         m=2;
 
     splitAxis=Vector3d(eigenvector(m,0),eigenvector(m,1),eigenvector(m,2));
-    for(uint i=0;i<allSorted.size();i++)
+    for(uint i=0;i<allSorted.size();i++){
         allSorted[i]=q*allSorted[i];
+        midTriangMap[allSorted[i]]=idx[i];
+    }
     switch(m){
         case 0:std::sort(allSorted.begin(),allSorted.end(),&sortFkt0);break;
         case 1:std::sort(allSorted.begin(),allSorted.end(),&sortFkt1);break;
         case 2:std::sort(allSorted.begin(),allSorted.end(),&sortFkt2);break;
     }
     q.set(eigenvector);
-    for(uint i=0;i<allSorted.size();i++)
-        allSorted[i]=q*allSorted[i];
-        right_vec.resize(allSorted.size()/2);
+    //for(uint i=0;i<allSorted.size();i++)
+    //    allSorted[i]=q*allSorted[i];
+
+    right_vec.resize(allSorted.size()/2);
     if(allSorted.size()%2==0)
         left_vec.resize(allSorted.size()/2);
     else
         left_vec.resize(allSorted.size()/2+1);
 
+
+    right_idx.resize(right_vec.size());
+    left_idx.resize(left_vec.size());
+    right_points.resize(right_vec.size()*3);
+    left_points.resize(left_vec.size()*3);
+
+
     for(uint i=0;i<allSorted.size()/2;i++){
-        right_vec[i]=allSorted[i];
+        right_vec[i]=q*allSorted[i];
+        left_vec[i]=q*allSorted[allSorted.size()/2+i];
         right_idx[i]=midTriangMap[allSorted[i]];
-        left_vec[i]=allSorted[allSorted.size()/2+i];
         left_idx[i]=midTriangMap[allSorted[allSorted.size()/2+i]];
+        for (uint j = 0; j < 3; ++j) {
+            right_points[3*i+j]=(*points)[right_idx[i][j]];
+            left_points[3*i+j]=(*points)[left_idx[i][j]];
+        }
     }
     uint t=left_vec.size()-1;
     if(allSorted.size()%2==1){
-        left_vec[t]=allSorted[allSorted.size()-1];
+        left_vec[t]=q*allSorted[allSorted.size()-1];
         left_idx[t]=midTriangMap[allSorted[allSorted.size()-1]];
+        for (uint j = 0; j < 3; ++j) {
+            left_points[3*t+j]=(*points)[left_idx[t][j]];
+        }
     }
 
 	/// Kinder sind wieder Baeume! Wichtig das NEW!
-    left = new BVT (left_vec,left_idx,points,this->actualDepth+1);
-    right = new BVT (right_vec,left_idx,points,this->actualDepth+1);
+    left  = new BVT (left_vec,  left_idx,  points, left_points,  this->actualDepth+1);
+    right = new BVT (right_vec, right_idx, points, right_points, this->actualDepth+1);
 
 }
 
@@ -154,8 +166,8 @@ void BVT::drawPoints(Vector3d color)
 
     glPointSize(5*2.5);
     glBegin(GL_POINTS);
-    for (uint i = 0; i < this->points.size(); ++i) {
-        glVertex3dv(this->points[i].ptr());
+    for (uint i = 0; i < this->points->size(); ++i) {
+        glVertex3dv((*points)[i].ptr());
     }
     glEnd();
 }
@@ -171,7 +183,7 @@ bool BVT::intersect(const Sphere &S)
             if (this->right->intersect(S))
                 return true;
         } else if(NULL==this->left){
-            for (uint i = 0; i < this->points.size(); ++i) {
+            for (uint i = 0; i < this->points->size(); ++i) {
                 if (S.intersect(this->points[i]))
                     return true;
             }
@@ -200,7 +212,7 @@ bool BVT::intersect(const BVT &S)
                 if (this->right->intersect(S))
                     return true;
             } else if(NULL==this->left){
-                for (uint i = 0; i < this->points.size(); ++i) {
+                for (uint i = 0; i < this->points->size(); ++i) {
                     if (S.ball.intersect(this->points[i]))
                         return true;
                 }
