@@ -23,14 +23,19 @@ BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *poi
 
 void BVT::draw()
 {
+    this->draw(this->drawDepth);
+}
+
+void BVT::draw(uint depth)
+{
     if(drawBoxes){
-        if (drawDepth==this->actualDepth)
+        if (depth==this->actualDepth)
            this->box.draw();
         else{
             if(this->left!=0x0)
-                this->left->draw();
+                this->left->draw(depth-1);
             if(this->right!=0x0)
-                this->right->draw();
+                this->right->draw(depth-1);
         }
     }
     if(drawModel && this->actualDepth==0){

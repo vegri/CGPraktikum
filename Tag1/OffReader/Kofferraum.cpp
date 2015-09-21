@@ -258,7 +258,7 @@ void CGView::paintGL() {
         this->packageList[i].draw();
     }
     for (uint i = 0; i < this->bootList.size(); ++i) {
-        this->bootList[i]->draw();
+        this->bootList[i]->draw(depth);
     }
 
     glColor4f(0.0, 0.3, 0.6, 0.7);
@@ -615,6 +615,12 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         this->packageList[this->picked].pick(false);
         this->picked=(this->packageList.size()+this->picked-1)%this->packageList.size();
         this->packageList[this->picked].pick(true);
+        break;
+    case Qt::Key_N:
+        ++depth;
+        break;
+    case Qt::Key_M:
+        --depth;
         break;
     default:
         break;

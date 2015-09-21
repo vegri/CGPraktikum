@@ -49,6 +49,7 @@ class BVT
         BVT (const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, vecvec3d *ball_points, uint depth);
 
         void draw();
+        void draw(uint depth);
         bool drawBoxes;
         bool drawModel;
         bool intersection;

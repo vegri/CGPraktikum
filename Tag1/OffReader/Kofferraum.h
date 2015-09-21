@@ -109,6 +109,7 @@ protected:
 
   int animationMode;
   uint picked;
+  uint depth=0;
 
   bool picked_active;
   bool projRot;
