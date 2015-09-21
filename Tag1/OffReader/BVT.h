@@ -53,7 +53,7 @@ class BVT
         bool drawModel;
         bool intersection;
         uint drawDepth;
-
+        Vector4d model_color;
 
         uint actualDepth;
 

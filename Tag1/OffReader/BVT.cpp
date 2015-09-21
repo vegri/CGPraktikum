@@ -35,6 +35,7 @@ void BVT::draw()
         glPushMatrix();
         glTranslated(center[0],center[1],center[2]);
         glMultMatrixd(Matrix4d(rot).transpose().ptr());
+        glColor4dv(model_color.ptr());
         glDisable (GL_CULL_FACE);
         glBegin(GL_TRIANGLES);
         for(uint i =0; i < idx.size(); ++i)
@@ -56,6 +57,7 @@ void BVT::init(bool init_midtriange)
 {
     center=0;
     rot=Quat4d(0,0,0,1);
+    model_color=Vector4d(0,0.5,0.5,0.8);
 
     uint i,j;
     Vector3d r;

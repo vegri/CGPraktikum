@@ -194,6 +194,10 @@ void CGMainWindow::loadPoly(QString filename){
 
     ogl->bootList.push_back(new BVT(idxs,coords,0));
 
+    BVT * act=ogl->bootList.at(ogl->bootList.size()-1);
+    act->drawBoxes=false;
+    act->drawModel=true;
+
     ogl->updateGL();
     statusBar()->showMessage ("Loading polyhedron done.",3000);
 }
