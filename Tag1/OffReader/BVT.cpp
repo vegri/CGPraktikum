@@ -19,8 +19,44 @@ BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *poi
     init(false);
 }
 
+void BVT::draw()
+{
+    if(drawBoxes){
+        if (drawDepth==this->actualDepth)
+           this->box.draw();
+        else{
+            if(this->left!=0x0)
+                this->left->draw();
+            if(this->right!=0x0)
+                this->right->draw();
+        }
+    }
+    if(drawModel && this->actualDepth==0){
+        glPushMatrix();
+        glTranslated(center[0],center[1],center[2]);
+        glMultMatrixd(Matrix4d(rot).transpose().ptr());
+        glDisable (GL_CULL_FACE);
+        glBegin(GL_TRIANGLES);
+        for(uint i =0; i < idx.size(); ++i)
+        {
+            const Vector3d& a =(*points)[idx[i][0]];
+            const Vector3d& b =(*points)[idx[i][1]];
+            const Vector3d& c =(*points)[idx[i][2]];
+            glNormal3dv (((b-a)%(c-a)).ptr());
+            glVertex3dv( a.ptr());
+            glVertex3dv( b.ptr());
+            glVertex3dv( c.ptr());
+        }
+        glEnd();
+        glPopMatrix();
+    }
+}
+
 void BVT::init(bool init_midtriange)
 {
+    center=0;
+    rot=Quat4d(0,0,0,1);
+
     uint i,j;
     Vector3d r;
     for(i=0;i<idx.size();++i){

@@ -56,65 +56,66 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     setCentralWidget(f);
 
     statusBar()->showMessage("Ready",1000);
-    loadPackage1();
-    ogl->packageList[0].move(Vector3d(-0.25,-0.25,-0.25));
+    loadPackage4();
+    ogl->packageList[0].move(Vector3d(-25,-25,-25));
+    loadPoly("../TestKofferraumIKEA.off");
     //loadPackage2();
 }
 
 
 void CGMainWindow::loadPackage1(){
-    ogl->packageList.push_back(Package(.50,.50,.50));
+    ogl->packageList.push_back(Package( 50, 50, 50));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage2(){
-    ogl->packageList.push_back(Package(.410,.160,.1490));
+    ogl->packageList.push_back(Package(410,160,1490));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage3(){
-    ogl->packageList.push_back(Package(.340,.40,.740));
+    ogl->packageList.push_back(Package(340, 40,740));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage4(){
-    ogl->packageList.push_back(Package(.140,.190,.800));    
+    ogl->packageList.push_back(Package(140,190,800));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage5(){
-    ogl->packageList.push_back(Package(.110,.50,.480));
+    ogl->packageList.push_back(Package(110, 50,480));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage6(){
-    ogl->packageList.push_back(Package(.360,.40,.600));
+    ogl->packageList.push_back(Package(360, 40,600));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage7(){
-    ogl->packageList.push_back(Package(.250,.100,.310));
+    ogl->packageList.push_back(Package(250,100,310));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage8(){
-    ogl->packageList.push_back(Package(.310,.190,.320));
+    ogl->packageList.push_back(Package(310,190,320));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage9(){
-    ogl->packageList.push_back(Package(.470,.440,.680));
+    ogl->packageList.push_back(Package(470,440,680));
     ogl->updateGL();
 }
 void CGMainWindow::loadPackage10(){
-    ogl->packageList.push_back(Package(.310,.280,.450));
+    ogl->packageList.push_back(Package(310,280,450));
     ogl->updateGL();
 }
 void CGMainWindow::loadAllPackages(){
 
-    for(uint i=0;i<5;++i){
-        ogl->packageList.push_back(Package(.50,.50,.50));
-        ogl->packageList.push_back(Package(.410,.160,.1490));
-        ogl->packageList.push_back(Package(.340,.40,.740));
-        ogl->packageList.push_back(Package(.140,.190,.800));
-        ogl->packageList.push_back(Package(.110,.50,.480));
-        ogl->packageList.push_back(Package(.360,.40,.600));
-        ogl->packageList.push_back(Package(.250,.100,.310));
-        ogl->packageList.push_back(Package(.310,.190,.320));
-        ogl->packageList.push_back(Package(.470,.440,.680));
-        ogl->packageList.push_back(Package(.310,.280,.450));
+    for(uint i=0;i<1;++i){
+        ogl->packageList.push_back(Package( 50, 50, 50));
+        ogl->packageList.push_back(Package(410,160,1490));
+        ogl->packageList.push_back(Package(340, 40,740));
+        ogl->packageList.push_back(Package(140,190,800));
+        ogl->packageList.push_back(Package(110, 50,480));
+        ogl->packageList.push_back(Package(360, 40,600));
+        ogl->packageList.push_back(Package(250,100,310));
+        ogl->packageList.push_back(Package(310,190,320));
+        ogl->packageList.push_back(Package(470,440,680));
+        ogl->packageList.push_back(Package(310,280,450));
     }
 
     srand(time(NULL));
@@ -136,11 +137,17 @@ void CGMainWindow::loadPolyhedron() {
 
     if (filename.isEmpty()) return;
     statusBar()->showMessage ("Loading polyhedron ...");
+    loadPoly(filename);
+}
+
+void CGMainWindow::loadPoly(QString filename){
+
+
     std::ifstream file(filename.toLatin1());
     int vn,fn,en;
 
-    ogl->min = +std::numeric_limits<double>::max();
-    ogl->max = -std::numeric_limits<double>::max();
+    Vector3d min_v = +std::numeric_limits<double>::max();
+    Vector3d max_v = -std::numeric_limits<double>::max();
 
     std::string s;
     file >> s;
@@ -150,36 +157,42 @@ void CGMainWindow::loadPolyhedron() {
     std::cout << "number of faces    : " << fn << std::endl;
     std::cout << "number of edges    : " << en << std::endl;
 
-    ogl->coord.resize(vn);
+    vecvec3d *coords=new vecvec3d(vn);
 
     for(int i=0;i<vn;i++) {
-        file >> ogl->coord[i][0] >> ogl->coord[i][1] >> ogl->coord[i][2];
-        ogl->coord[i]=ogl->coord[i]*(1/1500.0);
+        file >> (*coords)[i][0] >> (*coords)[i][1] >> (*coords)[i][2];
+        (*coords)[i]=(*coords)[i];
         for(int j=0;j<3;++j) {
-            if (ogl->coord[i][j] < ogl->min[j]) ogl->min[j] = ogl->coord[i][j];
-            if (ogl->coord[i][j] > ogl->max[j]) ogl->max[j] = ogl->coord[i][j];
+            if ((*coords)[i][j] < min_v[j]) min_v[j] = (*coords)[i][j];
+            if ((*coords)[i][j] > max_v[j]) max_v[j] = (*coords)[i][j];
         }
 
     }
 
-    ogl->ifs.resize(fn);
+    vecvecuint idxs(fn);
 
     for(int i=0;i<fn;i++) {
         int k;
         file >> k;
-        ogl->ifs[i].resize(k);
-        for(int j=0;j<k;j++) file >> ogl->ifs[i][j];
+        idxs[i].resize(k);
+        for(int j=0;j<k;j++) file >> idxs[i][j];
     }
 
     file.close();
 
-    std::cout << "min = " << ogl->min << std::endl;
-    std::cout << "max = " << ogl->max << std::endl;
+    std::cout << "min = " << min_v << std::endl;
+    std::cout << "max = " << max_v << std::endl;
 
-    Vector3d extent = ogl->max - ogl->min;
+    Vector3d extent = max_v - min_v;
     ogl->zoom = 1.5/extent.maxComp();
 
-    ogl->center = (ogl->min+ogl->max)/2;
+    Vector3d shift=(min_v+max_v)/2;
+    for(int i=0;i<vn;i++)
+        (*coords)[i]-=shift;
+
+    ogl->center = 0;
+
+    ogl->bootList.push_back(new BVT(idxs,coords,0));
 
     ogl->updateGL();
     statusBar()->showMessage ("Loading polyhedron done.",3000);
@@ -237,6 +250,9 @@ void CGView::paintGL() {
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         this->packageList[i].draw();
+    }
+    for (uint i = 0; i < this->bootList.size(); ++i) {
+        this->bootList[i]->draw();
     }
 
     glColor4f(0.0, 0.3, 0.6, 0.7);

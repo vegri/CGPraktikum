@@ -29,6 +29,8 @@ class BVT
 
 		/// mass center of point set
         Vector3d mass_center;
+        Vector3d center;
+        Quat4d rot;
 
 		/// inetria matrix of point set
         Matrix4d inertia;
@@ -45,6 +47,13 @@ class BVT
 		/// create new node
         BVT (const vecvecuint &idx_p, const vecvec3d *points_p, uint depth);
         BVT (const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, vecvec3d *ball_points, uint depth);
+
+        void draw();
+        bool drawBoxes;
+        bool drawModel;
+        bool intersection;
+        uint drawDepth;
+
 
         uint actualDepth;
 
@@ -72,7 +81,7 @@ class BVT
         int nr_of_points () {return points->size();}
 
         bool intersect(OBB &S);
-        bool intersect(BVT & S);
+        bool intersect(BVT &S);
 
         int createTree(uint &minPoints);
 };

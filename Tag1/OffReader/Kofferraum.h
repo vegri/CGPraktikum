@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <QTimer>
+#include "BVT.h"
 
 #include "vecmath.h"
 #include "package.h"
@@ -39,6 +40,7 @@ public:
 	CGMainWindow (QWidget* parent = 0, Qt::WindowFlags flags = Qt::Window);
 	~CGMainWindow ();
 	QActionGroup *projectionMode;
+    void loadPoly(QString filename);
 
 public slots:
   void loadPolyhedron();
@@ -73,6 +75,7 @@ public:
   Vector3d min, max, center, hit, trackballV, trackballU;
   std::vector<Vector3d> coord; // the coords of the loaded model
   std::vector<Package> packageList;
+  std::vector<BVT*> bootList;
   std::vector<std::vector<int> > ifs;   // the faces of the loaded model, ifs[i] contains the indices of the i-th face
 	double zoom;
   Quat4d q_old;
