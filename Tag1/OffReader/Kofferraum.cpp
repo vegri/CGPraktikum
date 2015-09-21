@@ -105,7 +105,7 @@ void CGMainWindow::loadPackage10(){
 }
 void CGMainWindow::loadAllPackages(){
 
-    for(uint i=0;i<2;++i){
+    for(uint i=0;i<5;++i){
         ogl->packageList.push_back(Package(.50,.50,.50));
         ogl->packageList.push_back(Package(.410,.160,.1490));
         ogl->packageList.push_back(Package(.340,.40,.740));
@@ -125,7 +125,7 @@ void CGMainWindow::loadAllPackages(){
         Quat4d rot=Quat4d(random(),random(),random(),random());
         rot.normalize();
         ogl->packageList[i].move(epsilon);
-        //ogl->packageList[i].rotate(rot);
+        ogl->packageList[i].rotate(rot);
     }
     ogl->updateGL();
 }
