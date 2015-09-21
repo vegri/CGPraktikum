@@ -16,7 +16,6 @@
 #include <limits>
 
 #include "Kofferraum.h"
-#include "OffReader.h"
 
 CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     : QMainWindow (parent, flags) {
@@ -121,8 +120,8 @@ void CGMainWindow::loadAllPackages(){
     srand(time(NULL));
 
     for (uint i = 0; i < ogl->packageList.size(); ++i) {
-        Vector3d epsilon=Vector3d(random()*ULONG_MAX,random()*ULONG_MAX,random()*ULONG_MAX).normalized()*2-1;
-        Quat4d rot=Quat4d(random(),random(),random(),random());
+        Vector3d epsilon=Vector3d(rand()*ULONG_MAX,rand()*ULONG_MAX,rand()*ULONG_MAX).normalized()*2-1;
+        Quat4d rot=Quat4d(rand(),rand(),rand(),rand());
         rot.normalize();
         ogl->packageList[i].move(epsilon);
         ogl->packageList[i].rotate(rot);
