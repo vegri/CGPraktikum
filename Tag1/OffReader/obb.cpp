@@ -110,7 +110,50 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
 //        row=1;
 //    if( halflength[2]>halflength[0]&& halflength[2]>halflength[1])
 //        row=2;
+/*
 
+
+    //Berechne Covarianzmatrix
+    for(i=0;i<n;i++) {
+      r = p[i] - center;
+      M(0,0) += r[1]*r[1]+r[2]*r[2];
+      M(1,1) += r[0]*r[0]+r[2]*r[2];
+      M(2,2) += r[0]*r[0]+r[1]*r[1];
+      M(0,1) -= r[0]*r[1];
+      M(0,2) -= r[0]*r[2];
+      M(1,2) -= r[1]*r[2];
+    }
+
+    M(1,0) = M(0,1);  //nutze Symmetrie der Covarianzmatrix
+    M(2,0) = M(0,2);
+    M(2,1) = M(1,2);
+
+    M(0,3) = M(3,0) = 0.0;
+    M(1,3) = M(3,1) = 0.0;
+    M(2,3) = M(3,2) = 0.0;
+    M(3,3) = 1.0;
+
+    //berechne Eigenwerte und Eigenvektoren
+    M.jacobi(h,R,nrot);
+
+    Matrix4d RT = R.transpose();
+    Vector3d min = Vector3d(MY_MAX,MY_MAX,MY_MAX);
+    Vector3d max = Vector3d(MY_MIN,MY_MIN,MY_MIN);
+    for(i=0;i<n;i++) {
+       r = RT * p[i]; //transformiere Punkt in Koordinaten der OBB
+       for(j=0;j<3;j++) { //suche min und max in jeder Richtung
+         if (r[j] < min[j]) min[j] = r[j];
+         if (r[j] > max[j]) max[j] = r[j];
+       }
+    }
+
+    center = (max+min)*0.5;
+    halflength = (max-min)*0.5;
+
+    center = R * center;
+
+
+*/
 
 //    this->longestAxis=Vector3d(R(row,0),R(row,1),R(row,2));
 //    this->longestAxis.normalize();
