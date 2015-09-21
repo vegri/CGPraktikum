@@ -74,8 +74,9 @@ void BVT::init(bool init_midtriange)
 
 void BVT::split ()
 {
-    vecvec3d left, right, allSorted=this->getPoints();
-    std::map<vecvec3d,vecvecuint> midTriangMap;
+    vecvec3d left_vec, right_vec, allSorted=triMids;
+    vecvecuint left_idx,right_idx;
+    std::map<Vector3d,vecuint> midTriangMap;
     for (uint i = 0; i < triMids.size(); ++i) {
         midTriangMap[triMids[i]]=idx[i];
     }
@@ -112,26 +113,27 @@ void BVT::split ()
     q.set(eigenvector);
     for(uint i=0;i<allSorted.size();i++)
         allSorted[i]=q*allSorted[i];
-        right.resize(allSorted.size()/2);
+        right_vec.resize(allSorted.size()/2);
     if(allSorted.size()%2==0)
-        left.resize(allSorted.size()/2);
+        left_vec.resize(allSorted.size()/2);
     else
-        left.resize(allSorted.size()/2+1);
+        left_vec.resize(allSorted.size()/2+1);
 
     for(uint i=0;i<allSorted.size()/2;i++){
-        right[i]=allSorted[i];
-        left[i]=allSorted[allSorted.size()/2+i];
+        right_vec[i]=allSorted[i];
+        right_idx[i]=midTriangMap[allSorted[i]];
+        left_vec[i]=allSorted[allSorted.size()/2+i];
+        left_idx[i]=midTriangMap[allSorted[allSorted.size()/2+i]];
     }
-    uint t=left.size()-1;
-    if(allSorted.size()%2==1)
-        left[t]=allSorted[allSorted.size()-1];
-
-
-
+    uint t=left_vec.size()-1;
+    if(allSorted.size()%2==1){
+        left_vec[t]=allSorted[allSorted.size()-1];
+        left_idx[t]=midTriangMap[allSorted[allSorted.size()-1]];
+    }
 
 	/// Kinder sind wieder Baeume! Wichtig das NEW!
-    //left = new BVT (left,this->actualDeep+1);
-    //right = new BVT (right,this->actualDeep+1);
+    left = new BVT (left_vec,left_idx,points,this->actualDepth+1);
+    right = new BVT (right_vec,left_idx,points,this->actualDepth+1);
 
 }
 
