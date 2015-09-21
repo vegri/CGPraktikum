@@ -222,3 +222,11 @@ bool BVT::intersect(const BVT &S)
     }
     return false;
 }
+
+int BVT::createTree(unsigned int &minPoints)
+{
+    if((this->getIdx()).size()<=minPoint) return;
+    this->split();
+    this->left->createTree(minPoint);
+    this->right->createTree(minPoint);
+}

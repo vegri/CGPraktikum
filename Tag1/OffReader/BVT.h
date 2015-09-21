@@ -73,6 +73,8 @@ class BVT
 
         bool intersect(const Sphere & S);
         bool intersect(const BVT & S);
+
+        int createTree(uint &minPoints);
 };
 
 
