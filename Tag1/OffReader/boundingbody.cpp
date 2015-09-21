@@ -25,17 +25,17 @@ void BoundingBody::draw_mesh_collision(){
 
     //glPopMatrix();
 
-    vec3dd a(3),b(3);
+    vecvec3d a(3),b(3);
     bool found=false;
     //glPointSize(5);
     //glBegin(GL_POINTS);
-    for(unsigned int j=0;j<ind.size();j+=3) {
+    for(uint j=0;j<ind.size();j+=3) {
         for (uint k = 0; k < this->collision.size(); ++k) {
             BoundingBody* B=this->collision[k];
             for (uint l = 0; l < B->ind.size(); l+=3) {
                 for (uint i = 0; i < 3; ++i) {
-                    a[i]=(q_now*p[ind[j+i]]*zoom_val)-center;
-                    b[i]=(B->q_now*B->p[B->ind[l+i]]*B->zoom_val)-B->center;
+                    a[i]=(q_now*((*p)[ind[j][i]])*zoom_val)-center;
+                    b[i]=(B->q_now*(*B->p)[B->ind[l][i]]*B->zoom_val)-B->center;
                     //glVertex3dv(b[i].ptr());
                 }
 
@@ -48,20 +48,13 @@ void BoundingBody::draw_mesh_collision(){
 
         }
 
-
-
-        if(found)
-            glColor4d(collision_color[0],collision_color[1],collision_color[2],0.7);
-        else
-            glColor4d(color[0],color[1],color[2],0.7);
-
         glBegin(GL_TRIANGLES);
-        n.cross((p[ind[j+1]]-p[ind[j]]),(p[ind[j+2]]-p[ind[j]]));
+        n.cross(((*p)[ind[j][1]]-(*p)[ind[j][0]]),((*p)[ind[j][2]]-(*p)[ind[j][0]]));
         n.normalize(n);
         glNormal3dv(n.ptr());
-        glVertex3dv(p[ind[j]].ptr());
-        glVertex3dv(p[ind[j+1]].ptr());
-        glVertex3dv(p[ind[j+2]].ptr());
+        glVertex3dv((*p)[ind[j][0]].ptr());
+        glVertex3dv((*p)[ind[j][1]].ptr());
+        glVertex3dv((*p)[ind[j][2]].ptr());
         glEnd();
         found=false;
     }
@@ -74,7 +67,7 @@ void BoundingBody::draw_mesh_collision(){
 
 void BoundingBody::draw_mesh_no_collision()
 {
-    glColor4d(color[0],color[1],color[2],0.7);
+    //glColor4d(color[0],color[1],color[2],0.7);
     Vector3d n;
 
     glPushMatrix();
@@ -87,20 +80,20 @@ void BoundingBody::draw_mesh_no_collision()
 
     glBegin(GL_TRIANGLES);
     for(unsigned int j=0;j<ind.size();j+=3) {
-        n.cross((p[ind[j+1]]-p[ind[j]]),(p[ind[j+2]]-p[ind[j]]));
+        n.cross(((*p)[ind[j][1]]-(*p)[ind[j][0]]),((*p)[ind[j][2]]-(*p)[ind[j][0]]));
         n.normalize(n);
         glNormal3dv(n.ptr());
-        glVertex3dv(p[ind[j]].ptr());
-        glVertex3dv(p[ind[j+1]].ptr());
-        glVertex3dv(p[ind[j+2]].ptr());
+        glVertex3dv((*p)[ind[j][0]].ptr());
+        glVertex3dv((*p)[ind[j][1]].ptr());
+        glVertex3dv((*p)[ind[j][2]].ptr());
     }
     glEnd();
     glPopMatrix();
 }
 
-bool BoundingBody::intersectTrianlge(vec3dd &a_p, vec3dd &b_p)
+bool BoundingBody::intersectTrianlge(vecvec3d &a_p, vecvec3d &b_p)
 {
-    vec3dd a(3),b(3);
+    vecvec3d a(3),b(3);
     Vector3d ca,cb,na,nb;
 
     for (int i = 0; i < 3; ++i) {
@@ -166,7 +159,7 @@ bool BoundingBody::intersectTrianlge(vec3dd &a_p, vec3dd &b_p)
     return true;
 }
 
-bool BoundingBody::planeTest(const Vector3d &v, const vec3dd &a, const vec3dd &b, const Vector3d &dc)
+bool BoundingBody::planeTest(const Vector3d &v, const vecvec3d &a, const vecvec3d &b, const Vector3d &dc)
 {
     double res1=0,res2=0,res=0;
     for (int i = 0; i < 3; ++i) {
@@ -178,10 +171,6 @@ bool BoundingBody::planeTest(const Vector3d &v, const vec3dd &a, const vec3dd &b
     return st>res;
 }
 
-void BoundingBody::setColor(Vector3d color_p)
-{
-    this->color=color_p;
-}
 void BoundingBody::setBoxColor(Vector3d color_p)
 {
     this->box_color=color_p;
@@ -196,15 +185,11 @@ Vector3d BoundingBody::getCenter()
     return this->center;
 }
 
-Vector3d BoundingBody::getColor(){
-    return this->color;
-}
-
-vec3dd BoundingBody::getP(){
+vecvec3d *BoundingBody::getP(){
     return this->p;
 }
 
-vecintd BoundingBody::getInd(){
+vecvecuint BoundingBody::getInd(){
     return this->ind;
 }
 

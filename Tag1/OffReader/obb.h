@@ -22,7 +22,7 @@ class OBB: public BoundingBody{
     public:
         //methodes
         OBB();
-        OBB(const vec3dd &p_p, vecintd ind_p, Vector3d color_p);
+        OBB(vecvec3d *p_p, vecvecuint ind_p, Vector3d color_p);
 
         //OBB( OBB &o);
         void draw();
@@ -34,7 +34,7 @@ class OBB: public BoundingBody{
         static bool sortFkt0(const Vector3d &a,const Vector3d &b);
         static bool sortFkt1(const Vector3d &a,const Vector3d &b);
         static bool sortFkt2(const Vector3d &a,const Vector3d &b);
-        bool intersectAxis(Vector3d &v, vec3dd &a, vec3dd &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc);
+        bool intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc);
         void setBodyCenter(Vector3d center_b);
         Matrix4d dyadicProdukt(Vector3d v1,Vector3d v2);
 

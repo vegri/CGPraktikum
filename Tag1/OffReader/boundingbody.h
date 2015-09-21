@@ -17,8 +17,9 @@
 #include "vecmath.h"
 
 typedef unsigned int uint;
-typedef std::vector<Vector3d> vec3dd;
-typedef std::vector<int> vecintd;
+typedef std::vector<Vector3d> vecvec3d;
+typedef std::vector<uint> vecuint;
+typedef std::vector<vecuint> vecvecuint;
 
 class BoundingBody
 {
@@ -27,22 +28,21 @@ public:
     void draw_mesh();
     void draw_mesh_collision();
     void draw_mesh_no_collision();
-    void setColor(Vector3d color_p);
     void setBoxColor(Vector3d color_p);
     void setCollisionColor(Vector3d color_p);
     Vector3d getCenter();
     Vector3d getBodyCenter();
     Vector3d getColor();
-    vec3dd getP();
-    vecintd getInd();
+    vecvec3d *getP();
+    vecvecuint getInd();
     void setRotation(Quat4d q);
     void setZoom(double zoom_p);
     void setCenter(Vector3d center_p);
     void addCollision(BoundingBody &b);
     void clearCollision();
-    bool intersectTrianlge(vec3dd &a_p, vec3dd &b_p);
+    bool intersectTrianlge(vecvec3d &a_p, vecvec3d &b_p);
 
-    bool planeTest(const Vector3d &v, const vec3dd &a, const vec3dd &b, const Vector3d &dc);
+    bool planeTest(const Vector3d &v, const vecvec3d &a, const vecvec3d &b, const Vector3d &dc);
     void move(Vector3d motion);
     void zoom(double z_p);
     void rotate(Quat4d rotation);
@@ -55,13 +55,14 @@ public:
 
 protected:
     Vector3d min, max, center, bodycenter;
-    vec3dd quad;    
+    vecvec3d quad;
     std::vector<BoundingBody*> collision;
+    bool selected;
 
-    vec3dd p;
-    vecintd ind;
-    Vector3d color,box_color,collision_color;
-    //Quat4d q_now;
+    vecvec3d *p;
+    vecvecuint ind;
+
+    Vector3d box_color,collision_color,selected_color,selected_collision_color;
 };
 
 #endif // BOUNDINGBODY_H

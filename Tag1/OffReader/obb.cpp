@@ -3,7 +3,7 @@
 
 OBB::OBB(){}
 
-OBB::OBB(const vec3dd &p_p, vecintd ind_p, Vector3d color_p){
+OBB::OBB(vecvec3d *p_p, vecvecuint ind_p, Vector3d color_p){
 
     this->p=p_p;
     this->ind=ind_p;
@@ -13,10 +13,9 @@ OBB::OBB(const vec3dd &p_p, vecintd ind_p, Vector3d color_p){
     //this->center=0;
     //this->box_calculated=false;
     this->q_now=Quat4d(0,0,0,1);
-    points=p;
-    center=points[0];
+    center=p->at(0);
     for(unsigned int i=1;i<points.size();i++){
-        center=center+points[i];
+        center=center+p->at(i);
     }
     center=center/points.size();
     bodycenter=Vector3d(0,0,0);
@@ -34,7 +33,7 @@ void OBB::setBodyCenter(Vector3d center_b){
     this->bodycenter=center_b;
 }
 
-bool OBB::intersectAxis(Vector3d &v,vec3dd &a, vec3dd &b,Vector3d &alpha,Vector3d &beta, Vector3d &dc){
+bool OBB::intersectAxis(Vector3d &v,vecvec3d &a, vecvec3d &b,Vector3d &alpha,Vector3d &beta, Vector3d &dc){
     double res=0;
     for (int i = 0; i < 3; ++i) {
         res+=std::abs(alpha[i]*(v.dot(a[i])))+std::abs(beta[i]*(v.dot(b[i])));
@@ -54,7 +53,7 @@ bool OBB::intersectAxis(Vector3d &v,vec3dd &a, vec3dd &b,Vector3d &alpha,Vector3
 
 bool OBB::intersect(OBB &B){
 
-    vec3dd a,b,v;
+    vecvec3d a,b,v;
     a.resize(3);b.resize(3);v.resize(3);
 
     for (int i = 0; i < 3; ++i) {
@@ -237,13 +236,14 @@ bool OBB::sortFkt1(const Vector3d &a, const Vector3d &b){ return a[1]<b[1]; }
 bool OBB::sortFkt2(const Vector3d &a, const Vector3d &b){ return a[2]<b[2]; }
 
 void OBB::splitOBB(const OBB &A, OBB &A1, OBB &A2){
-    vec3dd p(A.points.size());
-    vec3dd pA1(A.points.size()/2),pA2(A.points.size()/2);
+    vecvec3d *p=new vecvec3d(A.points.size());
+    vecvec3d *pA1=new vecvec3d(A.points.size()/2);
+    vecvec3d *pA2=new vecvec3d(A.points.size()/2);
     Quat4d q;
 
     q.set(A.R.inverse(A.R));
     for (uint i=0;i<(A.points).size();i++)
-        p[i]=q*(A.points)[i];
+        (*p)[i]=q*(A.points)[i];
 
     //Find longest Axis
     uint j=0;
@@ -255,25 +255,25 @@ void OBB::splitOBB(const OBB &A, OBB &A1, OBB &A2){
     //Sort on found axis
     switch (j) {
     case 0:
-        std::sort(p.begin(),p.end(),&sortFkt0);
+        std::sort(p->begin(),p->end(),&sortFkt0);
         break;
     case 1:
-        std::sort(p.begin(),p.end(),&sortFkt1);
+        std::sort(p->begin(),p->end(),&sortFkt1);
         break;
     case 2:
-        std::sort(p.begin(),p.end(),&sortFkt2);
+        std::sort(p->begin(),p->end(),&sortFkt2);
         break;
     default:
         break;
     }
 
-    for(uint i=0;i<pA1.size();i++){
-        pA1[i]=p[i];
-        pA2[i]=p[i+pA1.size()];
+    for(uint i=0;i<pA1->size();i++){
+        (*pA1)[i]=(*p)[i];
+        (*pA2)[i]=(*p)[i+pA1->size()];
     }
-    if(2*pA1.size()<p.size())
-        pA2.push_back(p[p.size()-1]);
-    vecintd s;
+    if(2*pA1->size()<p->size())
+        pA2->push_back((*p)[p->size()-1]);
+    vecvecuint s;
     s.resize(0);
     A1=OBB(pA1,s,Vector3d());
     A2=OBB(pA2,s,Vector3d());
