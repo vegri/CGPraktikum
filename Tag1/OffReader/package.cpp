@@ -36,6 +36,7 @@ void Package::draw()
     glMultMatrixd(Matrix4d(rot).transpose().ptr());
     glColor4dv(color.ptr());
     uint i=0;
+    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     glBegin(GL_QUADS);
     for(;i<8;++i)
         glVertex3dv(corners[i].ptr());
@@ -147,6 +148,20 @@ void Package::move(Vector3d move_p)
 void Package::setRot(Quat4d rot_p)
 {
     this->rot=rot_p;
+}
+
+vecvec3d Package::getCorners()
+{
+    vecvec3d res(8);
+    for (uint i = 0; i < 8; ++i) {
+        res[i]=rot*this->corners[i]+center;
+    }
+    return res;
+}
+
+Quat4d Package::getRot()
+{
+    return this->rot;
 }
 
 void Package::rotate(Quat4d rot_p)

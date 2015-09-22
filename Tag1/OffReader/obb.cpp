@@ -100,7 +100,7 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     min_z= 1e300;
     for(unsigned int i=0;i<ind.size();i++){
         for(uint j=0;j<ind[i].size();j++){
-            loc_p=m*(p->at(ind[i][j])-center);
+            loc_p=R*(p->at(ind[i][j])-center);
             max_x=std::max(max_x,loc_p.x());
             max_y=std::max(max_y,loc_p.y());
             max_z=std::max(max_z,loc_p.z());
@@ -134,9 +134,9 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //axis.push_back(Vector3d(this->R(0,0),this->R(0,1),this->R(0,2)));
     //axis.push_back(Vector3d(this->R(1,0),this->R(1,1),this->R(1,2)));
     //axis.push_back(Vector3d(this->R(2,0),this->R(2,1),this->R(2,2)));
-    axis.push_back(Vector3d(0,0,1));
-    axis.push_back(Vector3d(0,1,0));
     axis.push_back(Vector3d(1,0,0));
+    axis.push_back(Vector3d(0,1,0));
+    axis.push_back(Vector3d(0,0,1));
     for (int i = 0; i < 3; ++i) {
         axis[i].normalize();
     }
@@ -201,13 +201,13 @@ void OBB::draw(){
 
     glMultMatrixd(Matrix4d(rot).transpose().ptr());
 
-    glColor3d(0,1,1);
-    glBegin(GL_LINES);
-    for (uint i = 0; i < this->axis.size(); ++i) {
-        glVertex3dv(Vector3d(0).ptr());
-        glVertex3dv(((axis[i])*1500).ptr());
-    }
-    glEnd();
+//    glColor3d(0,1,1);
+//    glBegin(GL_LINES);
+//    for (uint i = 0; i < this->axis.size(); ++i) {
+//        glVertex3dv(Vector3d(0).ptr());
+//        glVertex3dv(((axis[i])*1500).ptr());
+//    }
+//    glEnd();
 
     if(collision)
         glColor3d(0.5,0,0);

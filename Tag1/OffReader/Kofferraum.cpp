@@ -54,11 +54,11 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     f->setLayout(layout);
 
     setCentralWidget(f);
-
+    ogl->zoom=0.002;
     statusBar()->showMessage("Ready",1000);
     loadPackage4();
-    ogl->packageList[0].move(Vector3d(-25,-25,-25));
-    loadPoly("../TestKofferraumIKEA.off");
+    //ogl->packageList[0].move(Vector3d(-25,-25,-25));
+    //loadPoly("../TestKofferraumIKEA.off");
     //loadPackage2();
 }
 
@@ -249,6 +249,10 @@ void CGView::paintGL() {
     glMultMatrixd(R.transpose().ptr());
     glScaled(zoom, zoom, zoom);
     glTranslated(-center[0],-center[1],-center[2]);
+
+    if(drawObb)
+        this->testObb.draw();
+
     for (uint j = 0; j < this->bootList.size(); ++j) {
         this->bootList[j]->resetCollision();
     }
@@ -617,14 +621,18 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     }
         break;
     case Qt::Key_X:
-        this->packageList[this->picked].pick(false);
+        if(picked<this->packageList.size())
+            this->packageList[this->picked].pick(false);
         this->picked=(this->packageList.size()+this->picked+1)%this->packageList.size();
-        this->packageList[this->picked].pick(true);
+        if(picked<this->packageList.size())
+            this->packageList[this->picked].pick(true);
         break;
     case Qt::Key_Y:
-        this->packageList[this->picked].pick(false);
+        if(picked<this->packageList.size())
+            this->packageList[this->picked].pick(false);
         this->picked=(this->packageList.size()+this->picked-1)%this->packageList.size();
-        this->packageList[this->picked].pick(true);
+        if(picked<this->packageList.size())
+            this->packageList[this->picked].pick(true);
         break;
     case Qt::Key_N:
         ++depth;
@@ -632,6 +640,34 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_M:
         --depth;
         break;
+    case Qt::Key_F:
+        std::cout << this->q_now[0] << " " << this->q_now[1] << " "
+                  << this->q_now[2] << " " << this->q_now[3] << "(q_now)" << std::endl;
+        std::cout << this->q_old[0] << " " << this->q_old[1] << " "
+                  << this->q_old[2] << " " << this->q_old[3] << "(q_old)" << std::endl;
+        std::cout << this->center[0] << " " << this->center[1] << " "
+                  << this->center[2] << "(center)" << std::endl;
+        std::cout << this->zoom << "(zoom)" << std::endl;
+        std::cout << this->picked << "(picked)" << std::endl;
+        break;
+    case Qt::Key_G:
+        std::cout << this->packageList[picked].getRot()[0] << " " << this->packageList[picked].getRot()[1] << " "
+                  << this->packageList[picked].getRot()[2] << " " << this->packageList[picked].getRot()[3] << "(rot)" << std::endl;
+        std::cout << this->packageList[picked].getCenter()[0] << " " << this->packageList[picked].getCenter()[1] << " "
+                  << this->packageList[picked].getCenter()[2] << "(center)" << std::endl;
+        break;
+    case Qt::Key_R:{
+        vecvec3d *points=new vecvec3d(this->packageList[picked].getCorners());
+        vecvecuint idx(3);
+        for (uint i = 0; i < 9; ++i) {
+            if(i%3==0)
+                idx[i/3]=vecuint(3);
+            idx[i/3][i%3]=i%8;
+        }
+        testObb=OBB(points,idx,Vector3d(0.5,0.5,0));
+        drawObb=true;
+        break;
+    }
     default:
         break;
     }

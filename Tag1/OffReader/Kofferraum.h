@@ -10,6 +10,7 @@
 #include <iostream>
 #include <QTimer>
 #include "BVT.h"
+#include "obb.h"
 
 #include "vecmath.h"
 #include "package.h"
@@ -98,13 +99,14 @@ protected:
 	void wheelEvent(QWheelEvent*);
     void drawIkeaPackage(std::vector<Vector3d> packageList);
 
-
+  OBB testObb;
   int oldX,oldY;
   int currentWidth, currentHeight;
   void mouseToTrackball(int x, int y, int w, int h);
   void trackball(Vector3d u, Vector3d v, Quat4d &q);
   
   bool animationRunning;
+  bool drawObb= false;
   double timeParameter;
 
   int animationMode;

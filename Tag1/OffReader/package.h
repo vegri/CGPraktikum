@@ -31,6 +31,8 @@ public:
     void setColor(Vector4d color_p);
     void move(Vector3d move_p);
     void setRot(Quat4d rot_p);
+    vecvec3d getCorners();
+    Quat4d getRot();
     void rotate(Quat4d rot_p);
     void markRot();
     void rotateMarked(Quat4d rot_p);
