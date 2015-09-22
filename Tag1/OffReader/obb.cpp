@@ -4,7 +4,7 @@
 OBB::OBB(){}
 
 OBB::OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
-
+    this->collision=false;
     this->color=color_p;
     this->box_color=Vector3d(0,1,0);
     this->points=vecvec3d(ind.size()*3);
@@ -80,13 +80,13 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //int nrot;
     //C.jacobi(eigenvaluesC,R,nrot);
 
-    for (uint i = 0; i < 3; ++i) {
-        for (uint j = 0; j < 3; ++j) {
-            std::cout << C(i,j)-this->C(i,j) << " ; ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
+//    for (uint i = 0; i < 3; ++i) {
+//        for (uint j = 0; j < 3; ++j) {
+//            std::cout << C(i,j)-this->C(i,j) << " ; ";
+//        }
+//        std::cout << std::endl;
+//    }
+//    std::cout << std::endl;
 
     Matrix4d m=Matrix4d();
     m=R.transpose();
@@ -179,12 +179,15 @@ void OBB::draw(){
     //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glDisable(GL_LIGHTING);
-    glColor3d(0.5,0,0);
+    if(collision)
+        glColor3d(0.5,0,0);
+    else
+        glColor3d(0,0.5,0);
 
     Matrix4d RT = R.transpose();
     glMultMatrixd(RT.ptr());
 
-    glColor3d(box_color.x(),box_color.y(),box_color.z());
+    //glColor3d(box_color.x(),box_color.y(),box_color.z());
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glBegin(GL_QUAD_STRIP);
         for(unsigned int i=0; i<corner.size();i++){
@@ -197,6 +200,16 @@ void OBB::draw(){
     //glEnable(GL_LIGHTING);
     glPopMatrix();
 
+}
+
+void OBB::setCollision()
+{
+    this->collision=true;
+}
+
+void OBB::resetCollision()
+{
+    this->collision=false;
 }
 
 bool OBB::intersect(OBB &B){

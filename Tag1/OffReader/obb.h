@@ -17,7 +17,11 @@ class Package;
 #endif
 
 #include "vecmath.h"
-#include "boundingbody.h"
+
+typedef unsigned int uint;
+typedef std::vector<Vector3d> vecvec3d;
+typedef std::vector<uint> vecuint;
+typedef std::vector<vecuint> vecvecuint;
 
 class OBB{
     public:
@@ -65,12 +69,15 @@ public:
     void setCenter(Vector3d center_p);
     void move(Vector3d motion);
     void rotate(Quat4d rotation);
+    void setCollision();
+    void resetCollision();
 
     Quat4d rot;
 
 protected:
     Vector3d min, max, center, bodycenter;
-    bool selected;
+    bool selected,collision;
+
     Vector3d box_color,collision_color,selected_color,selected_collision_color;
 };
 

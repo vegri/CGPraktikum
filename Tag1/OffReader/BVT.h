@@ -10,7 +10,6 @@
 #include "obb.h"
 
 typedef unsigned int uint;
-
 typedef std::vector<Vector3d> vecvec3d;
 typedef std::vector<uint> vecuint;
 typedef std::vector<vecuint> vecvecuint;
@@ -51,7 +50,9 @@ class BVT
 
         void draw();
         void draw(uint depth);
+        bool drawPoint;
         bool drawBoxes;
+        bool drawCollisions;
         bool drawModel;
         bool intersection;
         uint drawDepth;
@@ -85,6 +86,7 @@ class BVT
         bool intersect(Package &S);
         bool intersect(OBB &S);
         bool intersect(BVT &S);
+        void resetCollision();
 
         int createTree(const uint minPoints);
 };

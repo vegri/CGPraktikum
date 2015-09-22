@@ -23,7 +23,6 @@ BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *poi
     for (uint i = 0; i < debug_points.size(); ++i) {
         debug_points[i]=(*points_p)[idx_p[i/3][i%3]];
     }
-
     init(false);
 }
 
@@ -35,28 +34,49 @@ void BVT::draw()
 void BVT::draw(uint depth)
 {
     if(drawBoxes){
-        if (depth==this->actualDepth){
-            this->box.draw();
-            glPointSize(5);
-            glColor3d(1,0,0);
-            glBegin(GL_POINTS);
-            for(uint i =0; i < debug_points.size(); ++i)
-            {
-                glVertex3dv(debug_points[i].ptr());
+        if (depth==this->actualDepth || (this->left==0x0 && this->right==0x0)){
+            if(intersection){
+                this->box.setCollision();
             }
-            glEnd();
+            this->box.draw();
+            this->box.resetCollision();
+            if(this->drawPoint){
+                glPointSize(5);
+                glColor3d(1,0,0);
+                glBegin(GL_POINTS);
+                for(uint i =0; i < debug_points.size(); ++i)
+                {
+                    glVertex3dv(debug_points[i].ptr());
+                }
+                glEnd();
+            }
         } else {
             if(this->left!=0x0)
                 this->left->draw(depth);
-            //if(this->right!=0x0)
-              //  this->right->draw(depth);
+            if(this->right!=0x0)
+                this->right->draw(depth);
         }
     }
+
+    if(drawCollisions && intersection){
+        if (depth==this->actualDepth || (this->left==0x0 && this->right==0x0)){
+            this->box.setCollision();
+            this->box.draw();
+            this->box.resetCollision();
+        } else {
+            if(this->left!=0x0)
+                this->left->draw(depth);
+            if(this->right!=0x0)
+                this->right->draw(depth);
+        }
+    }
+
     if(drawModel && this->actualDepth==0){
         glPushMatrix();
         glTranslated(center[0],center[1],center[2]);
         glMultMatrixd(Matrix4d(rot).transpose().ptr());
         glColor4dv(model_color.ptr());
+        glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
         glDisable (GL_CULL_FACE);
         glBegin(GL_TRIANGLES);
         for(uint i =0; i < idx.size(); ++i)
@@ -80,6 +100,10 @@ void BVT::init(bool init_midtriange)
     rot=Quat4d(0,0,0,1);
     model_color=Vector4d(0,0.5,0.5,0.8);
     this->drawModel=true;
+    this->drawPoint=false;
+    this->drawBoxes=true;
+    this->intersection=false;
+    this->drawCollisions=true;
 
     uint i,j;
     Vector3d r;
@@ -152,39 +176,11 @@ void BVT::split ()
         if(this->box.halflength[i]>this->box.halflength[m])
             m=i;
     }
-
-	// Computes the eigenvalues/vectors from the inertia matrix
-//	Vector4d eigenvalue;
-//	Matrix4d eigenvector;
-//	int nrot; /// not important
-
-//    /// Dont forget to compute inertia first!
-//    inertia.jacobi (eigenvalue, eigenvector, nrot);
-//    Quat4d q;
-//    q.set(eigenvector.inverse(eigenvector));
-
-//    //search for eigenvector to the smallest eigenvalue
-//    //splitting along this vector
-
-//    int m=0;
-//    if(eigenvalue[m]>eigenvalue[1])
-//        m=1;
-//    if(eigenvalue[m]>eigenvalue[2])
-//        m=2;
-
-//    splitAxis=Vector3d(eigenvector(m,0),eigenvector(m,1),eigenvector(m,2));
-//    for(uint i=0;i<allSorted.size();i++){
-//        allSorted[i]=q*allSorted[i];
-//        midTriangMap[allSorted[i]]=idx[i];
-//    }
     switch(m){
         case 0:std::sort(allSorted.begin(),allSorted.end(),&sortFkt0);break;
         case 1:std::sort(allSorted.begin(),allSorted.end(),&sortFkt1);break;
         case 2:std::sort(allSorted.begin(),allSorted.end(),&sortFkt2);break;
     }
-//    q.set(eigenvector);
-    //for(uint i=0;i<allSorted.size();i++)
-    //    allSorted[i]=q*allSorted[i];
 
     right_vec.resize(allSorted.size()/2);
     if(allSorted.size()%2==0)
@@ -249,15 +245,26 @@ void BVT::drawPoints(Vector3d color)
 
 bool BVT::intersect(Package &S)
 {
+    bool result=false;
     if (OBB::intersect(S,this->box)){
+        this->intersection=true;
         if(NULL!=this->left){
-            if (this->left->intersect(S))
-                return true;
+            if (this->left->intersect(S)){
+                result=true;
+            }
         }
         if(NULL!=this->right){
-            if (this->right->intersect(S))
-                return true;
+            if (this->right->intersect(S)){
+                result=true;
+            }
         }
+        if(result)
+            return true;
+        if(NULL==this->right && NULL==this->left){
+
+        }
+
+
     }
     return false;
 }
@@ -266,19 +273,16 @@ bool BVT::intersect(OBB &S)
 {
     if (S.intersect(this->box)){
         if(NULL!=this->left){
-            if (this->left->intersect(S))
+            if (this->left->intersect(S)){
                 return true;
+            }
         }
         if(NULL!=this->right){
-            if (this->right->intersect(S))
+            if (this->right->intersect(S)){
                 return true;
-        } /*else if(NULL==this->left){
-            for (uint i = 0; i < this->points->size(); ++i) {
-                if (S.intersect(this->points[i]))
-                    return true;
             }
-        }*/
-
+        }
+        this->intersection=true;
     }
     return false;
 }
@@ -287,30 +291,38 @@ bool BVT::intersect(BVT &S)
 {
     if (S.box.intersect(this->box)){
         if(NULL!=S.left){
-            if (S.left->intersect(*this))
+            if (S.left->intersect(*this)){
                 return true;
+            }
         }
         if(NULL!=S.right){
-            if (S.right->intersect(*this))
+            if (S.right->intersect(*this)){
                 return true;
+            }
         } else if(NULL==S.left){
             if(NULL!=this->left){
-                if (this->left->intersect(S))
+                if (this->left->intersect(S)){
                     return true;
+                }
             }
             if(NULL!=this->right){
-                if (this->right->intersect(S))
+                if (this->right->intersect(S)){
                     return true;
-            } /*else if(NULL==this->left){
-                for (uint i = 0; i < this->points->size(); ++i) {
-                    if (S.box.intersect(this->points[i]))
-                        return true;
                 }
-            }*/
+            }
         }
-
+        this->intersection=true;
     }
     return false;
+}
+
+void BVT::resetCollision()
+{
+    this->intersection=false;
+    if(this->left!=0x0)
+        this->left->resetCollision();
+    if(this->right!=0x0)
+        this->right->resetCollision();
 }
 
 int BVT::createTree(const uint minPoints)
