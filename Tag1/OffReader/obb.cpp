@@ -7,21 +7,34 @@ OBB::OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
     this->collision=false;
     this->color=color_p;
     this->box_color=Vector3d(0,1,0);
-    this->points=vecvec3d(ind.size()*3);
-
-    center=0;
+    std::set<Vector3d> point_set;
     for(unsigned int i=0;i<ind.size();i++){
         for(uint j=0;j<ind[i].size();j++){
-            center=center+p->at(ind[i][j]);
-            points[i*3+j]=p->at(ind[i][j]);
+            point_set.insert(p->at(ind[i][j]));
         }
     }
-    center=center/(ind.size()*3);
+
+
+
+    this->points=vecvec3d(point_set.size());
+    std::set<Vector3d>::iterator beg=point_set.begin();
+    std::set<Vector3d>::iterator end=point_set.end();
+    for(uint i=0;beg!=end;++i,++beg){
+            center=center+*beg;
+            points[i]=*beg;
+    }
+
+    center=center/points.size();
+
+    for (uint i = 0; i < points.size(); ++i) {
+        points[i]=points[i]-center;
+    }
+
 
     this->rot=Quat4d(0,0,0,1);
 
     bodycenter=0;
-    setCorner(p,ind);
+    setCorner(points);
 }
 
 void OBB::setBodyCenter(Vector3d center_b){
@@ -50,9 +63,9 @@ bool OBB::intersectAxis(Vector3d &v,vecvec3d &a, vecvec3d &b,Vector3d &alpha,Vec
 
 
 
-void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
+void OBB::setCorner(const vecvec3d p){
     //double min_x,min_y,min_z,max_x,max_y,max_z;
-    caluculateC(p,ind);
+    caluculateC(p);
 
 //    Matrix4d C=Matrix4d();
 //    Vector3d r;
@@ -80,17 +93,21 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //int nrot;
     //C.jacobi(eigenvaluesC,R,nrot);
 
-//    for (uint i = 0; i < 3; ++i) {
-//        for (uint j = 0; j < 3; ++j) {
-//            std::cout << C(i,j)-this->C(i,j) << " ; ";
-//        }
-//        std::cout << std::endl;
-//    }
-//    std::cout << std::endl;
+    for (uint i = 0; i < 3; ++i) {
+        for (uint j = 0; j < 3; ++j) {
+            std::cout << C(i,j) << " ; ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+
+    axis.push_back(Vector3d(this->R(0,0),this->R(1,0),this->R(2,0)));
+    axis.push_back(Vector3d(this->R(0,1),this->R(1,1),this->R(2,1)));
+    axis.push_back(Vector3d(this->R(0,2),this->R(1,2),this->R(2,2)));
 
     Matrix4d m=Matrix4d();
     m=R.transpose();
-    R=R.identity();
+    //R=R.identity();
 
     Vector3d loc_p;
     max_x=-1e300;
@@ -99,17 +116,16 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     min_x= 1e300;
     min_y= 1e300;
     min_z= 1e300;
-    for(uint i=0;i<ind.size();i++){
-        for(uint j=0;j<ind[i].size();j++){
-            loc_p=R*(p->at(ind[i][j]));
-            debug_points.push_back(loc_p);
-            max_x=std::max(max_x,loc_p.x());
-            max_y=std::max(max_y,loc_p.y());
-            max_z=std::max(max_z,loc_p.z());
-            min_x=std::min(min_x,loc_p.x());
-            min_y=std::min(min_y,loc_p.y());
-            min_z=std::min(min_z,loc_p.z());
-        }
+    for(uint i=0;i<p.size();i++){
+        loc_p=m*p[i];
+        //loc_p=R*p[i];
+        debug_points.push_back(loc_p);
+        max_x=std::max(max_x,loc_p.x());
+        max_y=std::max(max_y,loc_p.y());
+        max_z=std::max(max_z,loc_p.z());
+        min_x=std::min(min_x,loc_p.x());
+        min_y=std::min(min_y,loc_p.y());
+        min_z=std::min(min_z,loc_p.z());
     }
 
 
@@ -128,7 +144,7 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     corner.push_back(Vector3d (min_x,max_y,min_z));
     corner.push_back(Vector3d (min_x,min_y,min_z));
 
-    axis.clear();
+    //axis.clear();
 
 //    axis.push_back(Vector3d(this->R(0,0),this->R(1,0),this->R(2,0)));
 //    axis.push_back(Vector3d(this->R(0,1),this->R(1,1),this->R(2,1)));
@@ -136,27 +152,25 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //axis.push_back(Vector3d(this->R(0,0),this->R(0,1),this->R(0,2)));
     //axis.push_back(Vector3d(this->R(1,0),this->R(1,1),this->R(1,2)));
     //axis.push_back(Vector3d(this->R(2,0),this->R(2,1),this->R(2,2)));
-    axis.push_back(Vector3d(1,0,0));
-    axis.push_back(Vector3d(0,1,0));
-    axis.push_back(Vector3d(0,0,1));
-    for (int i = 0; i < 3; ++i) {
-        axis[i].normalize();
-    }
+//    axis.push_back(Vector3d(1,0,0));
+//    axis.push_back(Vector3d(0,1,0));
+//    axis.push_back(Vector3d(0,0,1));
+//    for (int i = 0; i < 3; ++i) {
+//        axis[i].normalize();
+//    }
 
     this->rot.set(R);
 }
 
 
-void OBB::caluculateC(const vecvec3d *p, const vecvecuint ind){
+void OBB::caluculateC(const vecvec3d p){
     C=Matrix4d(0.0);
     double vt;
-    for(uint i=0;i<ind.size();i++){
-        for(uint j=0;j<3;j++){
+    for(uint i=0;i<p.size();i++){
             //C=C+dyadicProdukt((*p)[ind[i][j]]-center,(*p)[ind[i][j]]-center)*(-1);
             //vt=((*p)[ind[i][j]]-center)*((*p)[ind[i][j]]-center);
             //C(0,0)+=vt; C(1,1)+=vt; C(2,2)+=vt;
-            C=C+dyadicProdukt((*p)[ind[i][j]],(*p)[ind[i][j]]);
-        }
+            C=C+dyadicProdukt(p[i],p[i]);
     }
 
     int rot=0;
@@ -174,6 +188,7 @@ Matrix4d OBB::dyadicProdukt(Vector3d v1, Vector3d v2){
 
 void OBB::draw(){
     glPushMatrix();
+
 
     glPointSize(5);
     glColor3d(1,0,1);
@@ -199,12 +214,15 @@ void OBB::draw(){
 
 //    glColor3d(.5,1,0);
 
-//    glBegin(GL_LINES);
-//    for (uint i = 0; i < this->axis.size(); ++i) {
-//        glVertex3dv(Vector3d(0).ptr());
-//        glVertex3dv(((axis[i])*1500).ptr());
-//    }
-//    glEnd();
+    glPushMatrix();
+    glBegin(GL_LINES);
+    //glTranslated(center[0], center[1], center[2]);
+    for (uint i = 0; i < this->axis.size(); ++i) {
+        glVertex3dv((center+bodycenter).ptr());
+        glVertex3dv(((center+bodycenter)+(axis[i])*1500).ptr());
+    }
+    glEnd();
+    glPopMatrix();
 
 
     glMultMatrixd(Matrix4d(rot).transpose().ptr());

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <algorithm>
 #include <limits>
+#include <set>
 
 class Package;
 
@@ -33,9 +34,9 @@ class OBB{
         bool intersect(Package &A);
         //OBB( OBB &o);
         void draw();
-        void caluculateC(const vecvec3d *p, const vecvecuint ind);
+        void caluculateC(const vecvec3d p);
         void caluculateHalfL();
-        void setCorner(const vecvec3d *p, const vecvecuint ind);
+        void setCorner(const vecvec3d p);
         void splitOBB(const OBB& A, OBB& A1, OBB& A2);
         static bool sortFkt0(const Vector3d &a,const Vector3d &b);
         static bool sortFkt1(const Vector3d &a,const Vector3d &b);
