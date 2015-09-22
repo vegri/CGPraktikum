@@ -63,6 +63,17 @@ void BVT::draw(uint depth)
             this->box.setCollision();
             this->box.draw();
             this->box.resetCollision();
+            glPushMatrix();
+            glTranslated(center[0],center[1],center[2]);
+            glMultMatrixd(Matrix4d(rot).transpose().ptr());
+            glColor3dv(Vector3d(1,0,0).ptr());
+            glBegin(GL_POINTS);
+            for(uint i =0; i < idx.size(); ++i)
+                for (uint j = 0; j < 3; ++j) {
+                    glVertex3dv( (*points)[idx[i][j]].ptr());
+                }
+            glEnd();
+            glPopMatrix();
         } else {
             if(this->left!=0x0)
                 this->left->draw(depth);
@@ -101,7 +112,7 @@ void BVT::init(bool init_midtriange)
     model_color=Vector4d(0,0.5,0.5,0.8);
     this->drawModel=true;
     this->drawPoint=false;
-    this->drawBoxes=true;
+    this->drawBoxes=false;
     this->intersection=false;
     this->drawCollisions=true;
 
@@ -162,9 +173,10 @@ void BVT::split ()
     vecvecuint left_idx,right_idx;
     std::map<Vector3d,vecuint> midTriangMap;
 
-    Quat4d q;
+    Quat4d q=Quat4d(0,0,0,1);
 
-    q.set(this->box.R.inverse(this->box.R));
+    //q.set(this->box.R.inverse(this->box.R));
+
     for (uint i=0;i<triMids.size();i++){
         allSorted[i]=q*triMids[i];
         midTriangMap[allSorted[i]]=idx[i];
@@ -180,6 +192,13 @@ void BVT::split ()
         case 0:std::sort(allSorted.begin(),allSorted.end(),&sortFkt0);break;
         case 1:std::sort(allSorted.begin(),allSorted.end(),&sortFkt1);break;
         case 2:std::sort(allSorted.begin(),allSorted.end(),&sortFkt2);break;
+    }
+
+    double cut=allSorted[0][m]+this->box.halflength[m];
+    uint i;
+    for (i = 0; i < allSorted.size(); ++i) {
+        if(allSorted[i][m]>cut)
+            break;
     }
 
     right_vec.resize(allSorted.size()/2);

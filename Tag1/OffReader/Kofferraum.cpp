@@ -668,7 +668,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
             for (uint j = 0; j < 9; ++j) {
                 if(j%3==0)
                     idx[i*3+j/3]=vecuint(3);
-                idx[i*3+j/3][j%3]=j%8;
+                idx[i*3+j/3][j%3]=8*i+j%8;
             }
         }
 

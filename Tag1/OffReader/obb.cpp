@@ -93,21 +93,22 @@ void OBB::setCorner(const vecvec3d p){
     //int nrot;
     //C.jacobi(eigenvaluesC,R,nrot);
 
-    for (uint i = 0; i < 3; ++i) {
-        for (uint j = 0; j < 3; ++j) {
-            std::cout << C(i,j) << " ; ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
+//    for (uint i = 0; i < 3; ++i) {
+//        for (uint j = 0; j < 3; ++j) {
+//            std::cout << C(i,j) << " ; ";
+//        }
+//        std::cout << std::endl;
+//    }
+//    std::cout << std::endl;
 
     axis.push_back(Vector3d(this->R(0,0),this->R(1,0),this->R(2,0)));
     axis.push_back(Vector3d(this->R(0,1),this->R(1,1),this->R(2,1)));
     axis.push_back(Vector3d(this->R(0,2),this->R(1,2),this->R(2,2)));
 
+    R=R.identity();
     Matrix4d m=Matrix4d();
     m=R.transpose();
-    //R=R.identity();
+
 
     Vector3d loc_p;
     max_x=-1e300;
@@ -214,27 +215,27 @@ void OBB::draw(){
 
 //    glColor3d(.5,1,0);
 
-    glPushMatrix();
-    glBegin(GL_LINES);
-    //glTranslated(-center[0], -center[1], -center[2]);
-    for (uint i = 0; i < this->axis.size(); ++i) {
-        glVertex3dv((center+bodycenter).ptr());
-        glVertex3dv(((center+bodycenter)+(axis[i])*1500).ptr());
-    }
-    glEnd();
-    glPopMatrix();
+//    glPushMatrix();
+//    glBegin(GL_LINES);
+//    //glTranslated(-center[0], -center[1], -center[2]);
+//    for (uint i = 0; i < this->axis.size(); ++i) {
+//        glVertex3dv((center+bodycenter).ptr());
+//        glVertex3dv(((center+bodycenter)+(axis[i])*1500).ptr());
+//    }
+//    glEnd();
+//    glPopMatrix();
 
     glTranslated(center[0], center[1], center[2]);
     glMultMatrixd(Matrix4d(rot).transpose().ptr());
 
 
-    glBegin(GL_POINTS);
-    glColor3d(0.5,0,0);
-    for(uint i =0; i < debug_points.size(); ++i)
-    {
-        glVertex3dv(debug_points[i].ptr());
-    }
-    glEnd();
+//    glBegin(GL_POINTS);
+//    glColor3d(0.5,0,0);
+//    for(uint i =0; i < debug_points.size(); ++i)
+//    {
+//        glVertex3dv(debug_points[i].ptr());
+//    }
+//    glEnd();
 
 //    glTranslated(center[0], center[1], center[2]);
 //    glColor3d(0,1,1);
