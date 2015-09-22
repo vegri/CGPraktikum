@@ -199,8 +199,8 @@ void OBB::draw(){
         //glVertex3dv(points[i].ptr());
     }
     glColor3d(0.5,0,1);
-    //glVertex3dv(center.ptr());
-    glVertex3dv(bodycenter.ptr());
+    glVertex3dv(center.ptr());
+    //glVertex3dv(bodycenter.ptr());
     glEnd();
 
     //glTranslated(center[0], center[1], center[2]);
@@ -216,7 +216,7 @@ void OBB::draw(){
 
     glPushMatrix();
     glBegin(GL_LINES);
-    //glTranslated(center[0], center[1], center[2]);
+    //glTranslated(-center[0], -center[1], -center[2]);
     for (uint i = 0; i < this->axis.size(); ++i) {
         glVertex3dv((center+bodycenter).ptr());
         glVertex3dv(((center+bodycenter)+(axis[i])*1500).ptr());
@@ -224,7 +224,7 @@ void OBB::draw(){
     glEnd();
     glPopMatrix();
 
-
+    glTranslated(center[0], center[1], center[2]);
     glMultMatrixd(Matrix4d(rot).transpose().ptr());
 
 
