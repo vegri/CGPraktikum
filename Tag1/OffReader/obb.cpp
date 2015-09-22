@@ -128,9 +128,15 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
 
     axis.clear();
 
-    axis.push_back(Vector3d(this->R(0,0),this->R(1,0),this->R(2,0)));
-    axis.push_back(Vector3d(this->R(0,1),this->R(1,1),this->R(2,1)));
-    axis.push_back(Vector3d(this->R(0,2),this->R(1,2),this->R(2,2)));
+//    axis.push_back(Vector3d(this->R(0,0),this->R(1,0),this->R(2,0)));
+//    axis.push_back(Vector3d(this->R(0,1),this->R(1,1),this->R(2,1)));
+//    axis.push_back(Vector3d(this->R(0,2),this->R(1,2),this->R(2,2)));
+    //axis.push_back(Vector3d(this->R(0,0),this->R(0,1),this->R(0,2)));
+    //axis.push_back(Vector3d(this->R(1,0),this->R(1,1),this->R(1,2)));
+    //axis.push_back(Vector3d(this->R(2,0),this->R(2,1),this->R(2,2)));
+    axis.push_back(Vector3d(0,0,1));
+    axis.push_back(Vector3d(0,1,0));
+    axis.push_back(Vector3d(1,0,0));
     for (int i = 0; i < 3; ++i) {
         axis[i].normalize();
     }
@@ -187,7 +193,26 @@ void OBB::draw(){
     //Matrix4d RT = R.transpose();
     //glMultMatrixd(RT.ptr());
 
+//    glColor3d(.5,1,0);
+
+//    glBegin(GL_LINES);
+//    for (uint i = 0; i < this->axis.size(); ++i) {
+//        glVertex3dv(Vector3d(0).ptr());
+//        glVertex3dv(((axis[i])*1500).ptr());
+//    }
+//    glEnd();
+
     glMultMatrixd(Matrix4d(rot).transpose().ptr());
+
+//    glColor3d(0,1,1);
+//    glBegin(GL_LINES);
+//    for (uint i = 0; i < this->axis.size(); ++i) {
+//        glVertex3dv(Vector3d(0).ptr());
+//        glVertex3dv(((axis[i])*1500).ptr());
+//    }
+//    glEnd();
+
+
 
     //glColor3d(box_color.x(),box_color.y(),box_color.z());
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
@@ -252,8 +277,8 @@ bool OBB::intersect(Package &A){
 
 bool OBB::intersect(Package &A, OBB &B){
 
-    vecvec3d a,b,v;
-    a.resize(3);b.resize(3);v.resize(3);
+    vecvec3d a,b;
+    a.resize(3);b.resize(3);
 
     for (int i = 0; i < 3; ++i) {
         a[i]=A.rot*A.axis[i];

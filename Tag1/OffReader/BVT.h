@@ -4,7 +4,6 @@
 #include "vecmath.h"
 #include <vector>
 #include <map>
-#include "Sphere.h"
 #include <iostream>
 #include <algorithm>
 #include "obb.h"

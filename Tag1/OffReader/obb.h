@@ -83,6 +83,5 @@ protected:
 
 #include "package.h"
 
-
 #endif // OBB_H
 
