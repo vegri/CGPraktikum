@@ -185,10 +185,7 @@ void OBB::draw(){
     //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glDisable(GL_LIGHTING);
-    if(collision)
-        glColor3d(0.5,0,0);
-    else
-        glColor3d(0,0.5,0);
+
 
     //Matrix4d RT = R.transpose();
     //glMultMatrixd(RT.ptr());
@@ -204,15 +201,18 @@ void OBB::draw(){
 
     glMultMatrixd(Matrix4d(rot).transpose().ptr());
 
-//    glColor3d(0,1,1);
-//    glBegin(GL_LINES);
-//    for (uint i = 0; i < this->axis.size(); ++i) {
-//        glVertex3dv(Vector3d(0).ptr());
-//        glVertex3dv(((axis[i])*1500).ptr());
-//    }
-//    glEnd();
+    glColor3d(0,1,1);
+    glBegin(GL_LINES);
+    for (uint i = 0; i < this->axis.size(); ++i) {
+        glVertex3dv(Vector3d(0).ptr());
+        glVertex3dv(((axis[i])*1500).ptr());
+    }
+    glEnd();
 
-
+    if(collision)
+        glColor3d(0.5,0,0);
+    else
+        glColor3d(0,0.5,0);
 
     //glColor3d(box_color.x(),box_color.y(),box_color.z());
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);

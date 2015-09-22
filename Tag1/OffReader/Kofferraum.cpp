@@ -56,8 +56,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     setCentralWidget(f);
 
     statusBar()->showMessage("Ready",1000);
-    //loadPackage4();
-    //ogl->packageList[0].move(Vector3d(-25,-25,-25));
+    loadPackage4();
+    ogl->packageList[0].move(Vector3d(-25,-25,-25));
     loadPoly("../TestKofferraumIKEA.off");
     //loadPackage2();
 }
