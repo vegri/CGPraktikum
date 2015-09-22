@@ -195,41 +195,35 @@ void BVT::split ()
     }
 
     double cut=allSorted[0][m]+this->box.halflength[m];
-    uint i;
-    for (i = 0; i < allSorted.size(); ++i) {
+    uint i,n=allSorted.size();
+    for (i = 0; i < n; ++i) {
         if(allSorted[i][m]>cut)
             break;
     }
 
-    right_vec.resize(allSorted.size()/2);
-    if(allSorted.size()%2==0)
-        left_vec.resize(allSorted.size()/2);
-    else
-        left_vec.resize(allSorted.size()/2+1);
+    if (i<0.1*n || i>0.9*n)
+        i=n/2;
 
+    right_vec.resize(i);
+    left_vec.resize(n-i);
 
     right_idx.resize(right_vec.size());
     left_idx.resize(left_vec.size());
     right_points.resize(right_vec.size()*3);
     left_points.resize(left_vec.size()*3);
 
-
-    for(uint i=0;i<allSorted.size()/2;i++){
-        right_vec[i]=q*allSorted[i];
-        left_vec[i]=q*allSorted[allSorted.size()/2+i];
-        right_idx[i]=midTriangMap[allSorted[i]];
-        left_idx[i]=midTriangMap[allSorted[allSorted.size()/2+i]];
-        for (uint j = 0; j < 3; ++j) {
-            right_points[3*i+j]=(*points)[right_idx[i][j]];
-            left_points[3*i+j]=(*points)[left_idx[i][j]];
+    for(uint j=0;j<i;j++){
+        right_vec[j]=q*allSorted[j];
+        right_idx[j]=midTriangMap[allSorted[j]];
+        for (uint k = 0; k < 3; ++k) {
+            right_points[3*j+k]=(*points)[right_idx[j][k]];
         }
     }
-    uint t=left_vec.size()-1;
-    if(allSorted.size()%2==1){
-        left_vec[t]=q*allSorted[allSorted.size()-1];
-        left_idx[t]=midTriangMap[allSorted[allSorted.size()-1]];
-        for (uint j = 0; j < 3; ++j) {
-            left_points[3*t+j]=(*points)[left_idx[t][j]];
+    for(uint j=0;j<n-i;j++){
+        left_vec[j]=q*allSorted[i+j];
+        left_idx[j]=midTriangMap[allSorted[i+j]];
+        for (uint k = 0; k < 3; ++k) {
+            left_points[3*j+k]=(*points)[left_idx[j][k]];
         }
     }
 
