@@ -29,7 +29,7 @@ class BVT
 		/// mass center of point set
         Vector3d mass_center;
         Vector3d center;
-        Quat4d rot;
+
 
 		/// inetria matrix of point set
         Matrix4d inertia;
@@ -42,6 +42,8 @@ class BVT
 
         void init(bool init_midtriange);
 	public:
+
+        Quat4d rot;
 
 		/// create new node
         BVT (const vecvecuint &idx_p, const vecvec3d *points_p, uint depth);

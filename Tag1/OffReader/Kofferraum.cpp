@@ -199,6 +199,11 @@ void CGMainWindow::loadPoly(QString filename){
     uint j=5;
     act->createTree(j);
 
+    //DEBUG
+    ogl->q_old=Quat4d(3.141/4,Vector3d(0,0,1))*Quat4d(3.141/2,Vector3d(1,0,0));
+    ogl->q_now=ogl->q_old;
+    //END DEBUG
+
     ogl->updateGL();
     statusBar()->showMessage ("Loading polyhedron done.",3000);
 }
@@ -212,7 +217,7 @@ CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent),
 
 void CGView::initializeGL() {
     qglClearColor(Qt::white);
-    zoom = 1.0;
+    //zoom = 1.0;
     center = 0.0;
 
     glEnable(GL_BLEND);
