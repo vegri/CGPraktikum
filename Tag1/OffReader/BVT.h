@@ -82,6 +82,7 @@ class BVT
 		/// anzahl der Punkte
         int nr_of_points () {return points->size();}
 
+        bool intersect(Package &S);
         bool intersect(OBB &S);
         bool intersect(BVT &S);
 

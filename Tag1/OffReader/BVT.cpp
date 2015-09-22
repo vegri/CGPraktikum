@@ -247,6 +247,21 @@ void BVT::drawPoints(Vector3d color)
     glEnd();
 }
 
+bool BVT::intersect(Package &S)
+{
+    if (OBB::intersect(S,this->box)){
+        if(NULL!=this->left){
+            if (this->left->intersect(S))
+                return true;
+        }
+        if(NULL!=this->right){
+            if (this->right->intersect(S))
+                return true;
+        }
+    }
+    return false;
+}
+
 bool BVT::intersect(OBB &S)
 {
     if (S.intersect(this->box)){

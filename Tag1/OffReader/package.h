@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <limits.h>
+#include "obb.h"
 
 #if _MSC_VER
     #include <gl/glu.h>
@@ -62,6 +63,8 @@ public:
     double zoom_val=1.0;
 
     bool intersect(Package &B);
+    bool intersect(OBB &B);
+    friend bool OBB::intersect(Package &A,OBB &B);
 private:
     void init();
     double height, width, depth;

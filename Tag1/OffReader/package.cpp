@@ -655,5 +655,9 @@ bool Package::intersect(Package &B){
         }
     }
     return true;
+}
 
+bool Package::intersect(OBB &B)
+{
+    OBB::intersect(*this,B);
 }

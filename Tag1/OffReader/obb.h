@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <limits>
 
+class Package;
+
 #if _MSC_VER
     #include <gl/glu.h>
 #elif __APPLE__
@@ -23,12 +25,13 @@ class OBB{
         OBB();
         OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p);
 
+        static bool intersect(Package &A,OBB &B);
+        bool intersect(Package &A);
         //OBB( OBB &o);
         void draw();
         void caluculateC(const vecvec3d *p, const vecvecuint ind);
         void caluculateHalfL();
         void setCorner(const vecvec3d *p, const vecvecuint ind);
-        bool intersect(OBB &B);
         void splitOBB(const OBB& A, OBB& A1, OBB& A2);
         static bool sortFkt0(const Vector3d &a,const Vector3d &b);
         static bool sortFkt1(const Vector3d &a,const Vector3d &b);
@@ -36,6 +39,8 @@ class OBB{
         bool intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc);
         void setBodyCenter(Vector3d center_b);
         Matrix4d dyadicProdukt(Vector3d v1,Vector3d v2);
+
+        bool intersect(OBB &B);
 
         //variablen
         std::vector<Vector3d> points;
@@ -50,7 +55,6 @@ class OBB{
         Matrix4d R;
         Matrix4d C;
         double min_x,min_y,min_z,max_x,max_y,max_z;
-
 public:
     void setBoxColor(Vector3d color_p);
     void setCollisionColor(Vector3d color_p);
@@ -62,13 +66,15 @@ public:
     void move(Vector3d motion);
     void rotate(Quat4d rotation);
 
-    Quat4d q_now;
+    Quat4d rot;
 
 protected:
     Vector3d min, max, center, bodycenter;
     bool selected;
     Vector3d box_color,collision_color,selected_color,selected_collision_color;
 };
+
+#include "package.h"
 
 
 #endif // OBB_H

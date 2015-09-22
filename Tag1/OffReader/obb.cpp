@@ -18,7 +18,7 @@ OBB::OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
     }
     center=center/(ind.size()*3);
 
-    this->q_now=Quat4d(0,0,0,1);
+    this->rot=Quat4d(0,0,0,1);
 
     bodycenter=0;
     setCorner(p,ind);
@@ -46,43 +46,15 @@ bool OBB::intersectAxis(Vector3d &v,vecvec3d &a, vecvec3d &b,Vector3d &alpha,Vec
     return std::abs(v.dot(dc))>res;
 }
 
-bool OBB::intersect(OBB &B){
 
-    vecvec3d a,b,v;
-    a.resize(3);b.resize(3);v.resize(3);
 
-    for (int i = 0; i < 3; ++i) {
-        a[i]=q_now*axis[i];
-        b[i]=B.q_now*B.axis[i];
-    }
-    Vector3d alpha=halflength;
-    Vector3d beta=B.halflength;
-    Vector3d dc=B.center-center;
 
-    for(int i=0;i<3;i++){
-        if(this->intersectAxis(a[i],a,b,alpha,beta,dc))
-            return false;
-        if(this->intersectAxis(b[i],a,b,alpha,beta,dc))
-            return false;
-    }
-    for(int i=0;i<3;i++){
-        for(int k=0;k<3;k++){
-            Vector3d co=0;
-            co.cross(a[i],b[k]);
-            co.normalize();
-            if(this->intersectAxis(co,a,b,alpha,beta,dc))
-                return false;
-        }
-    }
-    return true;
-
-}
 
 void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //double min_x,min_y,min_z,max_x,max_y,max_z;
-    //caluculateC(p,ind);
+    caluculateC(p,ind);
 
-    C=Matrix4d();
+    Matrix4d C=Matrix4d();
     Vector3d r;
 
     for(uint i=0;i<ind.size()*3;i++) {
@@ -105,12 +77,19 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     C(3,3) = 1.0;
 
     //berechne Eigenwerte und Eigenvektoren
-    int nrot;
-    C.jacobi(eigenvaluesC,R,nrot);
+    //int nrot;
+    //C.jacobi(eigenvaluesC,R,nrot);
 
-    Matrix4d m=Matrix4d();//.transpose();
+    for (uint i = 0; i < 3; ++i) {
+        for (uint j = 0; j < 3; ++j) {
+            std::cout << C(i,j)-this->C(i,j) << " ; ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+
+    Matrix4d m=Matrix4d();
     m=R.transpose();
-    //m=m.identity();
 
     Vector3d loc_p;
     max_x=-1e300;
@@ -132,69 +111,10 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     }
 
 
-
-//    int row=0;
-//    if( halflength[1]>halflength[0]&& halflength[1]>halflength[2])
-//        row=1;
-//    if( halflength[2]>halflength[0]&& halflength[2]>halflength[1])
-//        row=2;
-/*
-
-
-    //Berechne Covarianzmatrix
-    for(i=0;i<n;i++) {
-      r = p[i] - center;
-      M(0,0) += r[1]*r[1]+r[2]*r[2];
-      M(1,1) += r[0]*r[0]+r[2]*r[2];
-      M(2,2) += r[0]*r[0]+r[1]*r[1];
-      M(0,1) -= r[0]*r[1];
-      M(0,2) -= r[0]*r[2];
-      M(1,2) -= r[1]*r[2];
-    }
-
-    M(1,0) = M(0,1);  //nutze Symmetrie der Covarianzmatrix
-    M(2,0) = M(0,2);
-    M(2,1) = M(1,2);
-
-    M(0,3) = M(3,0) = 0.0;
-    M(1,3) = M(3,1) = 0.0;
-    M(2,3) = M(3,2) = 0.0;
-    M(3,3) = 1.0;
-
-    //berechne Eigenwerte und Eigenvektoren
-    M.jacobi(h,R,nrot);
-
-    Matrix4d RT = R.transpose();
-    Vector3d min = Vector3d(MY_MAX,MY_MAX,MY_MAX);
-    Vector3d max = Vector3d(MY_MIN,MY_MIN,MY_MIN);
-    for(i=0;i<n;i++) {
-       r = RT * p[i]; //transformiere Punkt in Koordinaten der OBB
-       for(j=0;j<3;j++) { //suche min und max in jeder Richtung
-         if (r[j] < min[j]) min[j] = r[j];
-         if (r[j] > max[j]) max[j] = r[j];
-       }
-    }
-
-    center = (max+min)*0.5;
-    halflength = (max-min)*0.5;
-
-    center = R * center;
-
-
-*/
-
-//    this->longestAxis=Vector3d(R(row,0),R(row,1),R(row,2));
-//    this->longestAxis.normalize();
-
-
-
     halflength=Vector3d(std::abs((max_x-min_x)/2.),std::abs((max_y-min_y)/2.),std::abs((max_z-min_z)/2.0));
     Vector3d boxCenter=Vector3d(max_x+min_x,max_y+min_y,max_z+min_z);
     boxCenter/=2;
     this->setBodyCenter(boxCenter);
-
-    //center=boxCenter;
-    //center = R * center;
 
     corner.clear();
     corner.push_back(Vector3d (min_x,max_y,max_z));
@@ -214,26 +134,28 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     for (int i = 0; i < 3; ++i) {
         axis[i].normalize();
     }
-    for (uint i = 0; i < corner.size(); ++i) {
-        //this->corner[i]=R*this->corner[i];
-    }
 
-    this->q_now.set(m);
+    this->rot.set(m);
 }
 
 
 void OBB::caluculateC(const vecvec3d *p, const vecvecuint ind){
     C=Matrix4d(0.0);
+    double vt;
     for(uint i=0;i<ind.size();i++){
         for(uint j=0;j<3;j++){
-            C+=dyadicProdukt((*p)[ind[i][j]],(*p)[ind[i][j]]);
+            C+=dyadicProdukt((*p)[ind[i][j]]-center,(*p)[ind[i][j]]-center)*(-1);
+            vt=((*p)[ind[i][j]]-center)*((*p)[ind[i][j]]-center);
+            C(0,0)+=vt; C(1,1)+=vt; C(2,2)+=vt;
         }
     }
+
     int rot=0;
     C.jacobi(eigenvaluesC,R,rot);
 }
 
 Matrix4d OBB::dyadicProdukt(Vector3d v1, Vector3d v2){
+
     Matrix4d result=Matrix4d(v1.x()*v2.x(),v1.x()*v2.y(),v1.x()*v2.z(),0.,
                              v1.y()*v2.x(),v1.y()*v2.y(),v1.y()*v2.z(),0.,
                              v1.z()*v2.x(),v1.z()*v2.y(),v1.z()*v2.z(),0.,
@@ -253,17 +175,7 @@ void OBB::draw(){
     }
     glEnd();
 
-//    glBegin(GL_LINES);
-//    glVertex3d(0,0,0);
-//    glVertex3dv((bodycenter+center).ptr());
-//    glVertex3d(0,0,0);
-//    glVertex3dv((bodycenter).ptr());
-//    glVertex3d(0,0,0);
-//    glVertex3dv((center).ptr());
-//    glEnd();
-
     glTranslated(center[0], center[1], center[2]);
-    //glTranslated(-bodycenter[0], -bodycenter[1], -bodycenter[2]);
     //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glDisable(GL_LIGHTING);
@@ -285,4 +197,71 @@ void OBB::draw(){
     //glEnable(GL_LIGHTING);
     glPopMatrix();
 
+}
+
+bool OBB::intersect(OBB &B){
+
+    vecvec3d a,b,v;
+
+    a.resize(3);b.resize(3);v.resize(3);
+
+    for (int i = 0; i < 3; ++i) {
+        a[i]=rot*axis[i];
+        b[i]=B.rot*B.axis[i];
+    }
+    Vector3d alpha=halflength;
+    Vector3d beta=B.halflength;
+    Vector3d dc=B.center-center;
+
+    for(int i=0;i<3;i++){
+        if(this->intersectAxis(a[i],a,b,alpha,beta,dc))
+            return false;
+        if(this->intersectAxis(b[i],a,b,alpha,beta,dc))
+            return false;
+    }
+    for(int i=0;i<3;i++){
+        for(int k=0;k<3;k++){
+            Vector3d co=0;
+            co.cross(a[i],b[k]);
+            co.normalize();
+            if(this->intersectAxis(co,a,b,alpha,beta,dc))
+                return false;
+        }
+    }
+    return true;
+}
+
+bool OBB::intersect(Package &A){
+    return OBB::intersect(A, *this);
+}
+
+bool OBB::intersect(Package &A, OBB &B){
+
+    vecvec3d a,b,v;
+    a.resize(3);b.resize(3);v.resize(3);
+
+    for (int i = 0; i < 3; ++i) {
+        a[i]=A.rot*A.axis[i];
+        b[i]=B.rot*B.axis[i];
+    }
+    Vector3d alpha=A.halflength*A.zoom_val;
+    Vector3d beta=B.halflength;
+    Vector3d dc=B.center-A.center;
+
+    for(int i=0;i<3;i++){
+        if(A.intersectAxis(a[i],a,b,alpha,beta,dc))
+            return false;
+        if(A.intersectAxis(b[i],a,b,alpha,beta,dc))
+            return false;
+    }
+    for(int i=0;i<3;i++){
+        for(int k=0;k<3;k++){
+            Vector3d co=0;
+            co.cross(a[i],b[k]);
+            co.normalize();
+            if(A.intersectAxis(co,a,b,alpha,beta,dc))
+                return false;
+        }
+    }
+    return true;
 }
