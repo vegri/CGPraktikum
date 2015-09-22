@@ -151,9 +151,10 @@ void OBB::caluculateC(const vecvec3d *p, const vecvecuint ind){
     double vt;
     for(uint i=0;i<ind.size();i++){
         for(uint j=0;j<3;j++){
-            C+=dyadicProdukt((*p)[ind[i][j]]-center,(*p)[ind[i][j]]-center)*(-1);
-            vt=((*p)[ind[i][j]]-center)*((*p)[ind[i][j]]-center);
-            C(0,0)+=vt; C(1,1)+=vt; C(2,2)+=vt;
+            //C=C+dyadicProdukt((*p)[ind[i][j]]-center,(*p)[ind[i][j]]-center)*(-1);
+            //vt=((*p)[ind[i][j]]-center)*((*p)[ind[i][j]]-center);
+            //C(0,0)+=vt; C(1,1)+=vt; C(2,2)+=vt;
+            C=C+dyadicProdukt((*p)[ind[i][j]],(*p)[ind[i][j]]);
         }
     }
 
