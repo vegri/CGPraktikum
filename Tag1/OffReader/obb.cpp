@@ -90,6 +90,7 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
 
     Matrix4d m=Matrix4d();
     m=R.transpose();
+    R=R.identity();
 
     Vector3d loc_p;
     max_x=-1e300;
@@ -98,9 +99,9 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     min_x= 1e300;
     min_y= 1e300;
     min_z= 1e300;
-    for(unsigned int i=0;i<ind.size();i++){
+    for(uint i=0;i<ind.size();i++){
         for(uint j=0;j<ind[i].size();j++){
-            loc_p=R*(p->at(ind[i][j])-center);
+            loc_p=R*(p->at(ind[i][j]));
             debug_points.push_back(loc_p);
             max_x=std::max(max_x,loc_p.x());
             max_y=std::max(max_y,loc_p.y());
@@ -113,9 +114,9 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
 
 
     halflength=Vector3d(std::abs((max_x-min_x)/2.),std::abs((max_y-min_y)/2.),std::abs((max_z-min_z)/2.0));
-    Vector3d boxCenter=Vector3d(max_x+min_x,max_y+min_y,max_z+min_z);
-    boxCenter/=2;
-    this->setBodyCenter(boxCenter);
+    Vector3d boxCenter=Vector3d(max_x+min_x,max_y+min_y,max_z+min_z)*0.5;
+    bodycenter=boxCenter;
+    //center=boxCenter;
 
     corner.clear();
     corner.push_back(Vector3d (min_x,max_y,max_z));
@@ -180,13 +181,14 @@ void OBB::draw(){
     glColor3d(0.5,0.5,0);
     for(uint i =0; i < points.size(); ++i)
     {
-        glVertex3dv(points[i].ptr());
+        //glVertex3dv(points[i].ptr());
     }
     glColor3d(0.5,0,1);
-    glVertex3dv(center.ptr());
+    //glVertex3dv(center.ptr());
+    glVertex3dv(bodycenter.ptr());
     glEnd();
 
-    glTranslated(center[0], center[1], center[2]);
+    //glTranslated(center[0], center[1], center[2]);
     //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glDisable(GL_LIGHTING);
@@ -204,7 +206,9 @@ void OBB::draw(){
 //    }
 //    glEnd();
 
+
     glMultMatrixd(Matrix4d(rot).transpose().ptr());
+
 
     glBegin(GL_POINTS);
     glColor3d(0.5,0,0);
@@ -214,13 +218,14 @@ void OBB::draw(){
     }
     glEnd();
 
+//    glTranslated(center[0], center[1], center[2]);
 //    glColor3d(0,1,1);
 //    glBegin(GL_LINES);
 //    for (uint i = 0; i < this->axis.size(); ++i) {
-//        glVertex3dv(Vector3d(0).ptr());
-//        glVertex3dv(((axis[i])*1500).ptr());
+//        glVertex3dv(center);
+//        glVertex3dv(center+((axis[i])*1500).ptr());
 //    }
-//   glEnd();
+//    glEnd();
 
     if(collision)
         glColor3d(0.5,0,0);
@@ -236,8 +241,6 @@ void OBB::draw(){
         glVertex3dv(corner[0].ptr());
         glVertex3dv(corner[1].ptr());
     glEnd();
-
-    //glEnable(GL_LIGHTING);
     glPopMatrix();
 
 }
