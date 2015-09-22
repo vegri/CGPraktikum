@@ -657,13 +657,22 @@ void CGView::keyPressEvent(QKeyEvent *e) {
                   << this->packageList[picked].getCenter()[2] << "(center)" << std::endl;
         break;
     case Qt::Key_R:{
-        vecvec3d *points=new vecvec3d(this->packageList[picked].getCorners());
-        vecvecuint idx(3);
-        for (uint i = 0; i < 9; ++i) {
-            if(i%3==0)
-                idx[i/3]=vecuint(3);
-            idx[i/3][i%3]=i%8;
+        uint n=this->packageList.size();
+        vecvec3d *points=new vecvec3d(8*n);
+        vecvecuint idx(n*3);
+        for (uint i = 0; i < n; ++i) {
+            vecvec3d tmp=this->packageList[i].getCorners();
+            for (uint j = 0; j < 8; ++j) {
+                (*points)[8*i+j]=tmp[j];
+            }
+            for (uint j = 0; j < 9; ++j) {
+                if(j%3==0)
+                    idx[i*3+j/3]=vecuint(3);
+                idx[i*3+j/3][j%3]=j%8;
+            }
         }
+
+
         testObb=OBB(points,idx,Vector3d(0.5,0.5,0));
         drawObb=true;
         break;
