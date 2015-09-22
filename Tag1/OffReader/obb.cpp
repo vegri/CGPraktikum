@@ -54,27 +54,27 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     //double min_x,min_y,min_z,max_x,max_y,max_z;
     caluculateC(p,ind);
 
-    Matrix4d C=Matrix4d();
-    Vector3d r;
+//    Matrix4d C=Matrix4d();
+//    Vector3d r;
 
-    for(uint i=0;i<ind.size()*3;i++) {
-      r = (*p)[ind[i/3][i%3]] - center;
-      C(0,0) += r[1]*r[1]+r[2]*r[2];
-      C(1,1) += r[0]*r[0]+r[2]*r[2];
-      C(2,2) += r[0]*r[0]+r[1]*r[1];
-      C(0,1) -= r[0]*r[1];
-      C(0,2) -= r[0]*r[2];
-      C(1,2) -= r[1]*r[2];
-    }
+//    for(uint i=0;i<ind.size()*3;i++) {
+//      r = (*p)[ind[i/3][i%3]] - center;
+//      C(0,0) += r[1]*r[1]+r[2]*r[2];
+//      C(1,1) += r[0]*r[0]+r[2]*r[2];
+//      C(2,2) += r[0]*r[0]+r[1]*r[1];
+//      C(0,1) -= r[0]*r[1];
+//      C(0,2) -= r[0]*r[2];
+//      C(1,2) -= r[1]*r[2];
+//    }
 
-    C(1,0) = C(0,1);  //nutze Symmetrie der Covarianzmatrix
-    C(2,0) = C(0,2);
-    C(2,1) = C(1,2);
+//    C(1,0) = C(0,1);  //nutze Symmetrie der Covarianzmatrix
+//    C(2,0) = C(0,2);
+//    C(2,1) = C(1,2);
 
-    C(0,3) = C(3,0) = 0.0;
-    C(1,3) = C(3,1) = 0.0;
-    C(2,3) = C(3,2) = 0.0;
-    C(3,3) = 1.0;
+//    C(0,3) = C(3,0) = 0.0;
+//    C(1,3) = C(3,1) = 0.0;
+//    C(2,3) = C(3,2) = 0.0;
+//    C(3,3) = 1.0;
 
     //berechne Eigenwerte und Eigenvektoren
     //int nrot;
@@ -101,6 +101,7 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
     for(unsigned int i=0;i<ind.size();i++){
         for(uint j=0;j<ind[i].size();j++){
             loc_p=R*(p->at(ind[i][j])-center);
+            debug_points.push_back(loc_p);
             max_x=std::max(max_x,loc_p.x());
             max_y=std::max(max_y,loc_p.y());
             max_z=std::max(max_z,loc_p.z());
@@ -175,10 +176,13 @@ void OBB::draw(){
     glPointSize(5);
     glColor3d(1,0,1);
     glBegin(GL_POINTS);
+    glColor3d(0.5,0.5,0);
     for(uint i =0; i < points.size(); ++i)
     {
         glVertex3dv(points[i].ptr());
     }
+    glColor3d(0.5,0,1);
+    glVertex3dv(center.ptr());
     glEnd();
 
     glTranslated(center[0], center[1], center[2]);
@@ -201,13 +205,21 @@ void OBB::draw(){
 
     glMultMatrixd(Matrix4d(rot).transpose().ptr());
 
+    glBegin(GL_POINTS);
+    glColor3d(0.5,0,0);
+    for(uint i =0; i < debug_points.size(); ++i)
+    {
+        glVertex3dv(debug_points[i].ptr());
+    }
+    glEnd();
+
 //    glColor3d(0,1,1);
 //    glBegin(GL_LINES);
 //    for (uint i = 0; i < this->axis.size(); ++i) {
 //        glVertex3dv(Vector3d(0).ptr());
 //        glVertex3dv(((axis[i])*1500).ptr());
 //    }
-//    glEnd();
+//   glEnd();
 
     if(collision)
         glColor3d(0.5,0,0);

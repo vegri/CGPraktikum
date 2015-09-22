@@ -73,7 +73,7 @@ public:
     void resetCollision();
 
     Quat4d rot;
-
+    vecvec3d debug_points;
 protected:
     Vector3d min, max, center, bodycenter;
     bool selected,collision;
