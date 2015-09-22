@@ -135,7 +135,7 @@ void OBB::setCorner(const vecvec3d *p, const vecvecuint ind){
         axis[i].normalize();
     }
 
-    this->rot.set(m);
+    this->rot.set(R);
 }
 
 
@@ -184,8 +184,10 @@ void OBB::draw(){
     else
         glColor3d(0,0.5,0);
 
-    Matrix4d RT = R.transpose();
-    glMultMatrixd(RT.ptr());
+    //Matrix4d RT = R.transpose();
+    //glMultMatrixd(RT.ptr());
+
+    glMultMatrixd(Matrix4d(rot).transpose().ptr());
 
     //glColor3d(box_color.x(),box_color.y(),box_color.z());
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);

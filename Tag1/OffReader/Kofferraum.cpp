@@ -56,8 +56,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     setCentralWidget(f);
 
     statusBar()->showMessage("Ready",1000);
-    loadPackage4();
-    ogl->packageList[0].move(Vector3d(-25,-25,-25));
+    //loadPackage4();
+    //ogl->packageList[0].move(Vector3d(-25,-25,-25));
     loadPoly("../TestKofferraumIKEA.off");
     //loadPackage2();
 }
@@ -195,7 +195,6 @@ void CGMainWindow::loadPoly(QString filename){
     ogl->bootList.push_back(new BVT(idxs,coords,0));
 
     BVT * act=ogl->bootList.at(ogl->bootList.size()-1);
-    act->drawBoxes=false;
     act->drawModel=true;
     uint j=5;
     act->createTree(j);
@@ -245,6 +244,9 @@ void CGView::paintGL() {
     glMultMatrixd(R.transpose().ptr());
     glScaled(zoom, zoom, zoom);
     glTranslated(-center[0],-center[1],-center[2]);
+    for (uint j = 0; j < this->bootList.size(); ++j) {
+        this->bootList[j]->resetCollision();
+    }
     for (uint i = 0; i < this->packageList.size(); ++i) {
         this->packageList[i].resetCollision();
         for (uint j = 0; j < this->packageList.size(); ++j){
@@ -253,7 +255,6 @@ void CGView::paintGL() {
             }
         }
         for (uint j = 0; j < this->bootList.size(); ++j) {
-            this->bootList[j]->resetCollision();
             this->bootList[j]->intersect(this->packageList[i]);
         }
     }
