@@ -57,8 +57,11 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     ogl->zoom=0.002;
     statusBar()->showMessage("Ready",1000);
     loadPackage4();
-    //ogl->packageList[0].move(Vector3d(-25,-25,-25));
-    loadPoly("../TestKofferraumIKEA.off");
+    ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
+    ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
+    //loadPoly("../TestKofferraumIKEA.off");
+    loadPoly("../../num_15_tris.off");
+
     //loadPackage2();
 }
 
@@ -363,7 +366,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             this->packageList[picked].setMoveDir(false);
         }
 
-        if(loc_picked>-1 && loc_picked<this->packageList.size()){
+        if(loc_picked!=-1 && loc_picked<this->packageList.size()){
             if(fixedMoveDir){
                 this->packageList[loc_picked].setMoveDir(true);
                 this->hit=Vector3d(0);
@@ -626,9 +629,9 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         std::cout << this->picked << "(picked)" << std::endl;
         break;
     case Qt::Key_G:
-        std::cout << this->packageList[picked].getRot()[0] << " " << this->packageList[picked].getRot()[1] << " "
-                  << this->packageList[picked].getRot()[2] << " " << this->packageList[picked].getRot()[3] << "(rot)" << std::endl;
-        std::cout << this->packageList[picked].getCenter()[0] << " " << this->packageList[picked].getCenter()[1] << " "
+        std::cout << this->packageList[picked].getRot()[0] << "," << this->packageList[picked].getRot()[1] << ","
+                  << this->packageList[picked].getRot()[2] << "," << this->packageList[picked].getRot()[3] << "(rot)" << std::endl;
+        std::cout << this->packageList[picked].getCenter()[0] << "," << this->packageList[picked].getCenter()[1] << ","
                   << this->packageList[picked].getCenter()[2] << "(center)" << std::endl;
         break;
     case Qt::Key_R:{
@@ -711,7 +714,7 @@ bool CGView::resolveCollision(Package &box, BVT &off){
         move_dir=move_dir/potDir.size();
         if(move_dir.length()<box.getDiameter()+off.getBox().getDiameter()){
             if(move_dir.lengthSquared()<1e-10)
-                move_dir=move_dir.normalized()*1e-4;
+                move_dir=move_dir.normalized()*std::abs(box .getCenter().minComp())*1e-6;
             box.move(move_dir);
         }
 

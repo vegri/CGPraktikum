@@ -64,7 +64,7 @@ void BVT::draw(uint depth)
             this->box.draw();
             this->box.resetCollision();
             glPushMatrix();
-            glTranslated(center[0],center[1],center[2]);
+            //glTranslated(center[0],center[1],center[2]);
             glMultMatrixd(Matrix4d(rot).transpose().ptr());
             glColor3dv(Vector3d(1,0,0).ptr());
             glBegin(GL_POINTS);
@@ -84,7 +84,7 @@ void BVT::draw(uint depth)
 
     if(drawModel && this->actualDepth==0){
         glPushMatrix();
-        glTranslated(center[0],center[1],center[2]);
+        //glTranslated(center[0],center[1],center[2]);
         glMultMatrixd(Matrix4d(rot).transpose().ptr());
         glColor4dv(model_color.ptr());
         glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
@@ -105,7 +105,7 @@ void BVT::draw(uint depth)
     }
     if(drawCollisions && intersection && this->penetrationCollisions.size()>0){
         glPushMatrix();
-        glTranslated(center[0],center[1],center[2]);
+        //glTranslated(center[0],center[1],center[2]);
         glMultMatrixd(Matrix4d(rot).transpose().ptr());
         glColor4dv(model_color_coll.ptr());
         glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
