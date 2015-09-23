@@ -302,8 +302,6 @@ bool BVT::intersect(Package &S)
                 result=true;
             }
         }
-        if(result)
-            return true;
         if(NULL==this->right && NULL==this->left){
             vecvec3d tri(3);
             for (uint j = 0; j < idx.size(); ++j) {
@@ -315,8 +313,10 @@ bool BVT::intersect(Package &S)
                     this->penetrationCollisions.push_back(res);
                     this->collTris.push_back(j);
                 }
+                result=true;
             }
         }
+        return result;
 
 
     }
