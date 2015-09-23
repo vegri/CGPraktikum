@@ -58,7 +58,7 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     statusBar()->showMessage("Ready",1000);
     loadPackage4();
     //ogl->packageList[0].move(Vector3d(-25,-25,-25));
-    //loadPoly("../TestKofferraumIKEA.off");
+    loadPoly("../TestKofferraumIKEA.off");
     //loadPackage2();
 }
 
@@ -591,35 +591,6 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_Down:       move(0,-0.05,0); break;
     case Qt::Key_NumberSign: move(0,0, 0.05); break;
     case Qt::Key_Plus:       move(0,0,-0.05); break;
-    case Qt::Key_Space:{
-        uint collisionResolved=true;
-        srand(time(NULL));
-        uint k=0;
-        while(collisionResolved!=0 && k<5000){
-            collisionResolved=0;
-            uint n=0;
-
-            k++;
-            for (uint i = 0; i < this->packageList.size(); ++i) {
-                n=((uint) rand())%this->packageList.size();
-                for (uint j = 0; j < this->packageList.size(); ++j){
-                    if(j!=n)
-                        this->packageList[n].resolveCollision(this->packageList[j]);
-                }
-            }
-
-            for (uint i = 0; i < this->packageList.size(); ++i) {
-                for (uint j = i+1; j < this->packageList.size(); ++j){
-                    collisionResolved+=this->packageList[i].resolveCollision(this->packageList[j]);
-                }
-            }
-            std::cout << collisionResolved <<std::endl;
-            updateGL();
-            updateGL();
-        }
-
-    }
-        break;
     case Qt::Key_X:
         if(picked<this->packageList.size())
             this->packageList[this->picked].pick(false);
@@ -671,39 +642,79 @@ void CGView::keyPressEvent(QKeyEvent *e) {
                 idx[i*3+j/3][j%3]=8*i+j%8;
             }
         }
-
-
         testObb=OBB(points,idx,Vector3d(0.5,0.5,0));
         drawObb=true;
         break;
     }
+    case Qt::Key_Space:{
+        uint collisionResolved=true;
+        srand(time(NULL));
+        uint k=0;
+        while(collisionResolved!=0 && k<50){
+            collisionResolved=0;
+            uint n=0;
+
+            k++;
+            for (uint i = 0; i < this->packageList.size(); ++i) {
+                for (uint j = 0; j < this->bootList.size(); ++j) {
+                    collisionResolved+=resolveCollision(this->packageList[i],(*this->bootList[j]));
+                }
+            }
+
+            for (uint i = 0; i < this->packageList.size(); ++i) {
+                n=((uint) rand())%this->packageList.size();
+                for (uint j = 0; j < this->packageList.size(); ++j){
+                    if(j!=n)
+                        this->packageList[n].resolveCollision(this->packageList[j]);
+                }
+            }
+
+            for (uint i = 0; i < this->packageList.size(); ++i) {
+                for (uint j = i+1; j < this->packageList.size(); ++j){
+                    collisionResolved+=this->packageList[i].resolveCollision(this->packageList[j]);
+                }
+            }
+            std::cout << collisionResolved <<std::endl;
+            updateGL();
+            updateGL();
+        }
+
+    }
+        break;
     default:
         break;
     }
     updateGL();
     updateGL();
 }
-bool CGView::resolveCollision(Package &B, BVT Off){
+bool CGView::resolveCollision(Package &box, BVT &off){
     this->collDir=Vector3d(1,0,0)*1e300;
 
-    srand(time(NULL));
-    //Vector3d epsilon=Vector3d(random()*ULONG_MAX,random()*ULONG_MAX,random()*ULONG_MAX).normalized()*0.0001*B.getDiameter();
-    //B.center+=epsilon;
-    bool intersectionOccured=Off.intersect(B);
-//    if(intersectionOccured){
-//        if((this->center-B.center-collDir).lengthSquared()<(this->center-B.center).lengthSquared())
-//            collDir=-collDir;
-//        this->center-=collDir*1.02/2;
-//        B.center+=collDir*1.02/2;
-//        if(collDir.length()<1e-10){
-//            collDir.normalize();
-//            this->center-=collDir*1e-10;
-//            B.center+=collDir*1e-10;
-//        }
-//    }
-//    Off.collDir=0;
-//    B.collDir=0;
-    return intersectionOccured;
+    bool coll_occ=off.intersect(box);;
+    uint mincoll,min_idx,act,j=0;
+    vecvec3d potDir;
+
+    while(coll_occ && j<3){
+        ++j;
+        mincoll=-1;
+        off.getIntersectDirs(potDir);
+        for (uint i = 0; i < potDir.size(); ++i) {
+            box.move(potDir[i]);
+            off.intersect(box);
+            box.move(-potDir[i]);
+            act=off.getIntersectNums();
+            if(mincoll>act){
+                mincoll = act;
+                min_idx=i;
+            }
+            off.resetCollision();
+        }
+        if(mincoll!=-1){
+            box.move(potDir[min_idx]);
+        }
+        coll_occ=off.intersect(box);
+    }
+    return coll_occ;
 }
 
 int main (int argc, char **argv) {

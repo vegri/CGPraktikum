@@ -87,7 +87,7 @@ void BVT::draw(uint depth)
         glTranslated(center[0],center[1],center[2]);
         glMultMatrixd(Matrix4d(rot).transpose().ptr());
         glColor4dv(model_color.ptr());
-        glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
         glDisable (GL_CULL_FACE);
         glBegin(GL_TRIANGLES);
         for(uint i =0; i < idx.size(); ++i)
@@ -379,6 +379,31 @@ void BVT::resetCollision()
         this->left->resetCollision();
     if(this->right!=0x0)
         this->right->resetCollision();
+}
+
+void BVT::getIntersectDirs(vecvec3d &result)
+{
+    if(this->left==NULL && this->right==NULL){
+        uint n=result.size();
+        result.resize(result.size()+this->penetrationCollisions.size());
+        for(uint i=0;i<n;++i)
+            result[n+i]=this->penetrationCollisions[i];
+    } else {
+        if(this->left!=NULL)
+            this->left->getIntersectDirs(result);
+        if(this->right!=NULL)
+        this->right->getIntersectDirs(result);
+    }
+}
+
+uint BVT::getIntersectNums()
+{
+    if(this->left==NULL && this->right==NULL){
+        return this->penetrationCollisions.size();
+    } else {
+        return this->left->getIntersectNums()+
+               this->right->getIntersectNums();
+    }
 }
 
 int BVT::createTree(const uint minPoints)

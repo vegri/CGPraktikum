@@ -694,6 +694,7 @@ Vector3d Package::penetration(const vecvec3d T) {
             n[4+3*i+j] = n[i] % (T[(j+1)%3]-T[j]);
 
     for(int i=0;i<13;i++) {
+        n[i].normalize();
         dmin = dmax = n[i]*(T[0]-c);
         for(int j=1;j<3;j++) {
             d = n[i]*(T[j]-c);

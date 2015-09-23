@@ -90,9 +90,9 @@ class BVT
         bool intersect(OBB &S);
         bool intersect(BVT &S);
         void resetCollision();
-
+        void getIntersectDirs(vecvec3d &result);
+        uint getIntersectNums();
         int createTree(const uint minPoints);
-
 };
 
 
