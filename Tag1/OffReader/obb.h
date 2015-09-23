@@ -29,6 +29,7 @@ class OBB{
         //methodes
         OBB();
         OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p);
+        OBB(const vecvec3d &p, Vector3d color_p);
 
         static bool intersect(Package &A,OBB &B);
         bool intersect(Package &A);
@@ -36,7 +37,7 @@ class OBB{
         void draw();
         void caluculateC(const vecvec3d p);
         void caluculateHalfL();
-        void setCorner(const vecvec3d p);
+        void setAABBCorner(const vecvec3d p);
         void splitOBB(const OBB& A, OBB& A1, OBB& A2);
         static bool sortFkt0(const Vector3d &a,const Vector3d &b);
         static bool sortFkt1(const Vector3d &a,const Vector3d &b);
