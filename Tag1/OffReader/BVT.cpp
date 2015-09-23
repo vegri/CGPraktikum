@@ -73,7 +73,7 @@ void BVT::draw(uint depth)
                     glVertex3dv( (*points)[idx[i][j]].ptr());
                 }
             glEnd();
-            glPopMatrix();
+            glPopMatrix();            
         } else {
             if(this->left!=0x0)
                 this->left->draw(depth);
@@ -103,6 +103,36 @@ void BVT::draw(uint depth)
         glEnd();
         glPopMatrix();
     }
+    if(drawCollisions && intersection && this->penetrationCollisions.size()>0){
+        glPushMatrix();
+        glTranslated(center[0],center[1],center[2]);
+        glMultMatrixd(Matrix4d(rot).transpose().ptr());
+        glColor4dv(model_color_coll.ptr());
+        glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+        glDisable (GL_CULL_FACE);
+        glBegin(GL_TRIANGLES);
+        for(uint i =0; i < collTris.size(); ++i)
+        {
+            const Vector3d& a =(*points)[idx[collTris[i]][0]];
+            const Vector3d& b =(*points)[idx[collTris[i]][1]];
+            const Vector3d& c =(*points)[idx[collTris[i]][2]];
+            glNormal3dv (((b-a)%(c-a)).ptr());
+            glVertex3dv( a.ptr());
+            glVertex3dv( b.ptr());
+            glVertex3dv( c.ptr());
+        }
+        glEnd();
+
+        glBegin(GL_LINES);
+        for(uint i =0; i < collTris.size(); ++i)
+        {
+            glVertex3dv( triMids[collTris[i]].ptr());
+            glVertex3dv( (triMids[collTris[i]]-penetrationCollisions[i]).ptr());
+        }
+        glEnd();
+
+        glPopMatrix();
+    }
 }
 
 void BVT::init(bool init_midtriange)
@@ -110,6 +140,7 @@ void BVT::init(bool init_midtriange)
     center=0;
     rot=Quat4d(0,0,0,1);
     model_color=Vector4d(0,0.5,0.5,0.8);
+    model_color_coll=Vector4d(0.7,0.1,0.0,0.8);
     this->drawModel=true;
     this->drawPoint=false;
     this->drawBoxes=false;
@@ -280,8 +311,10 @@ bool BVT::intersect(Package &S)
                     tri[i]=this->points->at(this->idx[j][i]);
                 }
                 Vector3d res=S.penetration(tri);
-                if(res.lengthSquared()!=0)
+                if(res.lengthSquared()!=0){
                     this->penetrationCollisions.push_back(res);
+                    this->collTris.push_back(j);
+                }
             }
         }
 
@@ -340,6 +373,8 @@ bool BVT::intersect(BVT &S)
 void BVT::resetCollision()
 {
     this->intersection=false;
+    this->penetrationCollisions.clear();
+    this->collTris.clear();
     if(this->left!=0x0)
         this->left->resetCollision();
     if(this->right!=0x0)

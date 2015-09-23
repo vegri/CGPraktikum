@@ -43,6 +43,7 @@ class BVT
         void init(bool init_midtriange);
 	public:
         vecvec3d penetrationCollisions;
+        vecuint collTris;
         Quat4d rot;
 
 		/// create new node
@@ -58,6 +59,7 @@ class BVT
         bool intersection;
         uint drawDepth;
         Vector4d model_color;
+        Vector4d model_color_coll;
 
         uint actualDepth;
 
