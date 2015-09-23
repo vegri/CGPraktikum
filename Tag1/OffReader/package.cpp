@@ -674,7 +674,7 @@ bool Package::intersect(Package &B){
 
 bool Package::intersect(OBB &B)
 {
-    OBB::intersect(*this,B);
+    return OBB::intersect(*this,B);
 }
 
 Vector3d Package::penetration(const vecvec3d T) {
