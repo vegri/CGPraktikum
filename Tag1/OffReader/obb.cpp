@@ -116,8 +116,8 @@ void OBB::setAABBCorner(const vecvec3d p){
     Vector3d boxCenter=Vector3d(max_x+min_x,max_y+min_y,max_z+min_z)*0.5;
     bodycenter=boxCenter;
 
-    min=Vector3d(min_x,min_y,min_z)+bodycenter;
-    max=Vector3d(max_x,max_y,max_z)+bodycenter;
+    min=Vector3d(min_x,min_y,min_z)+center;
+    max=Vector3d(max_x,max_y,max_z)+center;
 
     corner.clear();
     corner.push_back(Vector3d (min_x,max_y,max_z));
