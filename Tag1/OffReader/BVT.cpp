@@ -386,7 +386,7 @@ void BVT::getIntersectDirs(vecvec3d &result)
     if(this->left==NULL && this->right==NULL){
         uint n=result.size();
         result.resize(result.size()+this->penetrationCollisions.size());
-        for(uint i=0;i<n;++i)
+        for(uint i=0;i<this->penetrationCollisions.size();++i)
             result[n+i]=this->penetrationCollisions[i];
     } else {
         if(this->left!=NULL)

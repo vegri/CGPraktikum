@@ -60,6 +60,7 @@ class OBB{
         Vector4d eigenvaluesC;
         Matrix4d R;
         Matrix4d C;
+        double getDiameter();
         double min_x,min_y,min_z,max_x,max_y,max_z;
 public:
     void setBoxColor(Vector3d color_p);

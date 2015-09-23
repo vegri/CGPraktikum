@@ -650,7 +650,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         uint collisionResolved=true;
         srand(time(NULL));
         uint k=0;
-        while(collisionResolved!=0 && k<50){
+        while(collisionResolved!=0 && k<15){
             collisionResolved=0;
             uint n=0;
 
@@ -691,27 +691,24 @@ bool CGView::resolveCollision(Package &box, BVT &off){
     this->collDir=Vector3d(1,0,0)*1e300;
 
     bool coll_occ=off.intersect(box);;
-    uint mincoll,min_idx,act,j=0;
+    uint mincoll,j=0;
     vecvec3d potDir;
+    Vector3d move_dir=0;
 
-    while(coll_occ && j<3){
+    while(coll_occ && j<5){
         ++j;
         mincoll=-1;
         off.getIntersectDirs(potDir);
+        move_dir=0;
         for (uint i = 0; i < potDir.size(); ++i) {
-            box.move(potDir[i]);
-            off.intersect(box);
-            box.move(-potDir[i]);
-            act=off.getIntersectNums();
-            if(mincoll>act){
-                mincoll = act;
-                min_idx=i;
-            }
-            off.resetCollision();
+            move_dir+=potDir[i];
         }
-        if(mincoll!=-1){
-            box.move(potDir[min_idx]);
-        }
+
+        move_dir=move_dir/potDir.size();
+        if(move_dir.length()<box.getDiameter()+off.getBox().getDiameter())
+            box.move(move_dir);
+
+        off.resetCollision();
         coll_occ=off.intersect(box);
     }
     return coll_occ;

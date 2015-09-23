@@ -252,15 +252,20 @@ bool OBB::intersect(OBB &B){
     return result;
 }
 
+double OBB::getDiameter()
+{
+    return 2*halflength.length();
+}
+
 bool OBB::intersect(Package &A){
     return OBB::intersect(A, *this);
 }
 
 bool OBB::intersect(Package &A, OBB &B){
 
-    OBB bobb=OBB(A.getCorners(),Vector3d(0));
-    bobb.draw();
-    return B.intersect(bobb);
+//    OBB bobb=OBB(A.getCorners(),Vector3d(0));
+//    bobb.draw();
+//    return B.intersect(bobb);
 
     vecvec3d a,b;
     a.resize(3);b.resize(3);
