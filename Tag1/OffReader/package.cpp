@@ -190,6 +190,11 @@ Vector3d Package::getCenter()
     return center;
 }
 
+void Package::setCenter(Vector3d center_p)
+{
+    this->center=center_p;
+}
+
 void Package::pick(bool picked)
 {
     this->picked=picked;

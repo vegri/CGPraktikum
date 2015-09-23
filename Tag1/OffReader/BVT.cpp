@@ -153,12 +153,17 @@ void BVT::init(bool init_midtriange)
         r=0;
         for (j = 0; j < 3; ++j){
             r += (*points)[idx[i][j]]/3;
+
         }
         if(init_midtriange)
             triMids[i]=r;
         mass_center+=r;
     }
     mass_center /= idx.size();
+    for (i = 0; i < points->size(); ++i) {
+        center+=points->at(i);
+    }
+    center=center/points->size();
 
     // Compute inetria matrix
 
@@ -404,6 +409,11 @@ uint BVT::getIntersectNums()
         return this->left->getIntersectNums()+
                this->right->getIntersectNums();
     }
+}
+
+Vector3d BVT::getCenter()
+{
+    return center;
 }
 
 int BVT::createTree(const uint minPoints)

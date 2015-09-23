@@ -92,6 +92,7 @@ class BVT
         void resetCollision();
         void getIntersectDirs(vecvec3d &result);
         uint getIntersectNums();
+        Vector3d getCenter();
         int createTree(const uint minPoints);
 };
 

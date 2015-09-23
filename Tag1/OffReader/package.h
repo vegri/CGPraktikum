@@ -39,6 +39,7 @@ public:
     void rotateMarked(Quat4d rot_p);
     double getDiameter();
     Vector3d getCenter();
+    void setCenter(Vector3d center_p);
     void pick(bool picked);
     Vector3d getRotProjection();
     void removeRot();

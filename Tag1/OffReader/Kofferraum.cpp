@@ -120,11 +120,15 @@ void CGMainWindow::loadAllPackages(){
 
     srand(time(NULL));
 
+    Vector3d zero=0;
+    if(ogl->bootList.size()>0)
+        zero+=ogl->bootList[ogl->bootList.size()-1]->getCenter();
+
     for (uint i = 0; i < ogl->packageList.size(); ++i) {
         Vector3d epsilon=Vector3d(rand()*ULONG_MAX,rand()*ULONG_MAX,rand()*ULONG_MAX).normalized()*2-1;
         Quat4d rot=Quat4d(rand(),rand(),rand(),rand());
         rot.normalize();
-        ogl->packageList[i].move(epsilon);
+        ogl->packageList[i].setCenter(zero+epsilon);
         ogl->packageList[i].rotate(rot);
     }
     ogl->updateGL();
@@ -650,7 +654,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         uint collisionResolved=true;
         srand(time(NULL));
         uint k=0;
-        while(collisionResolved!=0 && k<15){
+        while(collisionResolved!=0 && k<50){
             collisionResolved=0;
             uint n=0;
 
@@ -705,8 +709,11 @@ bool CGView::resolveCollision(Package &box, BVT &off){
         }
 
         move_dir=move_dir/potDir.size();
-        if(move_dir.length()<box.getDiameter()+off.getBox().getDiameter())
+        if(move_dir.length()<box.getDiameter()+off.getBox().getDiameter()){
+            if(move_dir.lengthSquared()<1e-10)
+                move_dir=move_dir.normalized()*1e-4;
             box.move(move_dir);
+        }
 
         off.resetCollision();
         coll_occ=off.intersect(box);
