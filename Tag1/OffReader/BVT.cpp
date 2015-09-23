@@ -87,7 +87,7 @@ void BVT::draw(uint depth)
         glTranslated(center[0],center[1],center[2]);
         glMultMatrixd(Matrix4d(rot).transpose().ptr());
         glColor4dv(model_color.ptr());
-        glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+        glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
         glDisable (GL_CULL_FACE);
         glBegin(GL_TRIANGLES);
         for(uint i =0; i < idx.size(); ++i)
@@ -389,3 +389,5 @@ int BVT::createTree(const uint minPoints)
     this->right->createTree(minPoints);
     return 0;
 }
+
+

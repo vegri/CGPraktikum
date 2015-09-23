@@ -92,6 +92,7 @@ class BVT
         void resetCollision();
 
         int createTree(const uint minPoints);
+
 };
 
 

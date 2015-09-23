@@ -683,6 +683,28 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     updateGL();
     updateGL();
 }
+bool CGView::resolveCollision(Package &B, BVT Off){
+    this->collDir=Vector3d(1,0,0)*1e300;
+
+    srand(time(NULL));
+    //Vector3d epsilon=Vector3d(random()*ULONG_MAX,random()*ULONG_MAX,random()*ULONG_MAX).normalized()*0.0001*B.getDiameter();
+    //B.center+=epsilon;
+    bool intersectionOccured=Off.intersect(B);
+//    if(intersectionOccured){
+//        if((this->center-B.center-collDir).lengthSquared()<(this->center-B.center).lengthSquared())
+//            collDir=-collDir;
+//        this->center-=collDir*1.02/2;
+//        B.center+=collDir*1.02/2;
+//        if(collDir.length()<1e-10){
+//            collDir.normalize();
+//            this->center-=collDir*1e-10;
+//            B.center+=collDir*1e-10;
+//        }
+//    }
+//    Off.collDir=0;
+//    B.collDir=0;
+    return intersectionOccured;
+}
 
 int main (int argc, char **argv) {
     QApplication app(argc, argv);
