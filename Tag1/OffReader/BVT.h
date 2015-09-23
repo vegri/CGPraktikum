@@ -42,7 +42,7 @@ class BVT
 
         void init(bool init_midtriange);
 	public:
-
+        vecvec3d penetrationCollisions;
         Quat4d rot;
 
 		/// create new node
