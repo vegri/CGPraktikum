@@ -4,7 +4,7 @@ QT += gui opengl
 CONFIG += console
 HEADERS += *.h
 SOURCES += Kofferraum.cpp \
-    package.cpp BVT.cpp obb.cpp
+    package.cpp BVT.cpp obb.cpp OBBTrianglePenetration.cpp
 SOURCES += vecmath.cpp
 
 macx: QMAKE_MAC_SDK = macosx10.9

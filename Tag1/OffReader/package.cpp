@@ -676,3 +676,51 @@ bool Package::intersect(OBB &B)
 {
     OBB::intersect(*this,B);
 }
+
+Vector3d Package::penetration(const vecvec3d T) {
+    Vector3d n[13];
+    Vector3d c = this->center;
+    Vector3d result;
+    double d,dmin,dmax,n2;
+    double pen = std::numeric_limits<double>::infinity();
+
+    n[0] = rot*axis[0];
+    n[1] = rot*axis[1];
+    n[2] = rot*axis[2];
+    n[3] = T[0]*T[1];
+
+    for(int i=0;i<3;i++)
+        for(int j=0;j<3;j++)
+            n[4+3*i+j] = n[i] % (T[(j+1)%3]-T[j]);
+
+    for(int i=0;i<13;i++) {
+        dmin = dmax = n[i]*(T[0]-c);
+        for(int j=1;j<3;j++) {
+            d = n[i]*(T[j]-c);
+            if (d < dmin) dmin = d; else
+            if (d > dmax) dmax = d;
+        }
+        double s = 0;
+        for(int j=0;j<3;j++) {
+            double t = n[i]*n[j];
+            if (t < 0) t = -t;
+            s += halflength[j]*t;
+        }
+
+        if ( s < dmin) return 0;
+        if (-s > dmax) return 0;
+        n2 = n[i]*n[i];
+        if (n2 < 1e-6) continue;
+        if(pen>(s-dmin)*(s-dmin)/n2){
+            pen = (s-dmin)*(s-dmin)/n2;
+            result=n[i]*sqrt(pen);
+        }
+        if(pen>(s+dmin)*(s+dmin)/n2){
+            pen = (s+dmin)*(s+dmin)/n2;
+            result=n[i]*sqrt(pen);
+        }
+    }
+
+    return result;
+}
+
