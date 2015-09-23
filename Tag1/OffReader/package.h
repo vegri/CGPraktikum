@@ -32,6 +32,7 @@ public:
     void move(Vector3d move_p);
     void setRot(Quat4d rot_p);
     vecvec3d getCorners();
+    Vector3d penetration(const vecvec3d T);
     Quat4d getRot();
     void rotate(Quat4d rot_p);
     void markRot();
