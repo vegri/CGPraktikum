@@ -2,7 +2,7 @@
 
 
 
-#define maximal_points 10
+#define maximal_points 1
 
 using namespace std;
 
@@ -201,7 +201,7 @@ void BVT::split ()
             break;
     }
 
-    if (i<0.1*n || i>0.9*n)
+    if (i<0.05*n || i>0.95*n)
         i=n/2;
 
     right_vec.resize(i);

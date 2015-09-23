@@ -196,7 +196,7 @@ void CGMainWindow::loadPoly(QString filename){
 
     BVT * act=ogl->bootList.at(ogl->bootList.size()-1);
     act->drawModel=true;
-    uint j=5;
+    uint j=1;
     act->createTree(j);
 
     //DEBUG
