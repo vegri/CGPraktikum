@@ -216,10 +216,14 @@ void CGMainWindow::loadPoly(QString filename){
     statusBar()->showMessage ("Loading polyhedron done.",3000);
 }
 
-CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ) : QGLWidget (parent), mouse_mode(Qt::NoButton) {
+CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ):
+    QGLWidget (parent), mouse_mode(Qt::NoButton),SLERP(0),
+    EULER_ANGLES(1){
     picked=-1;
     picked_active=false;
     projRot=false;
+    depth=0;
+    drawObb=false;
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -367,7 +371,7 @@ void CGView::mousePressEvent(QMouseEvent *event) {
             this->packageList[picked].setMoveDir(false);
         }
 
-        if(loc_picked!=-1 && loc_picked<this->packageList.size()){
+        if(loc_picked!=-1 && ((uint) loc_picked) <this->packageList.size()){
             if(fixedMoveDir){
                 this->packageList[loc_picked].setMoveDir(true);
                 this->hit=Vector3d(0);
@@ -699,13 +703,12 @@ bool CGView::resolveCollision(Package &box, BVT &off){
     this->collDir=Vector3d(1,0,0)*1e300;
 
     bool coll_occ=off.intersect(box);;
-    uint mincoll,j=0;
+    uint j=0;
     vecvec3d potDir,triMids;
     Vector3d move_dir=0,rotDir=0;
 
     while(coll_occ && j<5){
         ++j;
-        mincoll=-1;
         off.getIntersectDirs(potDir,triMids);
         move_dir=0;
         for (uint i = 0; i < potDir.size(); ++i) {
@@ -720,6 +723,7 @@ bool CGView::resolveCollision(Package &box, BVT &off){
             if(move_dir.lengthSquared()<1e-10)
                 move_dir=move_dir.normalized()*std::abs(box.getCenter().minComp())*1e-6;
             box.move(move_dir);
+            box.rotate(rot);
         }
 
         off.resetCollision();

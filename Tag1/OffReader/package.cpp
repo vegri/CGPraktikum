@@ -543,6 +543,9 @@ void Package::solve3dLinearSystem(const Matrix4d &m, Vector3d &x, const Vector3d
 
 void Package::init()
 {
+    collision=false;
+    zoom_val=1.0;
+    picked=false;
     corners[ 0]=Vector3d(0,0,0);
     corners[ 1]=Vector3d(height,0,0);
     corners[ 2]=Vector3d(height,width,0);

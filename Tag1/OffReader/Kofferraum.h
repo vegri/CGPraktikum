@@ -108,18 +108,18 @@ protected:
   void trackball(Vector3d u, Vector3d v, Quat4d &q);
   
   bool animationRunning;
-  bool drawObb= false;
+  bool drawObb;
   double timeParameter;
 
   int animationMode;
   uint picked;
-  uint depth=0;
+  uint depth;
 
   bool picked_active;
   bool projRot;
   QFlag mouse_mode;
-  const int SLERP = 0;
-  const int EULER_ANGLES = 1;
+  const int SLERP;
+  const int EULER_ANGLES;
 
   //DEBUG
   Vector3d d_ray_f,d_ray_d;

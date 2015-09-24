@@ -61,10 +61,10 @@ public:
     Vector3d base;
     vecvec3d axis;
     Vector3d halflength;
-    bool collision=false;
+    bool collision;
     void setCollision(Package &other);
     void resetCollision();
-    double zoom_val=1.0;
+    double zoom_val;
 
     bool intersect(Package &B);
     bool intersect(OBB &B);
@@ -79,7 +79,7 @@ private:
     bool move_dir_b;
     bool rot_dir_b;
     bool rot_ball_b;
-    bool picked=false;
+    bool picked;
     double circle_rad;
     Vector4d color;
     Quat4d rot;
