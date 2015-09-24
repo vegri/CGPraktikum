@@ -394,7 +394,10 @@ void BVT::getIntersectDirs(vecvec3d &result, vecvec3d &colTriMids)
         //colTriMids.resize(colTriMids.size()+n);
         for(uint i=0;i<n;++i){
             result.push_back(this->penetrationCollisions[i]);
-            colTriMids.push_back(this->triMids[this->collTris[i]]);
+            const Vector3d& a =(*points)[idx[collTris[i]][0]];
+            const Vector3d& b =(*points)[idx[collTris[i]][1]];
+            const Vector3d& c =(*points)[idx[collTris[i]][2]];
+            colTriMids.push_back((b-a)%(c-a));
         }
     } else {
         if(this->left!=NULL)
