@@ -327,7 +327,7 @@ void CGView::worldCoord(int x, int y, int z, Vector3d &v) {
 void CGView::mousePressEvent(QMouseEvent *event) {
     oldX = event->x();
     oldY = event->y();
-    double epsilon=0.01;
+    double epsilon=0.01/zoom;
 
     Vector3d dir, dir_n, near_l;
     worldCoord(oldX,oldY,1,dir);
