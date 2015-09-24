@@ -390,11 +390,11 @@ void BVT::getIntersectDirs(vecvec3d &result, vecvec3d &colTriMids)
 {
     if(this->left==NULL && this->right==NULL){
         uint n=this->penetrationCollisions.size();
-        result.resize(result.size()+n);
-        colTriMids.resize(colTriMids.size()+n);
+        //result.resize(result.size()+n);
+        //colTriMids.resize(colTriMids.size()+n);
         for(uint i=0;i<n;++i){
-            result[n+i]=this->penetrationCollisions[i];
-            colTriMids[n+i]=this->triMids[this->collTris[i]];
+            result.push_back(this->penetrationCollisions[i]);
+            colTriMids.push_back(this->triMids[this->collTris[i]]);
         }
     } else {
         if(this->left!=NULL)
