@@ -56,8 +56,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     setCentralWidget(f);
     ogl->zoom=0.002;
     statusBar()->showMessage("Ready",1000);
-    loadPackage4();
-    ogl->packageList[0].setCenter(Vector3d(-25,-25,-25));
+    loadPackage1();
+    ogl->packageList[0].setCenter(Vector3d(0,0,255));
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
     loadPoly("../TestKofferraumIKEA.off");
@@ -659,12 +659,23 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         break;
     }
     case Qt::Key_Space:{
-        double collisionResolved=true;
+        double collVal=true,oldCollVal;
         srand(time(NULL));
         uint k=0;
-        while(collisionResolved!=0 && k<50){
+        while(collVal!=0 && k<50){
             k++;
-            std::cout << resolveCollision() <<std::endl;
+            oldCollVal=collVal;
+            collVal=resolveCollision();
+
+            if(collVal>0.9*oldCollVal && rand()%4>1){
+                uint n=rand()%this->packageList.size();
+                Quat4d rot=Quat4d(0.7,Vector3d(rand()%3,rand()%3,rand()%3));
+                rot.normalize();
+                this->packageList[n].rotate(rot);
+            }
+
+            std::cout << collVal <<std::endl;
+
             updateGL();
             updateGL();
         }
@@ -679,36 +690,44 @@ void CGView::keyPressEvent(QKeyEvent *e) {
 }
 double CGView::resolveCollision(){
 
-    vecvec3d motion(this->packageList.size()),
+    vecvec3d trans(this->packageList.size()),
              rotation(this->packageList.size()),
-             motion_tmp,rotation_tmp;
+             trans_tmp,rotation_tmp;
 
-    double result=getUtilityValue(motion,rotation);
-    motion_tmp=motion;
+    double result=getUtilityValue(trans,rotation);
+    trans_tmp=trans;
     rotation_tmp=rotation;
     double diff,step_size=0.01;
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
-        if(motion[i].length()  ==motion[i].length() &&
-           rotation[i].length()==rotation[i].length()){
-            this->packageList[i].move(motion[i]*step_size);
-            diff=result-getUtilityValue(i,motion,rotation);
-            if(diff<0 && rand()<-diff/this->packageList[i].getDiameter())
-                this->packageList[i].move(-motion[i]*step_size);
+        if(trans[i].length()>0 && rotation[i].length()>0){
+            this->packageList[i].move(trans[i]*step_size);
+            diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
+            if(diff<0 && rand()<-diff/this->packageList[i].getDiameter()){
+                this->packageList[i].move(-trans[i]*step_size);
+            } else {
+                result=result-diff;
+                trans=trans_tmp;
+                rotation=rotation_tmp;
+            }
 
             Quat4d rot=Quat4d(step_size,rotation[i]);
-            rot.normalize();
             this->packageList[i].rotate(rot);
-            diff=result-getUtilityValue(i,motion,rotation);
-            if(diff<0 && rand()<-diff/this->packageList[i].getDiameter())
+            diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
+            if(diff<0 && rand()<-diff/this->packageList[i].getDiameter()){
                 this->packageList[i].rotate(rot.inverse());
+            } else {
+                result=result-diff;
+                trans=trans_tmp;
+                rotation=rotation_tmp;
+            }
         }
     }
     return result;
 }
 
 //Get some measure how illegal the actual situation is
-double CGView::getUtilityValue(vecvec3d &motion,vecvec3d &rotation)
+double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
 {
     double result=0;
 
@@ -721,15 +740,15 @@ double CGView::getUtilityValue(vecvec3d &motion,vecvec3d &rotation)
         for (uint j = i+1; j < this->packageList.size(); ++j){
             if(this->packageList[i].resolveCollision(this->packageList[j])){
                 ++colnum[i];++colnum[j];
-                motion[i]=motion[i]+this->packageList[i].getCollDir();
-                motion[j]=motion[j]+this->packageList[j].getCollDir();
+                trans[i]=trans[i]+this->packageList[i].getCollDir();
+                trans[j]=trans[j]+this->packageList[j].getCollDir();
             }
         }
     }
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         if(colnum[i]>1)
-            motion[i]=motion[i]/colnum[i];
+            trans[i]=trans[i]/colnum[i];
 
         for (uint j = 0; j < this->bootList.size(); ++j) {
             Package &pack=this->packageList[i];
@@ -751,19 +770,23 @@ double CGView::getUtilityValue(vecvec3d &motion,vecvec3d &rotation)
 
                 triangleMotion=triangleMotion/potDir.size();
                 rotDir=rotDir/potDir.size();
-                motion[i]=triangleMotion+outOfBoxMove;
-                rotation[i]=rotDir;
+                trans[i]=triangleMotion+outOfBoxMove;
+                rotation[i]=rotDir.normalized();
             }
         }
     }
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
-        result+=motion[i].length();
+        if(trans[i].length()==trans[i].length())
+            result+=trans[i].length();
+        else
+            result+=10;
     }
+    return result;
 }
 
 //Get some measure how illegal the actual situation is if only one package has changed
-double CGView::getUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation)
+double CGView::getUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation)
 {
     double result=0;
     uint i=pack_idx;
@@ -772,12 +795,12 @@ double CGView::getUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotatio
     for (uint j = 0; j < this->packageList.size(); ++j){
         if(this->packageList[i].resolveCollision(this->packageList[j])){
             ++colnum;
-            motion[i]=motion[i]+this->packageList[i].getCollDir();
-            motion[j]=motion[j]+this->packageList[j].getCollDir();
+            trans[i]=trans[i]+this->packageList[i].getCollDir();
+            trans[j]=trans[j]+this->packageList[j].getCollDir();
         }
     }
 
-    motion[i]=motion[i]/colnum;
+    trans[i]=trans[i]/colnum;
 
     for (uint j = 0; j < this->bootList.size(); ++j) {
         Package &pack=this->packageList[i];
@@ -799,13 +822,14 @@ double CGView::getUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotatio
 
             triangleMotion=triangleMotion/potDir.size();
             rotDir=rotDir/potDir.size();
-            motion[i]=triangleMotion+outOfBoxMove;
+            trans[i]=triangleMotion+outOfBoxMove;
             rotation[i]=rotDir;
         }
     }
     for (uint i = 0; i < this->packageList.size(); ++i) {
-        result+=motion[i].length();
+        result+=trans[i].length();
     }
+    return result;
 }
 
 int main (int argc, char **argv) {

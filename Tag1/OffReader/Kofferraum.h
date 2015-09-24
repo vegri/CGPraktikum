@@ -86,6 +86,7 @@ public:
   double resolveCollision();
   double getUtilityValue(vecvec3d &motion, vecvec3d &rotation);
   double getUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation);
+  int resolveCollision(Package &B, BVT &Off, bool jumpRot);
   Vector3d collDir;
 
 public slots:

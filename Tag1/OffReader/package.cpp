@@ -158,12 +158,13 @@ Vector3d Package::packageInBox(AABB &box)
         for (uint j = 0; j < 3; ++j) {
             dist=fabs(locCorner[j])-halflengthBox[j];
             if(dist>0){
-                result[j]+=sgn(locCorner[j])*dist;
+                result[j]+=-sgn(locCorner[j])*(dist+halflength[j]);
                 ++out;
             }
         }
     }
-    result=result/out;
+    if(out==0)++out;
+    return result/out;
 }
 
 void Package::setRot(Quat4d rot_p)
