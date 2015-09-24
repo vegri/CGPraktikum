@@ -662,16 +662,24 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         double collVal=true,oldCollVal;
         srand(time(NULL));
         uint k=0;
+        vecvec3d trans(this->packageList.size()),
+                 rotation(this->packageList.size());
         while(collVal!=0 && k<50){
             k++;
             oldCollVal=collVal;
-            collVal=resolveCollision();
+            collVal=resolveCollision(trans,rotation);
 
-            if(collVal>0.9*oldCollVal && rand()%4>1){
+            if(collVal>0.9*oldCollVal && rand()%16>1 && k!=0){
                 uint n=rand()%this->packageList.size();
-                Quat4d rot=Quat4d(0.7,Vector3d(rand()%3,rand()%3,rand()%3));
-                rot.normalize();
-                this->packageList[n].rotate(rot);
+                while(trans[n].length()!=0)
+                    n=rand()%this->packageList.size();
+                if(rand()%2){
+                    Quat4d rot=Quat4d(0.7,rotation[n]);
+                    rot.normalize();
+                    this->packageList[n].rotate(rot);
+                } else {
+                    this->packageList[n].move(trans[n]);
+                }
             }
 
             std::cout << collVal <<std::endl;
@@ -688,11 +696,9 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     updateGL();
     updateGL();
 }
-double CGView::resolveCollision(){
+double CGView::resolveCollision(vecvec3d trans, vecvec3d rotation){
 
-    vecvec3d trans(this->packageList.size()),
-             rotation(this->packageList.size()),
-             trans_tmp,rotation_tmp;
+    vecvec3d trans_tmp,rotation_tmp;
 
     double result=getUtilityValue(trans,rotation);
     trans_tmp=trans;

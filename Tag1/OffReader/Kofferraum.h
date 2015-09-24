@@ -83,7 +83,7 @@ public:
   Quat4d q_now;
 
   void keyPressEvent(QKeyEvent *e);
-  double resolveCollision();
+  double resolveCollision(vecvec3d trans, vecvec3d rotation);
   double getUtilityValue(vecvec3d &motion, vecvec3d &rotation);
   double getUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation);
   int resolveCollision(Package &B, BVT &Off, bool jumpRot);
