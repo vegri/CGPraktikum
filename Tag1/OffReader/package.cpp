@@ -158,12 +158,13 @@ Vector3d Package::packageInBox(AABB &box)
         for (uint j = 0; j < 3; ++j) {
             dist=fabs(locCorner[j])-halflengthBox[j];
             if(dist>0){
-                result[j]+=sgn(locCorner[j])*dist;
+                result[j]+=-sgn(locCorner[j])*(dist+halflength[j]);
                 ++out;
             }
         }
     }
-    result=result/out;
+    if(out==0)++out;
+    return result/out;
 }
 
 void Package::setRot(Quat4d rot_p)
@@ -656,8 +657,8 @@ bool Package::resolveCollision(Package &B){
     if(intersectionOccured){
         if((this->center-B.center-collDir).lengthSquared()<(this->center-B.center).lengthSquared())
             collDir=-collDir;
-        this->center-=collDir*1.02/2;
-        B.center+=collDir*1.02/2;
+        this->center-=collDir*0.05/2;
+        B.center+=collDir*0.05/2;
         if(collDir.length()<1e-10){
             collDir.normalize();
             this->center-=collDir*1e-10;
