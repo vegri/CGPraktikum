@@ -35,7 +35,7 @@ class BVT
         Matrix4d inertia;
 	
 		/// smallest enclosing sphere of point set	
-        OBB box;
+        AABB box;
 	
         BVT * left;
         BVT * right;
@@ -81,13 +81,13 @@ class BVT
         void drawPoints(Vector3d color=Vector3d(0.8,0.3,0.2));
 
 		/// get sphere
-        OBB& getBox() {return box;}
+        AABB& getBox() {return box;}
 
 		/// anzahl der Punkte
         int nr_of_points () {return points->size();}
 
         bool intersect(Package &S);
-        bool intersect(OBB &S);
+        bool intersect(AABB &S);
         bool intersect(BVT &S);
         void resetCollision();
         void getIntersectDirs(vecvec3d &result, vecvec3d &colTriMids);

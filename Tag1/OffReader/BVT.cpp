@@ -10,7 +10,7 @@ using namespace std;
 BVT::BVT (const vecvecuint& idx_p, const vecvec3d *points_p, uint depth):
     triMids(idx_p.size()), idx(idx_p), points(points_p),/* box(*points_p),*/ actualDepth(depth)
 {
-    box=OBB(points_p,idx_p,Vector3d(0.5,0.5,0.));
+    box=AABB(points_p,idx_p,Vector3d(0.5,0.5,0.));
     debug_points=vecvec3d(points_p->begin(),points_p->end());
     init(true);
 }
@@ -18,7 +18,7 @@ BVT::BVT (const vecvecuint& idx_p, const vecvec3d *points_p, uint depth):
 BVT::BVT(const vecvec3d &triMids_p, const vecvecuint &idx_p, const vecvec3d *points_p, vecvec3d *ball_points, uint depth):
     triMids(triMids_p), idx(idx_p), points(points_p),/* box(ball_points),*/ actualDepth(depth)
 {
-    box=OBB(points_p,idx_p,Vector3d(0.5,0.5,0.));
+    box=AABB(points_p,idx_p,Vector3d(0.5,0.5,0.));
     debug_points=vecvec3d(idx_p.size()*3);
     for (uint i = 0; i < debug_points.size(); ++i) {
         debug_points[i]=(*points_p)[idx_p[i/3][i%3]];
@@ -295,7 +295,7 @@ void BVT::drawPoints(Vector3d color)
 bool BVT::intersect(Package &S)
 {
     bool result=false;
-    if (OBB::intersect(S,this->box)){
+    if (AABB::intersect(S,this->box)){
         this->intersection=true;
         if(NULL!=this->left){
             if (this->left->intersect(S)){
@@ -328,7 +328,7 @@ bool BVT::intersect(Package &S)
     return false;
 }
 
-bool BVT::intersect(OBB &S)
+bool BVT::intersect(AABB &S)
 {
     if (S.intersect(this->box)){
         if(NULL!=this->left){

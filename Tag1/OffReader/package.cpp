@@ -145,6 +145,27 @@ void Package::move(Vector3d move_p)
         this->center+=move_p;
 }
 
+Vector3d Package::packageInBox(AABB &box)
+{
+    Vector3d centerBox=box.getBodyCenter();
+    Vector3d halflengthBox=box.getHalflength();
+    Vector3d locCorner;
+    Vector3d result=0;
+    double dist;
+    uint out=0;
+    for (uint i = 0; i < 8; ++i) {
+        locCorner=rot*corners[i]+center-centerBox;
+        for (uint j = 0; j < 3; ++j) {
+            dist=fabs(locCorner[j])-halflengthBox[j];
+            if(dist>0){
+                result[j]+=sgn(locCorner[j])*dist;
+                ++out;
+            }
+        }
+    }
+    result=result/out;
+}
+
 void Package::setRot(Quat4d rot_p)
 {
     this->rot=rot_p;
@@ -680,9 +701,9 @@ bool Package::intersect(Package &B){
     return true;
 }
 
-bool Package::intersect(OBB &B)
+bool Package::intersect(AABB &B)
 {
-    return OBB::intersect(*this,B);
+    return AABB::intersect(*this,B);
 }
 
 Vector3d Package::penetration(const vecvec3d T) {

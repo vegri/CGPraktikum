@@ -101,7 +101,7 @@ protected:
 	void wheelEvent(QWheelEvent*);
     void drawIkeaPackage(std::vector<Vector3d> packageList);
 
-  OBB testObb;
+  AABB testObb;
   int oldX,oldY;
   int currentWidth, currentHeight;
   void mouseToTrackball(int x, int y, int w, int h);

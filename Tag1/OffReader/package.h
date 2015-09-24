@@ -19,6 +19,10 @@
 typedef std::vector<Vector3d> vecvec3d;
 typedef unsigned int uint;
 
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 class Package
 {
 public:
@@ -30,6 +34,7 @@ public:
     void resetColor();
     void setColor(Vector4d color_p);
     void move(Vector3d move_p);
+    Vector3d packageInBox(AABB &box);
     void setRot(Quat4d rot_p);
     vecvec3d getCorners();
     Vector3d penetration(const vecvec3d T);
@@ -67,8 +72,8 @@ public:
     double zoom_val;
 
     bool intersect(Package &B);
-    bool intersect(OBB &B);
-    friend bool OBB::intersect(Package &A,OBB &B);
+    bool intersect(AABB &B);
+    friend bool AABB::intersect(Package &A,AABB &B);
 private:
     void init();
     double height, width, depth;

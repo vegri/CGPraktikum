@@ -1,9 +1,9 @@
 #include "obb.h"
 
 
-OBB::OBB(){}
+AABB::AABB(){}
 
-OBB::OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
+AABB::AABB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
     this->collision=false;
     this->color=color_p;
     this->box_color=Vector3d(0,1,0);
@@ -35,7 +35,7 @@ OBB::OBB(const vecvec3d *p, const vecvecuint ind, Vector3d color_p){
     setAABBCorner(points);
 }
 
-OBB::OBB(const vecvec3d &p, Vector3d color_p)
+AABB::AABB(const vecvec3d &p, Vector3d color_p)
 {
     this->collision=false;
     this->color=color_p;
@@ -59,11 +59,11 @@ OBB::OBB(const vecvec3d &p, Vector3d color_p)
     setAABBCorner(points);
 }
 
-void OBB::setBodyCenter(Vector3d center_b){
+void AABB::setBodyCenter(Vector3d center_b){
     this->bodycenter=center_b;
 }
 
-bool OBB::intersectAxis(Vector3d &v,vecvec3d &a, vecvec3d &b,Vector3d &alpha,Vector3d &beta, Vector3d &dc){
+bool AABB::intersectAxis(Vector3d &v,vecvec3d &a, vecvec3d &b,Vector3d &alpha,Vector3d &beta, Vector3d &dc){
     double res=0;
     for (int i = 0; i < 3; ++i) {
         res+=std::abs(alpha[i]*(v.dot(a[i])))+std::abs(beta[i]*(v.dot(b[i])));
@@ -85,7 +85,7 @@ bool OBB::intersectAxis(Vector3d &v,vecvec3d &a, vecvec3d &b,Vector3d &alpha,Vec
 
 
 
-void OBB::setAABBCorner(const vecvec3d p){
+void AABB::setAABBCorner(const vecvec3d p){
     //double min_x,min_y,min_z,max_x,max_y,max_z;
 
     R=R.identity();
@@ -133,7 +133,7 @@ void OBB::setAABBCorner(const vecvec3d p){
 }
 
 
-void OBB::caluculateC(const vecvec3d p){
+void AABB::caluculateC(const vecvec3d p){
     C=Matrix4d(0.0);
     double vt;
     for(uint i=0;i<p.size();i++){
@@ -144,7 +144,7 @@ void OBB::caluculateC(const vecvec3d p){
     C.jacobi(eigenvaluesC,R,rot);
 }
 
-Matrix4d OBB::dyadicProdukt(Vector3d v1, Vector3d v2){
+Matrix4d AABB::dyadicProdukt(Vector3d v1, Vector3d v2){
 
     Matrix4d result=Matrix4d(v1.x()*v2.x(),v1.x()*v2.y(),v1.x()*v2.z(),0.,
                              v1.y()*v2.x(),v1.y()*v2.y(),v1.y()*v2.z(),0.,
@@ -153,7 +153,12 @@ Matrix4d OBB::dyadicProdukt(Vector3d v1, Vector3d v2){
     return result;
 }
 
-void OBB::draw(){
+Vector3d AABB::getBodyCenter()
+{
+    return this->bodycenter;
+}
+
+void AABB::draw(){
     glPushMatrix();
 
 
@@ -230,17 +235,17 @@ void OBB::draw(){
 
 }
 
-void OBB::setCollision()
+void AABB::setCollision()
 {
     this->collision=true;
 }
 
-void OBB::resetCollision()
+void AABB::resetCollision()
 {
     this->collision=false;
 }
 
-bool OBB::intersect(OBB &B){
+bool AABB::intersect(AABB &B){
     bool result=true;
 
     for(int i=0; i<3;++i){
@@ -252,16 +257,16 @@ bool OBB::intersect(OBB &B){
     return result;
 }
 
-double OBB::getDiameter()
+double AABB::getDiameter()
 {
     return 2*halflength.length();
 }
 
-bool OBB::intersect(Package &A){
-    return OBB::intersect(A, *this);
+bool AABB::intersect(Package &A){
+    return AABB::intersect(A, *this);
 }
 
-bool OBB::intersect(Package &A, OBB &B){
+bool AABB::intersect(Package &A, AABB &B){
 
 //    OBB bobb=OBB(A.getCorners(),Vector3d(0));
 //    bobb.draw();
@@ -296,4 +301,10 @@ bool OBB::intersect(Package &A, OBB &B){
         }
     }
     return true;
+}
+
+
+Vector3d AABB::getHalflength()
+{
+    return halflength;
 }
