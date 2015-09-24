@@ -90,7 +90,7 @@ class BVT
         bool intersect(OBB &S);
         bool intersect(BVT &S);
         void resetCollision();
-        void getIntersectDirs(vecvec3d &result);
+        void getIntersectDirs(vecvec3d &result, vecvec3d &colTriMids);
         uint getIntersectNums();
         Vector3d getCenter();
         int createTree(const uint minPoints);

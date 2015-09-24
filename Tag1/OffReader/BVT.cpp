@@ -386,18 +386,21 @@ void BVT::resetCollision()
         this->right->resetCollision();
 }
 
-void BVT::getIntersectDirs(vecvec3d &result)
+void BVT::getIntersectDirs(vecvec3d &result, vecvec3d &colTriMids)
 {
     if(this->left==NULL && this->right==NULL){
-        uint n=result.size();
-        result.resize(result.size()+this->penetrationCollisions.size());
-        for(uint i=0;i<this->penetrationCollisions.size();++i)
+        uint n=this->penetrationCollisions.size();
+        result.resize(result.size()+n);
+        colTriMids.resize(colTriMids.size()+n);
+        for(uint i=0;i<n;++i){
             result[n+i]=this->penetrationCollisions[i];
+            colTriMids[n+i]=this->triMids[this->collTris[i]];
+        }
     } else {
         if(this->left!=NULL)
-            this->left->getIntersectDirs(result);
+            this->left->getIntersectDirs(result,colTriMids);
         if(this->right!=NULL)
-        this->right->getIntersectDirs(result);
+        this->right->getIntersectDirs(result,colTriMids);
     }
 }
 

@@ -700,22 +700,25 @@ bool CGView::resolveCollision(Package &box, BVT &off){
 
     bool coll_occ=off.intersect(box);;
     uint mincoll,j=0;
-    vecvec3d potDir;
-    Vector3d move_dir=0;
+    vecvec3d potDir,triMids;
+    Vector3d move_dir=0,rotDir=0;
 
     while(coll_occ && j<5){
         ++j;
         mincoll=-1;
-        off.getIntersectDirs(potDir);
+        off.getIntersectDirs(potDir,triMids);
         move_dir=0;
         for (uint i = 0; i < potDir.size(); ++i) {
             move_dir+=potDir[i];
+            rotDir=((box.getCenter()-triMids[i])%potDir[i]);
         }
 
-        move_dir=move_dir/potDir.size();
+        move_dir=move_dir/potDir.size()*0.9;
+        rotDir=rotDir/potDir.size();
+        Quat4d rot=Quat4d(rotDir.length()*0.1,rotDir);
         if(move_dir.length()<box.getDiameter()+off.getBox().getDiameter()){
             if(move_dir.lengthSquared()<1e-10)
-                move_dir=move_dir.normalized()*std::abs(box .getCenter().minComp())*1e-6;
+                move_dir=move_dir.normalized()*std::abs(box.getCenter().minComp())*1e-6;
             box.move(move_dir);
         }
 
