@@ -59,8 +59,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     loadPackage4();
     ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
-    //loadPoly("../TestKofferraumIKEA.off");
-    loadPoly("../../num_15_tris.off");
+    loadPoly("../TestKofferraumIKEA.off");
+    //loadPoly("../../num_15_tris.off");
 
     //loadPackage2();
 }
