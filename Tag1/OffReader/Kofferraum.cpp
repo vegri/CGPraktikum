@@ -659,34 +659,12 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         break;
     }
     case Qt::Key_Space:{
-        uint collisionResolved=true;
+        double collisionResolved=true;
         srand(time(NULL));
         uint k=0;
         while(collisionResolved!=0 && k<50){
-            collisionResolved=0;
-            uint n=0;
-
             k++;
-            for (uint i = 0; i < this->packageList.size(); ++i) {
-                for (uint j = 0; j < this->bootList.size(); ++j) {
-                    collisionResolved+=resolveCollision(this->packageList[i],(*this->bootList[j]));
-                }
-            }
-
-            for (uint i = 0; i < this->packageList.size(); ++i) {
-                n=((uint) rand())%this->packageList.size();
-                for (uint j = 0; j < this->packageList.size(); ++j){
-                    if(j!=n)
-                        this->packageList[n].resolveCollision(this->packageList[j]);
-                }
-            }
-
-            for (uint i = 0; i < this->packageList.size(); ++i) {
-                for (uint j = i+1; j < this->packageList.size(); ++j){
-                    collisionResolved+=this->packageList[i].resolveCollision(this->packageList[j]);
-                }
-            }
-            std::cout << collisionResolved <<std::endl;
+            std::cout << resolveCollision() <<std::endl;
             updateGL();
             updateGL();
         }
@@ -699,41 +677,135 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     updateGL();
     updateGL();
 }
-bool CGView::resolveCollision(Package &box, BVT &off){
-    this->collDir=Vector3d(1,0,0)*1e300;
+double CGView::resolveCollision(){
 
-    bool coll_occ=off.intersect(box);;
-    uint j=0;
-    vecvec3d potDir,triMids;
-    Vector3d move_dir=0,rotDir=0;
+    vecvec3d motion(this->packageList.size()),
+             rotation(this->packageList.size()),
+             motion_tmp,rotation_tmp;
 
-    while(coll_occ && j<5){
-        ++j;
-        off.getIntersectDirs(potDir,triMids);
-        move_dir=0;
-        for (uint i = 0; i < potDir.size(); ++i) {
-            move_dir+=potDir[i];
-            rotDir+=((box.getCenter()-triMids[i])%potDir[i]);
+    double result=getUtilityValue(motion,rotation);
+    motion_tmp=motion;
+    rotation_tmp=rotation;
+    double diff,step_size=0.01;
+
+    for (uint i = 0; i < this->packageList.size(); ++i) {
+        if(motion[i].length()  ==motion[i].length() &&
+           rotation[i].length()==rotation[i].length()){
+            this->packageList[i].move(motion[i]*step_size);
+            diff=result-getUtilityValue(i,motion,rotation);
+            if(diff<0 && rand()<-diff/this->packageList[i].getDiameter())
+                this->packageList[i].move(-motion[i]*step_size);
+
+            Quat4d rot=Quat4d(step_size,rotation[i]);
+            rot.normalize();
+            this->packageList[i].rotate(rot);
+            diff=result-getUtilityValue(i,motion,rotation);
+            if(diff<0 && rand()<-diff/this->packageList[i].getDiameter())
+                this->packageList[i].rotate(rot.inverse());
         }
-
-        move_dir=move_dir/potDir.size()*0.9;
-        rotDir=rotDir/potDir.size();
-        Quat4d rot=Quat4d(0.01,rotDir);
-        if(move_dir.length()<box.getDiameter()+off.getBox().getDiameter()){
-            if(move_dir.lengthSquared()<1e-10)
-                move_dir=move_dir.normalized()*std::abs(box.getCenter().minComp())*1e-6;
-            box.move(move_dir);
-            box.rotate(rot);
-        }
-        move_dir=box.packageInBox(off.getBox());
-        if(move_dir.length()!=0)
-            coll_occ=true;
-        box.move(move_dir);
-
-        off.resetCollision();
-        coll_occ=off.intersect(box);
     }
-    return coll_occ;
+    return result;
+}
+
+//Get some measure how illegal the actual situation is
+double CGView::getUtilityValue(vecvec3d &motion,vecvec3d &rotation)
+{
+    double result=0;
+
+    vecuint colnum=vecuint(this->packageList.size());
+    for (uint i = 0; i < this->packageList.size(); ++i) {
+        colnum[i]=0;
+    }
+
+    for (uint i = 0; i < this->packageList.size(); ++i) {
+        for (uint j = i+1; j < this->packageList.size(); ++j){
+            if(this->packageList[i].resolveCollision(this->packageList[j])){
+                ++colnum[i];++colnum[j];
+                motion[i]=motion[i]+this->packageList[i].getCollDir();
+                motion[j]=motion[j]+this->packageList[j].getCollDir();
+            }
+        }
+    }
+
+    for (uint i = 0; i < this->packageList.size(); ++i) {
+        if(colnum[i]>1)
+            motion[i]=motion[i]/colnum[i];
+
+        for (uint j = 0; j < this->bootList.size(); ++j) {
+            Package &pack=this->packageList[i];
+            BVT &boot=*this->bootList[j];
+            bool coll_occ=pack.intersect(boot.getBox());
+            Vector3d outOfBoxMove=pack.packageInBox(boot.getBox());
+            Vector3d rotDir=0;
+            if(coll_occ){
+                vecvec3d potDir,triMids;
+
+                Vector3d triangleMotion=0;
+
+                //Get motion for triangle collision resolution and rotation axis
+                boot.getIntersectDirs(potDir,triMids);
+                for (uint i = 0; i < potDir.size(); ++i) {
+                    triangleMotion+=potDir[i];
+                    rotDir+=((pack.getCenter()-triMids[i])%potDir[i]);
+                }
+
+                triangleMotion=triangleMotion/potDir.size();
+                rotDir=rotDir/potDir.size();
+                motion[i]=triangleMotion+outOfBoxMove;
+                rotation[i]=rotDir;
+            }
+        }
+    }
+
+    for (uint i = 0; i < this->packageList.size(); ++i) {
+        result+=motion[i].length();
+    }
+}
+
+//Get some measure how illegal the actual situation is if only one package has changed
+double CGView::getUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation)
+{
+    double result=0;
+    uint i=pack_idx;
+    uint colnum=0;
+
+    for (uint j = 0; j < this->packageList.size(); ++j){
+        if(this->packageList[i].resolveCollision(this->packageList[j])){
+            ++colnum;
+            motion[i]=motion[i]+this->packageList[i].getCollDir();
+            motion[j]=motion[j]+this->packageList[j].getCollDir();
+        }
+    }
+
+    motion[i]=motion[i]/colnum;
+
+    for (uint j = 0; j < this->bootList.size(); ++j) {
+        Package &pack=this->packageList[i];
+        BVT &boot=*this->bootList[j];
+        bool coll_occ=pack.intersect(boot.getBox());
+        Vector3d outOfBoxMove=pack.packageInBox(boot.getBox());
+        Vector3d rotDir=0;
+        if(coll_occ){
+            vecvec3d potDir,triMids;
+
+            Vector3d triangleMotion=0;
+
+            //Get motion for triangle collision resolution and rotation axis
+            boot.getIntersectDirs(potDir,triMids);
+            for (uint i = 0; i < potDir.size(); ++i) {
+                triangleMotion+=potDir[i];
+                rotDir+=((pack.getCenter()-triMids[i])%potDir[i]);
+            }
+
+            triangleMotion=triangleMotion/potDir.size();
+            rotDir=rotDir/potDir.size();
+            motion[i]=triangleMotion+outOfBoxMove;
+            rotation[i]=rotDir;
+        }
+    }
+    for (uint i = 0; i < this->packageList.size(); ++i) {
+        result+=motion[i].length();
+    }
 }
 
 int main (int argc, char **argv) {

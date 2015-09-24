@@ -180,6 +180,11 @@ vecvec3d Package::getCorners()
     return res;
 }
 
+Vector3d Package::getCollDir()
+{
+    return this->collDir;
+}
+
 Quat4d Package::getRot()
 {
     return this->rot;
@@ -655,17 +660,13 @@ bool Package::resolveCollision(Package &B){
     bool intersectionOccured=intersect(B);
     if(intersectionOccured){
         if((this->center-B.center-collDir).lengthSquared()<(this->center-B.center).lengthSquared())
-            collDir=-collDir;
-        this->center-=collDir*1.02/2;
-        B.center+=collDir*1.02/2;
+            collDir=-collDir/2;
         if(collDir.length()<1e-10){
             collDir.normalize();
-            this->center-=collDir*1e-10;
-            B.center+=collDir*1e-10;
+            collDir=collDir*1e-10;
         }
+        B.collDir=-collDir;
     }
-    this->collDir=0;
-    B.collDir=0;
     return intersectionOccured;
 }
 

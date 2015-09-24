@@ -83,7 +83,9 @@ public:
   Quat4d q_now;
 
   void keyPressEvent(QKeyEvent *e);
-  bool resolveCollision(Package &B, BVT &Off);
+  double resolveCollision();
+  double getUtilityValue(vecvec3d &motion, vecvec3d &rotation);
+  double getUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation);
   Vector3d collDir;
 
 public slots:

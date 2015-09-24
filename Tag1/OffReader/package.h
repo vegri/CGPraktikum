@@ -37,6 +37,7 @@ public:
     Vector3d packageInBox(AABB &box);
     void setRot(Quat4d rot_p);
     vecvec3d getCorners();
+    Vector3d getCollDir();
     Vector3d penetration(const vecvec3d T);
     Quat4d getRot();
     void rotate(Quat4d rot_p);
