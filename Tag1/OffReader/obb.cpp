@@ -114,7 +114,7 @@ void OBB::setAABBCorner(const vecvec3d p){
 
     halflength=Vector3d(std::abs((max_x-min_x)/2.),std::abs((max_y-min_y)/2.),std::abs((max_z-min_z)/2.0));
     Vector3d boxCenter=Vector3d(max_x+min_x,max_y+min_y,max_z+min_z)*0.5;
-    bodycenter=boxCenter;
+    bodycenter=boxCenter+center;
 
     min=Vector3d(min_x,min_y,min_z)+center;
     max=Vector3d(max_x,max_y,max_z)+center;
@@ -277,6 +277,8 @@ bool OBB::intersect(Package &A, OBB &B){
     Vector3d alpha=A.halflength*A.zoom_val;
     Vector3d beta=B.halflength;
     Vector3d dc=B.center-A.center;
+    //This needs to be the geometric center, not the center of mass
+    dc=B.bodycenter-A.center;
 
     for(int i=0;i<3;i++){
         if(A.intersectAxis(a[i],a,b,alpha,beta,dc))
