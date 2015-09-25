@@ -128,6 +128,7 @@ protected:
   uint depth;
   uint nx,ny,nz;
 
+  bool useNormal;
   bool picked_active;
   bool projRot;
   bool drawMesh;

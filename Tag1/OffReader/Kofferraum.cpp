@@ -64,7 +64,7 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     //ogl->packageList[0].setCenter(Vector3d(0,0,255));
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
-    loadPoly("../TestKofferraumIKEA.off");
+    loadPoly("/home/Sebastian/workspace/qt/CGPraktikum/Tag1/TestKofferraumIKEA.off");
     //loadPoly("../../num_15_tris.off");
 
     //loadPackage2();
@@ -231,6 +231,7 @@ CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ):
     depth=0;
     drawObb=false;
     drawMesh=true;
+    useNormal=false;
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -653,6 +654,9 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         if(picked<this->packageList.size())
             this->packageList[this->picked].pick(true);
         break;
+    case Qt::Key_O:
+        useNormal=!useNormal;
+        break;
     case Qt::Key_P:
         drawMesh=!drawMesh;
         break;
@@ -924,13 +928,14 @@ Vector3d CGView::getMinDistPackageGrid(Package &pack)
     Vector3d result=0;
     uint ix,iy,iz;
     for (uint i = 0; i < 8; ++i) {
-        ix=round((corners[i][0]-zero[0])/grid_diag[0]*2);
-        iy=round((corners[i][1]-zero[1])/grid_diag[1]*2);
-        iz=round((corners[i][2]-zero[2])/grid_diag[2]*2);
-        if(ix<nx && iy < ny && iz < nz && !grid[ix*ny*nz+iy*nz+iz])
+        ix=round((corners[i][0]-zero[0])/grid_diag[0]);
+        iy=round((corners[i][1]-zero[1])/grid_diag[1]);
+        iz=round((corners[i][2]-zero[2])/grid_diag[2]);
+        if(ix<nx && iy < ny && iz < nz && grid[ix*ny*nz+iy*nz+iz]==1)
             result+=grid_coord[ix*ny*nz+iy*nz+iz]-center;
     }
-    result=result.normalized()*grid_diag.length();
+    result=-result.normalized()*grid_diag.length()*4;
+    return result;
 }
 
 
