@@ -86,13 +86,13 @@ public:
 	double zoom;
   Quat4d q_old;
   Quat4d q_now;
-  uint check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree, Vector3d &zero, Vector3d &halfdiag);
+  uint check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree);
   void createPermissionGrid(BVT &tree,double resolution);
 
   void keyPressEvent(QKeyEvent *e);
   double resolveCollision(vecvec3d &trans, vecvec3d &rotation);
   double getUtilityValue(vecvec3d &motion, vecvec3d &rotation);
-  double getUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation);
+  double updateUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation);
   int resolveCollision(Package &B, BVT &Off, bool jumpRot);
   Vector3d collDir;
 
@@ -132,6 +132,9 @@ protected:
   const int SLERP;
   const int EULER_ANGLES;
   vecuint grid;
+  vecvec3d grid_coord;
+  Vector3d grid_diag;
+  Vector3d zero;
 
   //DEBUG
   Vector3d d_ray_f,d_ray_d;

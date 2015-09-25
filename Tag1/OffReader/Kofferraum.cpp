@@ -56,10 +56,10 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     setCentralWidget(f);
     ogl->zoom=0.002;
     statusBar()->showMessage("Ready",1000);
-    loadPackage1();
+    //loadPackage1();
     //loadPackage4();
     //loadPackage4();
-    ogl->packageList[0].setCenter(Vector3d(0,0,255));
+    //ogl->packageList[0].setCenter(Vector3d(0,0,255));
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
     loadPoly("../TestKofferraumIKEA.off");
@@ -208,6 +208,7 @@ void CGMainWindow::loadPoly(QString filename){
     act->drawModel=true;
     uint j=1;
     act->createTree(j);
+    ogl->createPermissionGrid(*act,25);
 
     //DEBUG
     ogl->q_old=Quat4d(3.141/4,Vector3d(0,0,1))*Quat4d(3.141/2,Vector3d(1,0,0));
@@ -300,6 +301,47 @@ void CGView::paintGL() {
     glVertex3dv(d_ray_d.ptr());
     glVertex3dv(d_ray_f.ptr());
     glEnd();
+
+
+    //Permission grid
+//    glColor4f(1.,0.,0.,1);
+//    glLineWidth(6.);
+//    glBegin(GL_LINES);
+//    for (uint i = 0; i < grid.size(); ++i) {
+//        if(grid[i]){
+//            glColor4f(0.,1.,0.,1);
+//        } else {
+//            glColor4f(1.,0.,0.,1);
+//        }
+//        glVertex3dv((grid_coord[i]-half_diag).ptr());
+//        glVertex3dv((grid_coord[i]+half_diag).ptr());
+//    }
+//    glEnd();
+
+    glColor4f(1,1,0.,1);
+    glPointSize(8);
+    glBegin(GL_POINTS);
+    glVertex3dv(grid_coord[0].ptr());
+    for (uint i = 1; i < grid.size(); ++i) {
+        if(grid[i]==2){
+            glColor4f(0.5,0.,0.5,1);
+        } else if(grid[i]==1){
+            glColor4f(0.,1.,0.,1);
+        } else {
+            glColor4f(1.,0.,0.,1);
+        }
+        glVertex3dv(grid_coord[i].ptr());
+    }
+    glEnd();
+
+    glColor4f(1.,1.,0.,1.);
+    glLineWidth(2.);
+    glBegin(GL_LINES);
+    glVertex3dv(grid_coord[0].ptr());
+    glVertex3dv((grid_coord[0]+grid_diag).ptr());
+    glEnd();
+
+    glLineWidth(2.);
 }
 
 void CGView::resizeGL(int width, int height) {
@@ -642,6 +684,16 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         std::cout << this->packageList[picked].getCenter()[0] << "," << this->packageList[picked].getCenter()[1] << ","
                   << this->packageList[picked].getCenter()[2] << "(center)" << std::endl;
         break;
+    case Qt::Key_H:
+        std::cout << this->grid.size() << "(grid.size())" << std::endl;
+        std::cout << this->grid_coord.size() << "(grid_coord.size())" << std::endl;
+        break;
+    case Qt::Key_J:
+        for (uint i = 0; i < grid.size(); ++i) {
+            std::cout << this->grid[i] << "," << this->grid_coord[i][0] << "," << this->grid_coord[i][1] << ","
+                      << this->grid_coord[i][2] << std::endl;
+        }
+        break;
     case Qt::Key_R:{
         uint n=this->packageList.size();
         vecvec3d *points=new vecvec3d(8*n);
@@ -716,15 +768,14 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
     double diff,step_size=0.01;
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
-        if(trans[i].length()>0 && rotation[i].length()>0){
+        //Apply translations improving utility value
+        if(trans[i].length()>0){
             trans_tmp=trans;
             rotation_tmp=rotation;
-
-            //Apply translations improving utility value
             //move package
             this->packageList[i].move(trans[i]*step_size);
             //test if situation is better
-            diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
+            diff=result-updateUtilityValue(i,trans_tmp,rotation_tmp);
             typical_diff+=fabs(diff)/this->packageList.size()/5000;
             //if situation is not better revoke (exponential probability to skip this)
             if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
@@ -735,12 +786,15 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
                 trans=trans_tmp;
                 rotation=rotation_tmp;
             }
-
-            //Apply rotations improving utility value
+        }
+        //Apply rotations improving utility value
+        if(rotation[i].length()>0){
+            trans_tmp=trans;
+            rotation_tmp=rotation;
             Quat4d rot=Quat4d(step_size,rotation[i]);
             this->packageList[i].rotate(rot);
             //test if situation is better
-            diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
+            diff=result-updateUtilityValue(i,trans_tmp,rotation_tmp);
             //if situation is not better revoke (exponential probability to skip this)
             if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
                 this->packageList[i].rotate(rot.inverse());
@@ -786,7 +840,7 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
             Package &pack=this->packageList[i];
             BVT &boot=*this->bootList[j];
             bool coll_occ=boot.intersect(pack);
-            trans[i]+=pack.packageInBox(boot.getBox())/this->bootList.size();
+            trans[i]+=pack.packageInBox(boot.getBox())/this->bootList.size()*10;
             Vector3d rotDir=0;
             if(coll_occ){
                 vecvec3d potDir,triNormals;
@@ -820,7 +874,7 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
 }
 
 //Get some measure how illegal the actual situation is if only one package has changed
-double CGView::getUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation)
+double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation)
 {
     double result=0;
     uint i=pack_idx;
@@ -867,14 +921,15 @@ double CGView::getUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation
 }
 
 
-uint CGView::check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree, Vector3d &zero, Vector3d &halfdiag){
+uint CGView::check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree){
     vecvec3d points(2);
     points[0]=zero;
-    points[0][0]+=halfdiag[0]*(act/(ny*nz)%nx);
-    points[0][1]+=halfdiag[1]*(act/nz%ny);
-    points[0][2]+=halfdiag[2]*(act%nz);
-    points[1]=points[0]+halfdiag;
-    points[0]-=halfdiag;
+    points[0][0]+=grid_diag[0]*(act/(ny*nz)%nx);
+    points[0][1]+=grid_diag[1]*(act/nz%ny);
+    points[0][2]+=grid_diag[2]*(act%nz);
+    grid_coord[act]=points[0];
+    points[1]=points[0]+grid_diag/2;
+    points[0]-=grid_diag/2;
     AABB tst(points,Vector3d(0,0,0));
     if(tree.intersect(tst))
         return 0;
@@ -891,12 +946,20 @@ void CGView::createPermissionGrid(BVT &tree,double resolution){
     ny=ceil(halflength[1]/resolution)*2+2;
     nz=ceil(halflength[2]/resolution)*2+2;
 
-    Vector3d halfdiag=halflength/resolution;
-    Vector3d zero=tree.getBox().getBodyCenter()-halflength-halfdiag;
+    grid_diag=halflength*2;
+    grid_diag[0]/=(nx-2);grid_diag[1]/=(ny-2);grid_diag[2]/=(nz-2);
+    zero=tree.getBox().getBodyCenter()-halflength-grid_diag*0.5;
 
     grid=vecuint(nx*ny*nz);
+    grid_coord=vecvec3d(nx*ny*nz);
+
+
     for (uint i = 0; i < nx*ny*nz; ++i) {
         grid[i]=2;
+        grid_coord[i]=zero;
+        grid_coord[i][0]+=grid_diag[0]*(i/(ny*nz)%nx);
+        grid_coord[i][1]+=grid_diag[1]*(i/nz%ny);
+        grid_coord[i][2]+=grid_diag[2]*(i%nz);
     }
     //Init queue to store next search points
     std::queue<uint> toexplore;
@@ -908,40 +971,40 @@ void CGView::createPermissionGrid(BVT &tree,double resolution){
 
         //proove all neighbours
         //left
-        if((act/(ny*nz)%nx)!=0 && grid[act-ny*nz]!=2){
-            grid[act-ny*nz]=check(act-ny*nz,nx,ny,nz,tree,zero,halfdiag);
+        if((act/(ny*nz)%nx)!=0 && grid[act-ny*nz]==2){
+            grid[act-ny*nz]=check(act-ny*nz,nx,ny,nz,tree);
             if(grid[act-ny*nz])
                 toexplore.push(act-ny*nz);
         }
         //right
-        if((act/(ny*nz)%nx)<nx && grid[act+ny*nz]!=2){
-            grid[act+ny*nz]=check(act+ny*nz,nx,ny,nz,tree,zero,halfdiag);
+        if((act/(ny*nz)%nx)!=nx-1 && grid[act+ny*nz]==2){
+            grid[act+ny*nz]=check(act+ny*nz,nx,ny,nz,tree);
             if(grid[act+ny*nz])
                 toexplore.push(act+ny*nz);
         }
 
         //above
-        if((act/nz%ny)!=0 && grid[act-nz]!=2){
-            grid[act-nz]=check(act-nz,nx,ny,nz,tree,zero,halfdiag);
+        if((act/nz%ny)!=0 && grid[act-nz]==2){
+            grid[act-nz]=check(act-nz,nx,ny,nz,tree);
             if(grid[act-nz])
                 toexplore.push(act-nz);
         }
         //below
-        if((act/nz%ny)<ny && grid[act+nz]!=2){
-            grid[act+nz]=check(act+nz,nx,ny,nz,tree,zero,halfdiag);
+        if((act/nz%ny)!=ny-1 && grid[act+nz]==2){
+            grid[act+nz]=check(act+nz,nx,ny,nz,tree);
             if(grid[act+nz])
                 toexplore.push(act+nz);
         }
 
         //behind
-        if((act%nz)!=0 && grid[act-1]!=2){
-            grid[act-1]=check(act-1,nx,ny,nz,tree,zero,halfdiag);
+        if((act%nz)!=0 && grid[act-1]==2){
+            grid[act-1]=check(act-1,nx,ny,nz,tree);
             if(grid[act-1])
                 toexplore.push(act-1);
         }
         //before
-        if((act%nz)<nz && grid[act+1]!=2){
-            grid[act+1]=check(act+1,nx,ny,nz,tree,zero,halfdiag);
+        if((act%nz)!=nz-1 && grid[act+1]==2){
+            grid[act+1]=check(act+1,nx,ny,nz,tree);
             if(grid[act+1])
                 toexplore.push(act+1);
         }
