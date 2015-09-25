@@ -65,11 +65,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
 
-#if _MSC_VER
-    loadPoly("../../Tag1/TestKofferraumIKEA.off");
-#else
-    loadPoly("/home/Sebastian/workspace/qt/CGPraktikum/Tag1/TestKofferraumIKEA.off");
-#endif
+    loadPoly("../TestKofferraumIKEA.off");
+//    loadPoly("/home/Sebastian/workspace/qt/CGPraktikum/Tag1/TestKofferraumIKEA.off");
     //loadPoly("../../num_15_tris.off");
 
     //loadPackage2();
@@ -120,14 +117,14 @@ void CGMainWindow::loadAllPackages(){
 
     for(uint i=0;i<1;++i){
         ogl->packageList.push_back(Package( 50, 50, 50));
-        ogl->packageList.push_back(Package(410,160,1490));
+        //ogl->packageList.push_back(Package(410,160,1490));
         ogl->packageList.push_back(Package(340, 40,740));
         ogl->packageList.push_back(Package(140,190,800));
         ogl->packageList.push_back(Package(110, 50,480));
-        ogl->packageList.push_back(Package(360, 40,600));
+        //ogl->packageList.push_back(Package(360, 40,600));
         ogl->packageList.push_back(Package(250,100,310));
         ogl->packageList.push_back(Package(310,190,320));
-        ogl->packageList.push_back(Package(470,440,680));
+        //ogl->packageList.push_back(Package(470,440,680));
         ogl->packageList.push_back(Package(310,280,450));
     }
 
@@ -233,7 +230,7 @@ CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ):
     picked=-1;
     picked_active=false;
     projRot=false;
-    depth=0;
+    depth=-1;
     drawObb=false;
     drawGrid=false;
     useNormal=false;
@@ -661,6 +658,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         break;
     case Qt::Key_O:
         useNormal=!useNormal;
+        std::cout << "Use Normal is " << useNormal << std::endl;
         break;
     case Qt::Key_P:
         drawGrid=!drawGrid;
@@ -768,7 +766,7 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
     double result=getUtilityValue(trans,rotation);
     trans_tmp=trans;
     rotation_tmp=rotation;
-    double diff,step_size=0.01;
+    double diff,step_size=0.005;
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         //Apply translations improving utility value
@@ -779,7 +777,7 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
             this->packageList[i].move(trans[i]*step_size);
             //test if situation is better
             diff=result-updateUtilityValue(i,trans_tmp,rotation_tmp);
-            typical_diff+=fabs(diff)/this->packageList.size()/5000;
+            typical_diff+=fabs(diff)/this->packageList.size()/500;
             //if situation is not better revoke (exponential probability to skip this)
             if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
                 this->packageList[i].move(-trans[i]*step_size);
@@ -837,9 +835,8 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         if(colnum[i]>1)
-            trans[i]=trans[i]/colnum[i];
+            trans[i]=trans[i]/colnum[i]*4;
         Vector3d grid=getMinDistPackageGrid(this->packageList[i]);
-        std::cout << grid[0] <<","<< grid [1] <<","<< grid[2] << std:: endl;
         trans[i]+=grid;
 
         for (uint j = 0; j < this->bootList.size(); ++j) {
@@ -857,7 +854,7 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
                 for (uint l = 0; l < potDir.size(); ++l) {
                     //This is a special way to try to reduce average effects of separatin planes
                     if(useNormal){
-                        triangleMotion+=triNormals[l]*potDir[l].length();
+                        triangleMotion-=triNormals[l]*potDir[l].length();
                     } else {
                         triangleMotion+=potDir[l];
                     }

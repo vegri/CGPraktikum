@@ -131,7 +131,7 @@ protected:
   bool useNormal;
   bool picked_active;
   bool projRot;
-  bool drawMesh;
+  bool drawGrid;
   QFlag mouse_mode;
   const int SLERP;
   const int EULER_ANGLES;
