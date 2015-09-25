@@ -56,10 +56,10 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     setCentralWidget(f);
     ogl->zoom=0.002;
     statusBar()->showMessage("Ready",1000);
-    loadPackage4();
+    loadPackage1();
     //loadPackage4();
     //loadPackage4();
-    //ogl->packageList[0].setCenter(Vector3d(0,0,255));
+    ogl->packageList[0].setCenter(Vector3d(0,0,255));
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
     loadPoly("../TestKofferraumIKEA.off");
