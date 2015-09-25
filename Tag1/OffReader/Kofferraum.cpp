@@ -850,7 +850,12 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
                 //Get motion for triangle collision resolution and rotation axis
                 boot.getIntersectDirs(potDir,triNormals);
                 for (uint l = 0; l < potDir.size(); ++l) {
-                    triangleMotion+=potDir[l];
+                    //This is a special way to try to reduce average effects of separatin planes
+                    if(useNormal){
+                        triangleMotion+=triNormals[l]*potDir[l].length();
+                    } else {
+                        triangleMotion+=potDir[l];
+                    }
                     rotDir+=pack.getCenter()%triNormals[l];
                 }
 
