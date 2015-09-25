@@ -659,6 +659,7 @@ vecvec3d Package::getAxis()
     for (uint i = 0; i < 3; ++i) {
         result[i]=rot*result[i];
     }
+    return result;
 }
 
 //collision calculation

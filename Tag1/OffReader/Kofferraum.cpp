@@ -719,7 +719,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         srand(time(NULL));
         uint k=0;
         vecvec3d trans(this->packageList.size());
-        vecquat4d rotation(this->packageList.size());
+        vecquat4d rotation=vecquat4d(this->packageList.size());
         while(collVal!=0 && k<50){
             k++;
             oldCollVal=collVal;
@@ -784,6 +784,7 @@ double CGView::resolveCollision(vecvec3d &trans, vecquat4d &rotation){
                 this->packageList[i].move(-trans[i]*step_size);
             } else {
                 //if situation is better persist changes
+                std::cout << "ss 2" <<std::endl;
                 result=result-diff;
                 trans=trans_tmp;
                 rotation=rotation_tmp;
