@@ -706,6 +706,15 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     updateGL();
     updateGL();
 }
+
+void createPermissionGrid(BVT &tree,double resolution){
+    uint nx,ny,nz;
+    Vector3d halflength=tree.getBox().getHalflength();
+    nx=halflength[0]/resolution;
+    ny=halflength[1]/resolution;
+    nz=halflength[2]/resolution;
+}
+
 double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
 
     vecvec3d trans_tmp,rotation_tmp;
@@ -749,9 +758,12 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
 {
     double result=0;
 
+    //get vector for number of collisions for every package for normalization
     vecuint colnum=vecuint(this->packageList.size());
     for (uint i = 0; i < this->packageList.size(); ++i) {
         colnum[i]=0;
+        trans[i]=0;
+        rotation[i]=0;
     }
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
@@ -771,34 +783,34 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
         for (uint j = 0; j < this->bootList.size(); ++j) {
             Package &pack=this->packageList[i];
             BVT &boot=*this->bootList[j];
-            bool coll_occ=pack.intersect(boot.getBox());
-            Vector3d outOfBoxMove=pack.packageInBox(boot.getBox());
+            bool coll_occ=boot.intersect(pack);
+            trans[i]+=pack.packageInBox(boot.getBox())/this->bootList.size();
             Vector3d rotDir=0;
             if(coll_occ){
-                vecvec3d potDir,triMids;
-
+                vecvec3d potDir,triNormals;
                 Vector3d triangleMotion=0;
 
                 //Get motion for triangle collision resolution and rotation axis
-                boot.getIntersectDirs(potDir,triMids);
+                boot.getIntersectDirs(potDir,triNormals);
                 for (uint l = 0; l < potDir.size(); ++l) {
                     triangleMotion+=potDir[l];
-                    rotDir+=((pack.getCenter()-triMids[l])%potDir[l]);
+                    rotDir+=pack.getCenter()%triNormals[l];
                 }
 
                 triangleMotion=triangleMotion/potDir.size();
                 rotDir=rotDir/potDir.size();
-                trans[i]=triangleMotion+outOfBoxMove;
+                trans[i]+=triangleMotion/this->bootList.size();
                 rotation[i]=rotDir.normalized();
             }
         }
+        trans[i]/=3;
     }
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         if(trans[i].length()==trans[i].length())
             result+=trans[i].length();
         else
-            result+=10;
+            result+=1e9;
     }
     return result;
 }
