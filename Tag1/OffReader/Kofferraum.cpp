@@ -228,6 +228,7 @@ CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ):
     projRot=false;
     depth=0;
     drawObb=false;
+    drawMesh=true;
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -304,44 +305,32 @@ void CGView::paintGL() {
 
 
     //Permission grid
-//    glColor4f(1.,0.,0.,1);
-//    glLineWidth(6.);
-//    glBegin(GL_LINES);
-//    for (uint i = 0; i < grid.size(); ++i) {
-//        if(grid[i]){
-//            glColor4f(0.,1.,0.,1);
-//        } else {
-//            glColor4f(1.,0.,0.,1);
-//        }
-//        glVertex3dv((grid_coord[i]-half_diag).ptr());
-//        glVertex3dv((grid_coord[i]+half_diag).ptr());
-//    }
-//    glEnd();
-
-    glColor4f(1,1,0.,1);
-    glPointSize(8);
-    glBegin(GL_POINTS);
-    glVertex3dv(grid_coord[0].ptr());
-    for (uint i = 1; i < grid.size(); ++i) {
-        if(grid[i]==2){
-            glColor4f(0.5,0.,0.5,1);
-        } else if(grid[i]==1){
-            glColor4f(0.,1.,0.,1);
-        } else {
-            glColor4f(1.,0.,0.,1);
+    if(drawMesh){
+        glColor4f(1,1,0.,1);
+        glPointSize(8);
+        glBegin(GL_POINTS);
+        glVertex3dv(grid_coord[0].ptr());
+        for (uint i = 1; i < grid.size(); ++i) {
+            if(grid[i]==2){
+                glColor4f(0.5,0.,0.5,1);
+            } else if(grid[i]==1){
+                glColor4f(0.,1.,0.,1);
+            } else {
+                glColor4f(1.,0.,0.,1);
+            }
+            glVertex3dv(grid_coord[i].ptr());
         }
-        glVertex3dv(grid_coord[i].ptr());
+        glEnd();
+
+        glColor4f(1.,1.,0.,1.);
+        glLineWidth(2.);
+        glBegin(GL_LINES);
+        glVertex3dv(grid_coord[0].ptr());
+        glVertex3dv((grid_coord[0]+grid_diag).ptr());
+        glEnd();
+
+        glLineWidth(2.);
     }
-    glEnd();
-
-    glColor4f(1.,1.,0.,1.);
-    glLineWidth(2.);
-    glBegin(GL_LINES);
-    glVertex3dv(grid_coord[0].ptr());
-    glVertex3dv((grid_coord[0]+grid_diag).ptr());
-    glEnd();
-
-    glLineWidth(2.);
 }
 
 void CGView::resizeGL(int width, int height) {
@@ -662,6 +651,9 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         if(picked<this->packageList.size())
             this->packageList[this->picked].pick(true);
         break;
+    case Qt::Key_P:
+        drawMesh=!drawMesh;
+        break;
     case Qt::Key_N:
         ++depth;
         break;
@@ -920,8 +912,23 @@ double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotat
     return result;
 }
 
+Vector3d CGView::getMinDistPackageGrid(Package &pack)
+{
+    vecvec3d corners=pack.getCorners();
+    Vector3d result=0;
+    uint ix,iy,iz;
+    for (uint i = 0; i < 8; ++i) {
+        ix=round((corners[i][0]-zero)/grid_diag[0]*2);
+        iy=round((corners[i][1]-zero)/grid_diag[1]*2);
+        iz=round((corners[i][2]-zero)/grid_diag[2]*2);
+        if(ix<nx && iy < ny && iz < nz && !grid[ix*ny*nz+iy*nz+iz])
+            result+=grid_coord[ix*ny*nz+iy*nz+iz]-center;
+    }
+    result=result.normalized()*grid_diag.length();
+}
 
-uint CGView::check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree){
+
+uint CGView::check(uint act, BVT &tree){
     vecvec3d points(2);
     points[0]=zero;
     points[0][0]+=grid_diag[0]*(act/(ny*nz)%nx);
@@ -940,7 +947,6 @@ uint CGView::check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree){
 
 //XXXX
 void CGView::createPermissionGrid(BVT &tree,double resolution){
-    uint nx,ny,nz;
     Vector3d halflength=tree.getBox().getHalflength();
     nx=ceil(halflength[0]/resolution)*2+2;
     ny=ceil(halflength[1]/resolution)*2+2;
@@ -972,39 +978,39 @@ void CGView::createPermissionGrid(BVT &tree,double resolution){
         //proove all neighbours
         //left
         if((act/(ny*nz)%nx)!=0 && grid[act-ny*nz]==2){
-            grid[act-ny*nz]=check(act-ny*nz,nx,ny,nz,tree);
+            grid[act-ny*nz]=check(act-ny*nz,tree);
             if(grid[act-ny*nz])
                 toexplore.push(act-ny*nz);
         }
         //right
         if((act/(ny*nz)%nx)!=nx-1 && grid[act+ny*nz]==2){
-            grid[act+ny*nz]=check(act+ny*nz,nx,ny,nz,tree);
+            grid[act+ny*nz]=check(act+ny*nz,tree);
             if(grid[act+ny*nz])
                 toexplore.push(act+ny*nz);
         }
 
         //above
         if((act/nz%ny)!=0 && grid[act-nz]==2){
-            grid[act-nz]=check(act-nz,nx,ny,nz,tree);
+            grid[act-nz]=check(act-nz,tree);
             if(grid[act-nz])
                 toexplore.push(act-nz);
         }
         //below
         if((act/nz%ny)!=ny-1 && grid[act+nz]==2){
-            grid[act+nz]=check(act+nz,nx,ny,nz,tree);
+            grid[act+nz]=check(act+nz,tree);
             if(grid[act+nz])
                 toexplore.push(act+nz);
         }
 
         //behind
         if((act%nz)!=0 && grid[act-1]==2){
-            grid[act-1]=check(act-1,nx,ny,nz,tree);
+            grid[act-1]=check(act-1,tree);
             if(grid[act-1])
                 toexplore.push(act-1);
         }
         //before
         if((act%nz)!=nz-1 && grid[act+1]==2){
-            grid[act+1]=check(act+1,nx,ny,nz,tree);
+            grid[act+1]=check(act+1,tree);
             if(grid[act+1])
                 toexplore.push(act+1);
         }

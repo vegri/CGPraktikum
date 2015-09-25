@@ -638,6 +638,21 @@ void Package::resetCollision()
 {
     this->collision=false;
 }
+
+Vector3d Package::minCornerDist(Vector3d &vec)
+{
+    Vector3d loc=rot.inverse()*(vec-center);
+    uint minInt=0;
+    double minDist=(loc-corners[0]).length();
+    for (uint i = 1; i < 8; ++i) {
+        if((loc-corners[i]).length()<minDist){
+            minInt=i;
+            minDist=(loc-corners[i]).length();
+        }
+    }
+    return rot*(loc-corners[i]);
+}
+
 //collision calculation
 bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc){
     double res=0;

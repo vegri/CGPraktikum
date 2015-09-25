@@ -70,6 +70,7 @@ public:
     bool collision;
     void setCollision(Package &other);
     void resetCollision();
+    Vector3d minCornerDist(Vector3d &vec);
     double zoom_val;
 
     bool intersect(Package &B);

@@ -86,13 +86,14 @@ public:
 	double zoom;
   Quat4d q_old;
   Quat4d q_now;
-  uint check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree);
+  uint check(uint act, BVT &tree);
   void createPermissionGrid(BVT &tree,double resolution);
 
   void keyPressEvent(QKeyEvent *e);
   double resolveCollision(vecvec3d &trans, vecvec3d &rotation);
   double getUtilityValue(vecvec3d &motion, vecvec3d &rotation);
   double updateUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation);
+  Vector3d getMinDistPackageGrid(Package &pack);
   int resolveCollision(Package &B, BVT &Off, bool jumpRot);
   Vector3d collDir;
 
@@ -125,9 +126,11 @@ protected:
   int animationMode;
   uint picked;
   uint depth;
+  uint nx,ny,nz;
 
   bool picked_active;
   bool projRot;
+  bool drawMesh;
   QFlag mouse_mode;
   const int SLERP;
   const int EULER_ANGLES;
