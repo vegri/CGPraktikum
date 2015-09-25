@@ -58,6 +58,7 @@ class AABB{
         void resetCollision();
         double getDiameter();
         bool intersect(AABB &B);
+        Vector3d penetration(const vecvec3d T);
 
         //variablen
         std::vector<Vector3d> points;

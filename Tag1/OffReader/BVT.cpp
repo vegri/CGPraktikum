@@ -317,8 +317,9 @@ bool BVT::intersect(Package &S)
                 if(res.lengthSquared()!=0){
                     this->penetrationCollisions.push_back(res);
                     this->collTris.push_back(j);
+                    result=true;
                 }
-                result=true;
+
             }
         }
         return result;
@@ -341,7 +342,20 @@ bool BVT::intersect(AABB &S)
                 return true;
             }
         }
-        this->intersection=true;
+        bool result;
+        if(NULL==this->right && NULL==this->left){
+            vecvec3d tri(3);
+            for (uint j = 0; j < idx.size(); ++j) {
+                for (uint i = 0; i < 3; ++i) {
+                    tri[i]=this->points->at(this->idx[j][i]);
+                }
+                Vector3d res=S.penetration(tri);
+                if(res.lengthSquared()!=0){
+                    result=true;
+                }
+            }
+        }
+        return result;
     }
     return false;
 }

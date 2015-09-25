@@ -57,8 +57,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     ogl->zoom=0.002;
     statusBar()->showMessage("Ready",1000);
     loadPackage4();
-    loadPackage4();
-    loadPackage4();
+    //loadPackage4();
+    //loadPackage4();
     //ogl->packageList[0].setCenter(Vector3d(0,0,255));
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
@@ -672,25 +672,24 @@ void CGView::keyPressEvent(QKeyEvent *e) {
             oldCollVal=collVal;
             collVal=resolveCollision(trans,rotation);
 
-            if(collVal>0.99*oldCollVal && rand()%50>k && k!=0){
-                uint n=rand()%this->packageList.size();
-                uint m=rand()%this->packageList.size();
-                while(trans[n].length()==0)
-                    n=rand()%this->packageList.size();
-                if(rand()%2){
-                    Quat4d rot=Quat4d(0.7,rotation[n]);
-                    rot.normalize();
-                    this->packageList[n].rotate(rot);
-                } else {
-                    if(trans[n].length()>this->packageList[n].getDiameter()){
-                        std::cout << "Move Error " << n << " " << trans[n][0]
-                                  << " " << trans[n][1] << " " << trans[n][2] <<std::endl;
-                        trans[n]=this->packageList[n].getCenter()*this->packageList[n].getDiameter()/5;
-                    }
-                    this->packageList[n].move(trans[n]);
-                }
-                 //std::cout << "Jump occured" <<std::endl;
-            }
+//            if(collVal>0.99*oldCollVal && rand()%750>k+700 && k!=0){
+//                uint n=rand()%this->packageList.size();
+//                while(trans[n].length()==0)
+//                    n=rand()%this->packageList.size();
+//                if(rand()%2){
+//                    Quat4d rot=Quat4d(0.7,rotation[n]);
+//                    rot.normalize();
+//                    this->packageList[n].rotate(rot);
+//                } else {
+//                    if(trans[n].length()>this->packageList[n].getDiameter()){
+//                        std::cout << "Move Error " << n << " " << trans[n][0]
+//                                  << " " << trans[n][1] << " " << trans[n][2] <<std::endl;
+//                        trans[n]=trans[n].normalized()*this->packageList[n].getDiameter()/5;
+//                    }
+//                    this->packageList[n].move(trans[n]);
+//                }
+//                 //std::cout << "Jump occured" <<std::endl;
+//            }
 
             //std::cout << collVal <<std::endl;
 
@@ -707,14 +706,6 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     updateGL();
 }
 
-void createPermissionGrid(BVT &tree,double resolution){
-    uint nx,ny,nz;
-    Vector3d halflength=tree.getBox().getHalflength();
-    nx=halflength[0]/resolution;
-    ny=halflength[1]/resolution;
-    nz=halflength[2]/resolution;
-}
-
 double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
 
     vecvec3d trans_tmp,rotation_tmp;
@@ -726,17 +717,17 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         if(trans[i].length()>0 && rotation[i].length()>0){
-            this->packageList[i].move(trans[i]*step_size);
-            diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
-            typical_diff+=fabs(diff)/this->packageList.size()/5000;
+//            this->packageList[i].move(trans[i]*step_size);
+//            diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
+//            typical_diff+=fabs(diff)/this->packageList.size()/5000;
 
-            if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
-                this->packageList[i].move(-trans[i]*step_size);
-            } else {
-                result=result-diff;
-                trans=trans_tmp;
-                rotation=rotation_tmp;
-            }
+//            if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
+//                this->packageList[i].move(-trans[i]*step_size);
+//            } else {
+//                result=result-diff;
+//                trans=trans_tmp;
+//                rotation=rotation_tmp;
+//            }
 
             Quat4d rot=Quat4d(step_size,rotation[i]);
             this->packageList[i].rotate(rot);
@@ -800,14 +791,16 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
                 triangleMotion=triangleMotion/potDir.size();
                 rotDir=rotDir/potDir.size();
                 trans[i]+=triangleMotion/this->bootList.size();
-                rotation[i]=rotDir.normalized();
+                rotation[i]+=rotDir.normalized();
             }
         }
+        rotation[i]=rotation[i].normalized();
         trans[i]/=3;
     }
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
-        if(trans[i].length()==trans[i].length())
+        //NaN trap
+        if(trans[i].length()>=0)
             result+=trans[i].length();
         else
             result+=1e9;
@@ -861,6 +854,41 @@ double CGView::getUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation
     }
     return result;
 }
+
+
+uint check(uint &act, uint &nx, uint &ny, uint &nz, BVT &tree, Vector3d &zero, Vector3d &halfdiag){
+    vecvec3d points(2);
+}
+
+//XXXX
+void createPermissionGrid(BVT &tree,double resolution){
+    uint nx,ny,nz;
+    Vector3d halflength=tree.getBox().getHalflength();
+    nx=ceil(halflength[0]/resolution)*2+2;
+    ny=ceil(halflength[1]/resolution)*2+2;
+    nz=ceil(halflength[2]/resolution)*2+2;
+    Vector3d zero=tree.getBox().getBodyCenter()+halflength;
+    Vector3d halfdiag=halflength/resolution;
+
+    vecuint grid(nx*ny*nz);
+    for (uint i = 0; i < nx*ny*nz; ++i) {
+        grid[i]=0;
+    }
+    //Init queue to store next search points
+    std::queue<uint> toexplore;
+    toexplore.push(0);
+
+    while(!toexplore.empty()){
+        uint act=toexplore.front();
+        toexplore.pop();
+
+        //proove all neighbours
+
+    }
+}
+
+
+
 
 int main (int argc, char **argv) {
     QApplication app(argc, argv);

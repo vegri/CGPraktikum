@@ -9,11 +9,17 @@
 #include <vector>
 #include <iostream>
 #include <QTimer>
+#include <math.h>
+#include <queue>
 #include "BVT.h"
 #include "obb.h"
 
 #include "vecmath.h"
 #include "package.h"
+
+typedef std::vector<uint> vecuint;
+typedef std::vector<vecuint> vecvecuint;
+typedef std::vector<vecvecuint> vecvecvecuint;
 
 
 #ifndef VECMATH_VERSION
