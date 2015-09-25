@@ -64,7 +64,12 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     //ogl->packageList[0].setCenter(Vector3d(0,0,255));
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
+
+#if _MSC_VER
+    loadPoly("../../Tag1/TestKofferraumIKEA.off");
+#else
     loadPoly("/home/Sebastian/workspace/qt/CGPraktikum/Tag1/TestKofferraumIKEA.off");
+#endif
     //loadPoly("../../num_15_tris.off");
 
     //loadPackage2();
@@ -230,7 +235,7 @@ CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ):
     projRot=false;
     depth=0;
     drawObb=false;
-    drawMesh=true;
+    drawGrid=false;
     useNormal=false;
     setFocusPolicy(Qt::StrongFocus);
 }
@@ -308,7 +313,7 @@ void CGView::paintGL() {
 
 
     //Permission grid
-    if(drawMesh && grid.size()>0){
+    if(drawGrid && grid.size()>0){
         glColor4f(1,1,0.,1);
         glPointSize(8);
         glBegin(GL_POINTS);
@@ -658,7 +663,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         useNormal=!useNormal;
         break;
     case Qt::Key_P:
-        drawMesh=!drawMesh;
+        drawGrid=!drawGrid;
         break;
     case Qt::Key_N:
         ++depth;
