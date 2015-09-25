@@ -918,9 +918,9 @@ Vector3d CGView::getMinDistPackageGrid(Package &pack)
     Vector3d result=0;
     uint ix,iy,iz;
     for (uint i = 0; i < 8; ++i) {
-        ix=round((corners[i][0]-zero)/grid_diag[0]*2);
-        iy=round((corners[i][1]-zero)/grid_diag[1]*2);
-        iz=round((corners[i][2]-zero)/grid_diag[2]*2);
+        ix=round((corners[i][0]-zero[0])/grid_diag[0]*2);
+        iy=round((corners[i][1]-zero[1])/grid_diag[1]*2);
+        iz=round((corners[i][2]-zero[2])/grid_diag[2]*2);
         if(ix<nx && iy < ny && iz < nz && !grid[ix*ny*nz+iy*nz+iz])
             result+=grid_coord[ix*ny*nz+iy*nz+iz]-center;
     }

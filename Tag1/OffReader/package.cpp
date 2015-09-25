@@ -650,7 +650,7 @@ Vector3d Package::minCornerDist(Vector3d &vec)
             minDist=(loc-corners[i]).length();
         }
     }
-    return rot*(loc-corners[i]);
+    return rot*(loc-corners[minInt]);
 }
 
 //collision calculation
