@@ -38,6 +38,8 @@ typedef std::vector<vecvecuint> vecvecvecuint;
 	#include <GL/glu.h>
 #endif
 
+typedef std::vector<Quat4d> vecquat4d;
+
 class CGView;
 
 class CGMainWindow : public QMainWindow {
@@ -90,9 +92,9 @@ public:
   void createPermissionGrid(BVT &tree,double resolution);
 
   void keyPressEvent(QKeyEvent *e);
-  double resolveCollision(vecvec3d &trans, vecvec3d &rotation);
-  double getUtilityValue(vecvec3d &motion, vecvec3d &rotation);
-  double updateUtilityValue(uint pack_idx, vecvec3d &motion,vecvec3d &rotation);
+  double resolveCollision(vecvec3d &trans, vecquat4d &rotation);
+  double getUtilityValue(vecvec3d &motion, vecquat4d &rotation);
+  double updateUtilityValue(uint pack_idx, vecvec3d &motion,vecquat4d &rotation);
   Vector3d getMinDistPackageGrid(Package &pack);
   int resolveCollision(Package &B, BVT &Off, bool jumpRot);
   Vector3d collDir;

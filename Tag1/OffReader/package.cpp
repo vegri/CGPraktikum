@@ -653,6 +653,14 @@ Vector3d Package::minCornerDist(Vector3d &vec)
     return rot*(loc-corners[minInt]);
 }
 
+vecvec3d Package::getAxis()
+{
+    vecvec3d result=this->axis;
+    for (uint i = 0; i < 3; ++i) {
+        result[i]=rot*result[i];
+    }
+}
+
 //collision calculation
 bool Package::intersectAxis(Vector3d &v, vecvec3d &a, vecvec3d &b, Vector3d &alpha, Vector3d &beta, Vector3d &dc){
     double res=0;

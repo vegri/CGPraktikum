@@ -71,6 +71,7 @@ public:
     void setCollision(Package &other);
     void resetCollision();
     Vector3d minCornerDist(Vector3d &vec);
+    vecvec3d getAxis();
     double zoom_val;
 
     bool intersect(Package &B);

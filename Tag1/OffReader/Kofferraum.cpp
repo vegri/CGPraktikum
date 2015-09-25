@@ -65,8 +65,8 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
 
-    loadPoly("../TestKofferraumIKEA.off");
-//    loadPoly("/home/Sebastian/workspace/qt/CGPraktikum/Tag1/TestKofferraumIKEA.off");
+//    loadPoly("../TestKofferraumIKEA.off");
+    loadPoly("/home/Sebastian/workspace/qt/CGPraktikum/Tag1/TestKofferraumIKEA.off");
     //loadPoly("../../num_15_tris.off");
 
     //loadPackage2();
@@ -718,8 +718,8 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         double collVal=true,oldCollVal;
         srand(time(NULL));
         uint k=0;
-        vecvec3d trans(this->packageList.size()),
-                 rotation(this->packageList.size());
+        vecvec3d trans(this->packageList.size());
+        vecquat4d rotation(this->packageList.size());
         while(collVal!=0 && k<50){
             k++;
             oldCollVal=collVal;
@@ -759,9 +759,10 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     updateGL();
 }
 
-double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
+double CGView::resolveCollision(vecvec3d &trans, vecquat4d &rotation){
 
-    vecvec3d trans_tmp,rotation_tmp;
+    vecvec3d trans_tmp;
+    vecquat4d rotation_tmp;
 
     double result=getUtilityValue(trans,rotation);
     trans_tmp=trans;
@@ -792,7 +793,8 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
         if(rotation[i].length()>0){
             trans_tmp=trans;
             rotation_tmp=rotation;
-            Quat4d rot=Quat4d(step_size,rotation[i]);
+            Vector3d dir_rot=Vector3d(rotation[i][0],rotation[i][1],rotation[i][2]);
+            Quat4d rot=Quat4d(step_size*acos(rotation[i][3])*2,dir_rot);
             this->packageList[i].rotate(rot);
             //test if situation is better
             diff=result-updateUtilityValue(i,trans_tmp,rotation_tmp);
@@ -811,24 +813,47 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
 }
 
 //Get some measure how illegal the actual situation is
-double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
+double CGView::getUtilityValue(vecvec3d &trans,vecquat4d &rotation)
 {
     double result=0;
+
+    vecvec3d axis_i,axis_j;
+    Quat4d pot_rot=Quat4d();
+    double min_rot_val=-1;
+    uint min_rot_idx=0;
 
     //get vector for number of collisions for every package for normalization
     vecuint colnum=vecuint(this->packageList.size());
     for (uint i = 0; i < this->packageList.size(); ++i) {
         colnum[i]=0;
         trans[i]=0;
-        rotation[i]=0;
+        rotation[i]=Quat4d();
     }
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         for (uint j = i+1; j < this->packageList.size(); ++j){
             if(this->packageList[i].resolveCollision(this->packageList[j])){
                 ++colnum[i];++colnum[j];
+                //Get translations for packages
                 trans[i]=trans[i]+this->packageList[i].getCollDir();
                 trans[j]=trans[j]+this->packageList[j].getCollDir();
+                //Get rotations for packages
+                axis_i=this->packageList[i].getAxis();
+                axis_j=this->packageList[j].getAxis();
+                for (uint k = 0; k < 3; ++k) {
+                    for (uint l = 0; l < 3; ++l) {
+                        pot_rot.makeRotate(axis_i[k],axis_j[l]);
+                        //real part is cosin, so we need to maximize to find
+                        //minimal angle
+                        if(pot_rot.w()>min_rot_val){
+                            min_rot_idx=3*k+l;
+                            min_rot_val=pot_rot.w();
+                        }
+                    }
+                }
+                pot_rot.makeRotate(axis_i[min_rot_idx/3%3],axis_j[min_rot_idx%3]);
+                //Just apply all rotations after each other
+                rotation[i]=pot_rot*rotation[i];
             }
         }
     }
@@ -844,7 +869,7 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
             BVT &boot=*this->bootList[j];
             bool coll_occ=boot.intersect(pack);
             trans[i]+=pack.packageInBox(boot.getBox())/this->bootList.size()*10;
-            Vector3d rotDir=0;
+            Quat4d rotDir=Quat4d();
             if(coll_occ){
                 vecvec3d potDir,triNormals;
                 Vector3d triangleMotion=0;
@@ -858,23 +883,23 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
                     } else {
                         triangleMotion+=potDir[l];
                     }
-                    rotDir+=pack.getCenter()%triNormals[l];
+                    rotDir*=Quat4d(0.1,pack.getCenter()%triNormals[l]);
+                    rotDir.normalize();
                 }
 
                 triangleMotion=triangleMotion/potDir.size();
-                rotDir=rotDir/potDir.size();
                 trans[i]+=triangleMotion/this->bootList.size();
-                rotation[i]+=rotDir.normalized();
+                rotation[i]*=rotDir;
             }
         }
-        rotation[i]=rotation[i].normalized();
+        rotation[i].normalize();
         trans[i]/=3;
     }
 
-    for (uint i = 0; i < this->packageList.size(); ++i) {
+    for (uint j = 0; j < this->packageList.size(); ++j) {
         //NaN trap
-        if(trans[i].length()>=0)
-            result+=trans[i].length();
+        if(trans[j].length()>=0)
+            result+=trans[j].length();
         else
             result+=1e9;
     }
@@ -882,28 +907,55 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
 }
 
 //Get some measure how illegal the actual situation is if only one package has changed
-double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation)
+double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans, vecquat4d &rotation)
 {
     double result=0;
+
+    vecvec3d axis_i,axis_j;
+    Quat4d pot_rot=Quat4d();
+    double min_rot_val=-1;
+    uint min_rot_idx=0;
+
     uint i=pack_idx;
     uint colnum=0;
+
+    trans[i]=0;
+    rotation[i]=Quat4d();
 
     for (uint j = 0; j < this->packageList.size(); ++j){
         if(this->packageList[i].resolveCollision(this->packageList[j])){
             ++colnum;
+            //Get translations for packages
             trans[i]=trans[i]+this->packageList[i].getCollDir();
-            trans[j]=trans[j]+this->packageList[j].getCollDir();
+            //Get rotations for packages
+            axis_i=this->packageList[i].getAxis();
+            axis_j=this->packageList[j].getAxis();
+            for (uint k = 0; k < 3; ++k) {
+                for (uint l = 0; l < 3; ++l) {
+                    pot_rot.makeRotate(axis_i[k],axis_j[l]);
+                    //real part is cosin, so we need to maximize to find
+                    //minimal angle
+                    if(pot_rot.w()>min_rot_val){
+                        min_rot_idx=3*k+l;
+                        min_rot_val=pot_rot.w();
+                    }
+                }
+            }
+            pot_rot.makeRotate(axis_i[min_rot_idx/3%3],axis_j[min_rot_idx%3]);
+            //Just apply all rotations after each other
+            rotation[i]=pot_rot*rotation[i];
         }
     }
 
-    trans[i]=trans[i]/colnum;
-
+    trans[i]=trans[i]/colnum*4;
+    Vector3d grid=getMinDistPackageGrid(this->packageList[i]);
+    trans[i]+=grid;
 
     for (uint j = 0; j < this->bootList.size(); ++j) {
         Package &pack=this->packageList[i];
         BVT &boot=*this->bootList[j];
         bool coll_occ=pack.intersect(boot.getBox());
-        Vector3d outOfBoxMove=pack.packageInBox(boot.getBox());
+        Vector3d outOfBoxMove=pack.packageInBox(boot.getBox())/this->bootList.size()*10;
         Vector3d rotDir=0;
         if(coll_occ){
             vecvec3d potDir,triMids;
@@ -923,8 +975,12 @@ double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotat
             rotation[i]=rotDir;
         }
     }
-    for (uint i = 0; i < this->packageList.size(); ++i) {
-        result+=trans[i].length();
+    for (uint j = 0; j < this->packageList.size(); ++j) {
+        //NaN trap
+        if(trans[j].length()>=0)
+            result+=trans[j].length();
+        else
+            result+=1e9;
     }
     return result;
 }
