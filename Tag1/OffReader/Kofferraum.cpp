@@ -718,10 +718,12 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
     for (uint i = 0; i < this->packageList.size(); ++i) {
         if(trans[i].length()>0 && rotation[i].length()>0){
             //Apply translations improving utility value
+            //move package
             this->packageList[i].move(trans[i]*step_size);
+            //test if situation is better
             diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
             typical_diff+=fabs(diff)/this->packageList.size()/5000;
-
+            //if situation is not better revoke (exponential probability to skip this)
             if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
                 this->packageList[i].move(-trans[i]*step_size);
             } else {
@@ -861,9 +863,11 @@ double CGView::getUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation
 uint check(uint &act, uint &nx, uint &ny, uint &nz, BVT &tree, Vector3d &zero, Vector3d &halfdiag){
     vecvec3d points(2);
     points[0]=zero;
-    points[0][0]+=halfdiag[0];
-    points[1]=points[0]-halfdiag;
-    points[0]+=halfdiag;
+    points[0][0]+=halfdiag[0]*act/(ny*nz)%nx;
+    points[0][1]+=halfdiag[1]*act/ny%ny;
+    points[0][2]+=halfdiag[2]*act%nz;
+    points[1]=points[0]+halfdiag;
+    points[0]-=halfdiag;
     AABB tst(points,Vector3d(0,0,0));
 }
 
