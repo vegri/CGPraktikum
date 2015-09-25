@@ -56,7 +56,9 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     setCentralWidget(f);
     ogl->zoom=0.002;
     statusBar()->showMessage("Ready",1000);
-    //loadPackage1();
+
+    loadPackage1();
+    ogl->packageList[0].setCenter(Vector3d(-306.682,-601.523,142.117));
     //loadPackage4();
     //loadPackage4();
     //ogl->packageList[0].setCenter(Vector3d(0,0,255));
@@ -305,7 +307,7 @@ void CGView::paintGL() {
 
 
     //Permission grid
-    if(drawMesh){
+    if(drawMesh && grid.size()>0){
         glColor4f(1,1,0.,1);
         glPointSize(8);
         glBegin(GL_POINTS);
