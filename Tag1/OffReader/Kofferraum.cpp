@@ -717,18 +717,20 @@ double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         if(trans[i].length()>0 && rotation[i].length()>0){
-//            this->packageList[i].move(trans[i]*step_size);
-//            diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
-//            typical_diff+=fabs(diff)/this->packageList.size()/5000;
+            //Apply translations improving utility value
+            this->packageList[i].move(trans[i]*step_size);
+            diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
+            typical_diff+=fabs(diff)/this->packageList.size()/5000;
 
-//            if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
-//                this->packageList[i].move(-trans[i]*step_size);
-//            } else {
-//                result=result-diff;
-//                trans=trans_tmp;
-//                rotation=rotation_tmp;
-//            }
+            if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
+                this->packageList[i].move(-trans[i]*step_size);
+            } else {
+                result=result-diff;
+                trans=trans_tmp;
+                rotation=rotation_tmp;
+            }
 
+            //Apply rotations improving utility value
             Quat4d rot=Quat4d(step_size,rotation[i]);
             this->packageList[i].rotate(rot);
             diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
@@ -858,6 +860,11 @@ double CGView::getUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation
 
 uint check(uint &act, uint &nx, uint &ny, uint &nz, BVT &tree, Vector3d &zero, Vector3d &halfdiag){
     vecvec3d points(2);
+    points[0]=zero;
+    points[0][0]+=halfdiag[0];
+    points[1]=points[0]-halfdiag;
+    points[0]+=halfdiag;
+    AABB tst(points,Vector3d(0,0,0));
 }
 
 //XXXX
@@ -867,8 +874,9 @@ void createPermissionGrid(BVT &tree,double resolution){
     nx=ceil(halflength[0]/resolution)*2+2;
     ny=ceil(halflength[1]/resolution)*2+2;
     nz=ceil(halflength[2]/resolution)*2+2;
-    Vector3d zero=tree.getBox().getBodyCenter()+halflength;
+
     Vector3d halfdiag=halflength/resolution;
+    Vector3d zero=tree.getBox().getBodyCenter()+halflength+halfdiag;
 
     vecuint grid(nx*ny*nz);
     for (uint i = 0; i < nx*ny*nz; ++i) {
