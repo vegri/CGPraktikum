@@ -827,6 +827,9 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
     for (uint i = 0; i < this->packageList.size(); ++i) {
         if(colnum[i]>1)
             trans[i]=trans[i]/colnum[i];
+        Vector3d grid=getMinDistPackageGrid(this->packageList[i]);
+        std::cout << grid[0] <<","<< grid [1] <<","<< grid[2] << std:: endl;
+        trans[i]+=grid;
 
         for (uint j = 0; j < this->bootList.size(); ++j) {
             Package &pack=this->packageList[i];
@@ -881,6 +884,7 @@ double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotat
     }
 
     trans[i]=trans[i]/colnum;
+
 
     for (uint j = 0; j < this->bootList.size(); ++j) {
         Package &pack=this->packageList[i];
