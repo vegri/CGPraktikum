@@ -92,9 +92,9 @@ public:
   void createPermissionGrid(BVT &tree,double resolution);
 
   void keyPressEvent(QKeyEvent *e);
-  double resolveCollision(vecvec3d &trans, vecquat4d &rotation);
-  double getUtilityValue(vecvec3d &motion, vecquat4d &rotation);
-  double updateUtilityValue(uint pack_idx, vecvec3d &motion,vecquat4d &rotation);
+  double resolveCollision(vecvec3d &trans, vecquat4d &rotation, bool inactiveBott);
+  double getUtilityValue(vecvec3d &motion, vecquat4d &rotation, bool inactiveBoot);
+  double updateUtilityValue(uint pack_idx, vecvec3d &motion, vecquat4d &rotation, bool inactiveBoot);
   Vector3d getMinDistPackageGrid(Package &pack);
   int resolveCollision(Package &B, BVT &Off, bool jumpRot);
   Vector3d collDir;
@@ -134,6 +134,9 @@ protected:
   bool picked_active;
   bool projRot;
   bool drawGrid;
+  bool use_rand;
+  bool inacTrys;
+  bool inacTrysRand;
   QFlag mouse_mode;
   const int SLERP;
   const int EULER_ANGLES;

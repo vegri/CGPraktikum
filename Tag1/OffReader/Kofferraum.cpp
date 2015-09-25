@@ -119,13 +119,13 @@ void CGMainWindow::loadAllPackages(){
         ogl->packageList.push_back(Package( 50, 50, 50));
         //ogl->packageList.push_back(Package(410,160,1490));
         ogl->packageList.push_back(Package(340, 40,740));
-        ogl->packageList.push_back(Package(140,190,800));
+        //ogl->packageList.push_back(Package(140,190,800));
         ogl->packageList.push_back(Package(110, 50,480));
         //ogl->packageList.push_back(Package(360, 40,600));
         ogl->packageList.push_back(Package(250,100,310));
         ogl->packageList.push_back(Package(310,190,320));
         //ogl->packageList.push_back(Package(470,440,680));
-        ogl->packageList.push_back(Package(310,280,450));
+        //ogl->packageList.push_back(Package(310,280,450));
     }
 
     srand(time(NULL));
@@ -135,7 +135,7 @@ void CGMainWindow::loadAllPackages(){
         zero+=ogl->bootList[ogl->bootList.size()-1]->getCenter();
 
     for (uint i = 0; i < ogl->packageList.size(); ++i) {
-        Vector3d epsilon=Vector3d(rand()*ULONG_MAX,rand()*ULONG_MAX,rand()*ULONG_MAX).normalized()*2-1;
+        Vector3d epsilon=Vector3d(rand(),rand(),rand()).normalized()*600-300;
         Quat4d rot=Quat4d(rand(),rand(),rand(),rand());
         rot.normalize();
         ogl->packageList[i].setCenter(zero+epsilon);
@@ -234,6 +234,9 @@ CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ):
     drawObb=false;
     drawGrid=false;
     useNormal=false;
+    use_rand=false;
+    inacTrys=false;
+    inacTrysRand=false;
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -660,6 +663,18 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         useNormal=!useNormal;
         std::cout << "Use Normal is " << useNormal << std::endl;
         break;
+    case Qt::Key_Z:
+        use_rand=!use_rand;
+        std::cout << "Use rand is " << use_rand << std::endl;
+        break;
+    case Qt::Key_U:
+        inacTrys=!inacTrys;
+        std::cout << "Use step with inact boot is " << inacTrys << std::endl;
+        break;
+    case Qt::Key_I:
+        inacTrysRand=!inacTrysRand;
+        std::cout << "Use step with randomly inact boot is " << inacTrysRand << std::endl;
+        break;
     case Qt::Key_P:
         drawGrid=!drawGrid;
         break;
@@ -723,26 +738,38 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         while(collVal!=0 && k<50){
             k++;
             oldCollVal=collVal;
-            collVal=resolveCollision(trans,rotation);
 
-//            if(collVal>0.99*oldCollVal && rand()%750>k+700 && k!=0){
-//                uint n=rand()%this->packageList.size();
-//                while(trans[n].length()==0)
-//                    n=rand()%this->packageList.size();
-//                if(rand()%2){
-//                    Quat4d rot=Quat4d(0.7,rotation[n]);
-//                    rot.normalize();
-//                    this->packageList[n].rotate(rot);
-//                } else {
-//                    if(trans[n].length()>this->packageList[n].getDiameter()){
-//                        std::cout << "Move Error " << n << " " << trans[n][0]
-//                                  << " " << trans[n][1] << " " << trans[n][2] <<std::endl;
-//                        trans[n]=trans[n].normalized()*this->packageList[n].getDiameter()/5;
-//                    }
-//                    this->packageList[n].move(trans[n]);
-//                }
-//                 //std::cout << "Jump occured" <<std::endl;
-//            }
+            if(inacTrys){
+                collVal=resolveCollision(trans,rotation,true);
+            }
+
+            collVal=resolveCollision(trans,rotation,false);
+
+            if(use_rand){
+                if(collVal>0.99*oldCollVal && rand()%250>k+200 && k!=0){
+                    uint n=rand()%this->packageList.size();
+                    while(trans[n].length()==0)
+                        n=rand()%this->packageList.size();
+                    if(rand()%2){
+                        Vector3d dir_rot=Vector3d(rotation[n][0],rotation[n][1],rotation[n][2]);
+                        Quat4d rot=Quat4d(0.7,dir_rot);
+                        rot.normalize();
+                        this->packageList[n].rotate(rot);
+                    } else {
+                        if(trans[n].length()>this->packageList[n].getDiameter()){
+                            std::cout << "Move Error " << n << " " << trans[n][0]
+                                      << " " << trans[n][1] << " " << trans[n][2] <<std::endl;
+                            trans[n]=trans[n].normalized()*this->packageList[n].getDiameter()/5;
+                        }
+                        this->packageList[n].move(trans[n]);
+                    }
+                     //std::cout << "Jump occured" <<std::endl;
+                }
+            }
+
+            if(inacTrysRand && rand()%250>k+200){
+                collVal=resolveCollision(trans,rotation,true);
+            }
 
             //std::cout << collVal <<std::endl;
 
@@ -759,15 +786,15 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     updateGL();
 }
 
-double CGView::resolveCollision(vecvec3d &trans, vecquat4d &rotation){
+double CGView::resolveCollision(vecvec3d &trans, vecquat4d &rotation, bool inactiveBoot){
 
     vecvec3d trans_tmp;
     vecquat4d rotation_tmp;
 
-    double result=getUtilityValue(trans,rotation);
+    double result=getUtilityValue(trans,rotation,inactiveBoot);
     trans_tmp=trans;
     rotation_tmp=rotation;
-    double diff,step_size=0.005;
+    double diff,step_size=0.05;
 
     for (uint i = 0; i < this->packageList.size(); ++i) {
         //Apply translations improving utility value
@@ -777,14 +804,13 @@ double CGView::resolveCollision(vecvec3d &trans, vecquat4d &rotation){
             //move package
             this->packageList[i].move(trans[i]*step_size);
             //test if situation is better
-            diff=result-updateUtilityValue(i,trans_tmp,rotation_tmp);
+            diff=result-updateUtilityValue(i,trans_tmp,rotation_tmp,inactiveBoot);
             typical_diff+=fabs(diff)/this->packageList.size()/500;
             //if situation is not better revoke (exponential probability to skip this)
             if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
                 this->packageList[i].move(-trans[i]*step_size);
             } else {
                 //if situation is better persist changes
-                std::cout << "ss 2" <<std::endl;
                 result=result-diff;
                 trans=trans_tmp;
                 rotation=rotation_tmp;
@@ -798,7 +824,7 @@ double CGView::resolveCollision(vecvec3d &trans, vecquat4d &rotation){
             Quat4d rot=Quat4d(step_size*acos(rotation[i][3])*2,dir_rot);
             this->packageList[i].rotate(rot);
             //test if situation is better
-            diff=result-updateUtilityValue(i,trans_tmp,rotation_tmp);
+            diff=result-updateUtilityValue(i,trans_tmp,rotation_tmp,inactiveBoot);
             //if situation is not better revoke (exponential probability to skip this)
             if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
                 this->packageList[i].rotate(rot.inverse());
@@ -814,7 +840,7 @@ double CGView::resolveCollision(vecvec3d &trans, vecquat4d &rotation){
 }
 
 //Get some measure how illegal the actual situation is
-double CGView::getUtilityValue(vecvec3d &trans,vecquat4d &rotation)
+double CGView::getUtilityValue(vecvec3d &trans, vecquat4d &rotation, bool inactiveBoot)
 {
     double result=0;
 
@@ -862,39 +888,41 @@ double CGView::getUtilityValue(vecvec3d &trans,vecquat4d &rotation)
     for (uint i = 0; i < this->packageList.size(); ++i) {
         if(colnum[i]>1)
             trans[i]=trans[i]/colnum[i]*4;
-        Vector3d grid=getMinDistPackageGrid(this->packageList[i]);
-        trans[i]+=grid;
+        if(!inactiveBoot){
+            Vector3d grid=getMinDistPackageGrid(this->packageList[i]);
+            trans[i]+=grid;
 
-        for (uint j = 0; j < this->bootList.size(); ++j) {
-            Package &pack=this->packageList[i];
-            BVT &boot=*this->bootList[j];
-            bool coll_occ=boot.intersect(pack);
-            trans[i]+=pack.packageInBox(boot.getBox())/this->bootList.size()*10;
-            Quat4d rotDir=Quat4d();
-            if(coll_occ){
-                vecvec3d potDir,triNormals;
-                Vector3d triangleMotion=0;
+            for (uint j = 0; j < this->bootList.size(); ++j) {
+                Package &pack=this->packageList[i];
+                BVT &boot=*this->bootList[j];
+                bool coll_occ=boot.intersect(pack);
+                trans[i]+=pack.packageInBox(boot.getBox())/this->bootList.size()*10;
+                Quat4d rotDir=Quat4d();
+                if(coll_occ){
+                    vecvec3d potDir,triNormals;
+                    Vector3d triangleMotion=0;
 
-                //Get motion for triangle collision resolution and rotation axis
-                boot.getIntersectDirs(potDir,triNormals);
-                for (uint l = 0; l < potDir.size(); ++l) {
-                    //This is a special way to try to reduce average effects of separatin planes
-                    if(useNormal){
-                        triangleMotion-=triNormals[l]*potDir[l].length();
-                    } else {
-                        triangleMotion+=potDir[l];
+                    //Get motion for triangle collision resolution and rotation axis
+                    boot.getIntersectDirs(potDir,triNormals);
+                    for (uint l = 0; l < potDir.size(); ++l) {
+                        //This is a special way to try to reduce average effects of separatin planes
+                        if(useNormal){
+                            triangleMotion-=triNormals[l]*potDir[l].length();
+                        } else {
+                            triangleMotion+=potDir[l];
+                        }
+                        rotDir*=Quat4d(0.1,pack.getCenter()%triNormals[l]);
+                        rotDir.normalize();
                     }
-                    rotDir*=Quat4d(0.1,pack.getCenter()%triNormals[l]);
-                    rotDir.normalize();
-                }
 
-                triangleMotion=triangleMotion/potDir.size();
-                trans[i]+=triangleMotion/this->bootList.size();
-                rotation[i]*=rotDir;
+                    triangleMotion=triangleMotion/potDir.size();
+                    trans[i]+=triangleMotion/this->bootList.size();
+                    rotation[i]*=rotDir;
+                }
             }
+            rotation[i].normalize();
+            trans[i]/=3;
         }
-        rotation[i].normalize();
-        trans[i]/=3;
     }
 
     for (uint j = 0; j < this->packageList.size(); ++j) {
@@ -908,7 +936,7 @@ double CGView::getUtilityValue(vecvec3d &trans,vecquat4d &rotation)
 }
 
 //Get some measure how illegal the actual situation is if only one package has changed
-double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans, vecquat4d &rotation)
+double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans, vecquat4d &rotation, bool inactiveBoot)
 {
     double result=0;
 
@@ -952,28 +980,30 @@ double CGView::updateUtilityValue(uint pack_idx, vecvec3d &trans, vecquat4d &rot
     Vector3d grid=getMinDistPackageGrid(this->packageList[i]);
     trans[i]+=grid;
 
-    for (uint j = 0; j < this->bootList.size(); ++j) {
-        Package &pack=this->packageList[i];
-        BVT &boot=*this->bootList[j];
-        bool coll_occ=pack.intersect(boot.getBox());
-        Vector3d outOfBoxMove=pack.packageInBox(boot.getBox())/this->bootList.size()*10;
-        Vector3d rotDir=0;
-        if(coll_occ){
-            vecvec3d potDir,triMids;
+    if(inactiveBoot){
+        for (uint j = 0; j < this->bootList.size(); ++j) {
+            Package &pack=this->packageList[i];
+            BVT &boot=*this->bootList[j];
+            bool coll_occ=pack.intersect(boot.getBox());
+            Vector3d outOfBoxMove=pack.packageInBox(boot.getBox())/this->bootList.size()*10;
+            Vector3d rotDir=0;
+            if(coll_occ){
+                vecvec3d potDir,triMids;
 
-            Vector3d triangleMotion=0;
+                Vector3d triangleMotion=0;
 
-            //Get motion for triangle collision resolution and rotation axis
-            boot.getIntersectDirs(potDir,triMids);
-            for (uint l = 0; l < potDir.size(); ++l) {
-                triangleMotion+=potDir[l];
-                rotDir+=((pack.getCenter()-triMids[l])%potDir[l]);
+                //Get motion for triangle collision resolution and rotation axis
+                boot.getIntersectDirs(potDir,triMids);
+                for (uint l = 0; l < potDir.size(); ++l) {
+                    triangleMotion+=potDir[l];
+                    rotDir+=((pack.getCenter()-triMids[l])%potDir[l]);
+                }
+
+                triangleMotion=triangleMotion/potDir.size();
+                rotDir=rotDir/potDir.size();
+                trans[i]=triangleMotion+outOfBoxMove;
+                rotation[i]=rotDir;
             }
-
-            triangleMotion=triangleMotion/potDir.size();
-            rotDir=rotDir/potDir.size();
-            trans[i]=triangleMotion+outOfBoxMove;
-            rotation[i]=rotDir;
         }
     }
     for (uint j = 0; j < this->packageList.size(); ++j) {
