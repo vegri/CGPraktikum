@@ -667,34 +667,37 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         uint k=0;
         vecvec3d trans(this->packageList.size()),
                  rotation(this->packageList.size());
-        while(collVal!=0 && k<500){
+        while(collVal!=0 && k<50){
             k++;
             oldCollVal=collVal;
             collVal=resolveCollision(trans,rotation);
 
-            if(collVal>0.99*oldCollVal && rand()%500>k && k!=0){
+            if(collVal>0.99*oldCollVal && rand()%50>k && k!=0){
                 uint n=rand()%this->packageList.size();
                 uint m=rand()%this->packageList.size();
-                while(trans[n].length()==0){
+                while(trans[n].length()==0)
                     n=rand()%this->packageList.size();
-                    std::cout << "Loop " << n << collVal <<std::endl;
-                }
                 if(rand()%2){
                     Quat4d rot=Quat4d(0.7,rotation[n]);
                     rot.normalize();
                     this->packageList[n].rotate(rot);
                 } else {
+                    if(trans[n].length()>this->packageList[n].getDiameter()){
+                        std::cout << "Move Error " << n << " " << trans[n][0]
+                                  << " " << trans[n][1] << " " << trans[n][2] <<std::endl;
+                        trans[n]=this->packageList[n].getCenter()*this->packageList[n].getDiameter()/5;
+                    }
                     this->packageList[n].move(trans[n]);
                 }
-                 std::cout << "Jump occured" <<std::endl;
+                 //std::cout << "Jump occured" <<std::endl;
             }
 
-            std::cout << collVal <<std::endl;
+            //std::cout << collVal <<std::endl;
 
             updateGL();
             updateGL();
         }
-
+        std::cout << collVal <<std::endl;
     }
         break;
     default:
@@ -703,7 +706,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
     updateGL();
     updateGL();
 }
-double CGView::resolveCollision(vecvec3d trans, vecvec3d rotation){
+double CGView::resolveCollision(vecvec3d &trans, vecvec3d &rotation){
 
     vecvec3d trans_tmp,rotation_tmp;
 
