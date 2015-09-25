@@ -86,6 +86,8 @@ public:
 	double zoom;
   Quat4d q_old;
   Quat4d q_now;
+  uint check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree, Vector3d &zero, Vector3d &halfdiag);
+  void createPermissionGrid(BVT &tree,double resolution);
 
   void keyPressEvent(QKeyEvent *e);
   double resolveCollision(vecvec3d &trans, vecvec3d &rotation);
@@ -129,10 +131,12 @@ protected:
   QFlag mouse_mode;
   const int SLERP;
   const int EULER_ANGLES;
+  vecuint grid;
 
   //DEBUG
   Vector3d d_ray_f,d_ray_d;
   vecvec3d d_window_points;
+
 };
 
 #endif

@@ -867,20 +867,24 @@ double CGView::getUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation
 }
 
 
-uint check(uint &act, uint &nx, uint &ny, uint &nz, BVT &tree, Vector3d &zero, Vector3d &halfdiag){
+uint CGView::check(uint act, uint &nx, uint &ny, uint &nz, BVT &tree, Vector3d &zero, Vector3d &halfdiag){
     vecvec3d points(2);
     points[0]=zero;
     points[0][0]+=halfdiag[0]*(act/(ny*nz)%nx);
-    points[0][1]+=halfdiag[1]*(act/ny%ny);
+    points[0][1]+=halfdiag[1]*(act/nz%ny);
     points[0][2]+=halfdiag[2]*(act%nz);
     points[1]=points[0]+halfdiag;
     points[0]-=halfdiag;
     AABB tst(points,Vector3d(0,0,0));
+    if(tree.intersect(tst))
+        return 0;
+    else
+        return 1;
 
 }
 
 //XXXX
-void createPermissionGrid(BVT &tree,double resolution){
+void CGView::createPermissionGrid(BVT &tree,double resolution){
     uint nx,ny,nz;
     Vector3d halflength=tree.getBox().getHalflength();
     nx=ceil(halflength[0]/resolution)*2+2;
@@ -888,11 +892,11 @@ void createPermissionGrid(BVT &tree,double resolution){
     nz=ceil(halflength[2]/resolution)*2+2;
 
     Vector3d halfdiag=halflength/resolution;
-    Vector3d zero=tree.getBox().getBodyCenter()+halflength+halfdiag;
+    Vector3d zero=tree.getBox().getBodyCenter()-halflength-halfdiag;
 
-    vecuint grid(nx*ny*nz);
+    grid=vecuint(nx*ny*nz);
     for (uint i = 0; i < nx*ny*nz; ++i) {
-        grid[i]=0;
+        grid[i]=2;
     }
     //Init queue to store next search points
     std::queue<uint> toexplore;
@@ -903,8 +907,46 @@ void createPermissionGrid(BVT &tree,double resolution){
         toexplore.pop();
 
         //proove all neighbours
+        //left
+        if((act/(ny*nz)%nx)!=0 && grid[act-ny*nz]!=2){
+            grid[act-ny*nz]=check(act-ny*nz,nx,ny,nz,tree,zero,halfdiag);
+            if(grid[act-ny*nz])
+                toexplore.push(act-ny*nz);
+        }
+        //right
+        if((act/(ny*nz)%nx)<nx && grid[act+ny*nz]!=2){
+            grid[act+ny*nz]=check(act+ny*nz,nx,ny,nz,tree,zero,halfdiag);
+            if(grid[act+ny*nz])
+                toexplore.push(act+ny*nz);
+        }
 
+        //above
+        if((act/nz%ny)!=0 && grid[act-nz]!=2){
+            grid[act-nz]=check(act-nz,nx,ny,nz,tree,zero,halfdiag);
+            if(grid[act-nz])
+                toexplore.push(act-nz);
+        }
+        //below
+        if((act/nz%ny)<ny && grid[act+nz]!=2){
+            grid[act+nz]=check(act+nz,nx,ny,nz,tree,zero,halfdiag);
+            if(grid[act+nz])
+                toexplore.push(act+nz);
+        }
+
+        //behind
+        if((act%nz)!=0 && grid[act-1]!=2){
+            grid[act-1]=check(act-1,nx,ny,nz,tree,zero,halfdiag);
+            if(grid[act-1])
+                toexplore.push(act-1);
+        }
+        //before
+        if((act%nz)<nz && grid[act+1]!=2){
+            grid[act+1]=check(act+1,nx,ny,nz,tree,zero,halfdiag);
+            if(grid[act+1])
+                toexplore.push(act+1);
+        }
     }
+    tree.resetCollision();
 }
 
 
