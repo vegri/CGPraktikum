@@ -675,8 +675,10 @@ void CGView::keyPressEvent(QKeyEvent *e) {
             if(collVal>0.99*oldCollVal && rand()%500>k && k!=0){
                 uint n=rand()%this->packageList.size();
                 uint m=rand()%this->packageList.size();
-                while(trans[n].length()==0)
+                while(trans[n].length()==0){
                     n=rand()%this->packageList.size();
+                    std::cout << "Loop " << n << collVal <<std::endl;
+                }
                 if(rand()%2){
                     Quat4d rot=Quat4d(0.7,rotation[n]);
                     rot.normalize();
