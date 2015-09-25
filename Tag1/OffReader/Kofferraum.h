@@ -16,7 +16,6 @@
 #include "package.h"
 
 
-
 #ifndef VECMATH_VERSION
 #error "wrong vecmath included, must contain a VECMATH_VERSION macro"
 #else
@@ -113,6 +112,7 @@ protected:
   bool animationRunning;
   bool drawObb;
   double timeParameter;
+  double typical_diff;
 
   int animationMode;
   uint picked;

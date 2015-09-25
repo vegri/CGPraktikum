@@ -56,8 +56,10 @@ CGMainWindow::CGMainWindow (QWidget* parent, Qt::WindowFlags flags)
     setCentralWidget(f);
     ogl->zoom=0.002;
     statusBar()->showMessage("Ready",1000);
-    loadPackage1();
-    ogl->packageList[0].setCenter(Vector3d(0,0,255));
+    loadPackage4();
+    loadPackage4();
+    loadPackage4();
+    //ogl->packageList[0].setCenter(Vector3d(0,0,255));
     //ogl->packageList[0].setCenter(Vector3d(-584,482.873,218.602));
     //ogl->packageList[0].setRot(Quat4d(-0.434506,0.206074,-0.465432,0.743043));
     loadPoly("../TestKofferraumIKEA.off");
@@ -219,6 +221,7 @@ void CGMainWindow::loadPoly(QString filename){
 CGView::CGView (CGMainWindow *mainwindow,QWidget* parent ):
     QGLWidget (parent), mouse_mode(Qt::NoButton),SLERP(0),
     EULER_ANGLES(1){
+    typical_diff=0;
     picked=-1;
     picked_active=false;
     projRot=false;
@@ -664,12 +667,12 @@ void CGView::keyPressEvent(QKeyEvent *e) {
         uint k=0;
         vecvec3d trans(this->packageList.size()),
                  rotation(this->packageList.size());
-        while(collVal!=0 && k<50){
+        while(collVal!=0 && k<500){
             k++;
             oldCollVal=collVal;
             collVal=resolveCollision(trans,rotation);
 
-            if(collVal>0.9*oldCollVal && rand()%16>1 && k!=0){
+            if(collVal>0.99*oldCollVal && rand()%500>k && k!=0){
                 uint n=rand()%this->packageList.size();
                 while(trans[n].length()!=0)
                     n=rand()%this->packageList.size();
@@ -680,6 +683,7 @@ void CGView::keyPressEvent(QKeyEvent *e) {
                 } else {
                     this->packageList[n].move(trans[n]);
                 }
+                 std::cout << "Jump occured" <<std::endl;
             }
 
             std::cout << collVal <<std::endl;
@@ -709,7 +713,9 @@ double CGView::resolveCollision(vecvec3d trans, vecvec3d rotation){
         if(trans[i].length()>0 && rotation[i].length()>0){
             this->packageList[i].move(trans[i]*step_size);
             diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
-            if(diff<0 && rand()<-diff/this->packageList[i].getDiameter()){
+            typical_diff+=fabs(diff)/this->packageList.size()/5000;
+
+            if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
                 this->packageList[i].move(-trans[i]*step_size);
             } else {
                 result=result-diff;
@@ -720,7 +726,7 @@ double CGView::resolveCollision(vecvec3d trans, vecvec3d rotation){
             Quat4d rot=Quat4d(step_size,rotation[i]);
             this->packageList[i].rotate(rot);
             diff=result-getUtilityValue(i,trans_tmp,rotation_tmp);
-            if(diff<0 && rand()<-diff/this->packageList[i].getDiameter()){
+            if(diff<0 && rand()<RAND_MAX*exp(-fabs(diff)/typical_diff)){
                 this->packageList[i].rotate(rot.inverse());
             } else {
                 result=result-diff;
@@ -769,9 +775,9 @@ double CGView::getUtilityValue(vecvec3d &trans,vecvec3d &rotation)
 
                 //Get motion for triangle collision resolution and rotation axis
                 boot.getIntersectDirs(potDir,triMids);
-                for (uint i = 0; i < potDir.size(); ++i) {
-                    triangleMotion+=potDir[i];
-                    rotDir+=((pack.getCenter()-triMids[i])%potDir[i]);
+                for (uint l = 0; l < potDir.size(); ++l) {
+                    triangleMotion+=potDir[l];
+                    rotDir+=((pack.getCenter()-triMids[l])%potDir[l]);
                 }
 
                 triangleMotion=triangleMotion/potDir.size();
@@ -821,9 +827,9 @@ double CGView::getUtilityValue(uint pack_idx, vecvec3d &trans,vecvec3d &rotation
 
             //Get motion for triangle collision resolution and rotation axis
             boot.getIntersectDirs(potDir,triMids);
-            for (uint i = 0; i < potDir.size(); ++i) {
-                triangleMotion+=potDir[i];
-                rotDir+=((pack.getCenter()-triMids[i])%potDir[i]);
+            for (uint l = 0; l < potDir.size(); ++l) {
+                triangleMotion+=potDir[l];
+                rotDir+=((pack.getCenter()-triMids[l])%potDir[l]);
             }
 
             triangleMotion=triangleMotion/potDir.size();
